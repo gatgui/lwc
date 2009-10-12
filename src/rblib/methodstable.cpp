@@ -1,0 +1,96 @@
+/*
+
+This file is part of lwc.
+
+lwc is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+lwc is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with lwc.  If not, see <http://www.gnu.org/licenses/>.
+
+*/
+
+#include <lwc/ruby/types.h>
+#include <lwc/ruby/utils.h>
+
+namespace rb {
+
+VALUE cLWCMethodsTable = Qnil;
+
+void rbmtbl_mark(void *data) {
+}
+
+void rbmtbl_sweep(void *data) {
+}
+
+static VALUE rbmtbl_alloc(VALUE klass) {
+  lwc::MethodsTable *table = 0;
+  return rb::WrapPointer(klass, table, rbmtbl_mark, rbmtbl_sweep);
+}
+
+static VALUE rbmtbl_init(VALUE self) {
+  return self;
+}
+
+static VALUE rbmtbl_availables(VALUE self) {
+  lwc::MethodsTable *mt = 0;
+  rb::Exc::GetPointer(self, mt);
+  std::vector<std::string> names;
+  mt->availableMethods(names);
+  VALUE rv = rb_ary_new2(names.size());
+  for (size_t i=0; i<names.size(); ++i) {
+    rb_ary_store(rv, i, rb_str_new2(names[i].c_str()));
+  }
+  return rv;
+}
+
+static VALUE rbmtbl_find(VALUE self, VALUE rname) {
+  lwc::MethodsTable *mt = 0;
+  rb::Exc::GetPointer(self, mt);
+  VALUE sname = rb_check_string_type(rname);
+  char *mn = RSTRING(sname)->ptr;
+  lwc::Method *m = mt->findMethod(mn);
+  if (!m) {
+    return Qnil;
+  } else {
+    VALUE rv = rb_funcall2(cLWCMethod, rb_intern("new"), 0, NULL);
+    lwc::Method *rm = 0;
+    rb::Exc::GetPointer(rv, rm);
+    *rm = *m;
+    return rv;
+  }
+}
+
+static VALUE rbmtbl_count(VALUE self) {
+  lwc::MethodsTable *mt = 0;
+  rb::Exc::GetPointer(self, mt);
+  return ULONG2NUM(mt->numMethods());
+}
+
+static VALUE rbmtbl_tos(VALUE self) {
+  lwc::MethodsTable *mt = 0;
+  rb::Exc::GetPointer(self, mt);
+  std::string s = mt->toString();
+  return rb_str_new2(s.c_str());
+}
+
+bool InitMethodsTable(VALUE mod) {
+  cLWCMethodsTable = rb_define_class_under(mod, "MethodsTable", rb_cObject);
+  rb_define_alloc_func(cLWCMethodsTable, rbmtbl_alloc);
+  rb_define_method(cLWCMethodsTable, "initialize", RBM(rbmtbl_init), 0);
+  rb_define_method(cLWCMethodsTable, "findMethod", RBM(rbmtbl_find), 1);
+  rb_define_method(cLWCMethodsTable, "availableMethods", RBM(rbmtbl_availables), 0);
+  rb_define_method(cLWCMethodsTable, "numMethods", RBM(rbmtbl_count), 0);
+  rb_define_method(cLWCMethodsTable, "to_s", RBM(rbmtbl_tos), 0);
+  return true;
+}
+
+}
+

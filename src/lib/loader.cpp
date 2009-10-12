@@ -1,0 +1,86 @@
+/*
+
+This file is part of lwc.
+
+lwc is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+lwc is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with lwc.  If not, see <http://www.gnu.org/licenses/>.
+
+*/
+
+#include <lwc/loader.h>
+#include <lwc/registry.h>
+
+namespace lwc {
+
+Loader::Loader() {
+}
+
+Loader::~Loader() {
+}
+
+bool Loader::registerType(const char *name, Factory *f, Registry *reg) {
+  if (reg->registerType(name, this)) {
+    mFactories[name] = f;
+    return true;
+  } else {
+    return false;
+  }
+}
+
+const char* Loader::getTypeName(size_t idx) const throw(std::runtime_error) {
+  if (idx >= mFactories.size()) {
+    std::ostringstream oss;
+    oss << "Type index out of range: \"" << idx << "\"";
+    throw std::runtime_error(oss.str());
+  }
+  std::map<std::string, Factory*>::const_iterator it = mFactories.begin();
+  for (size_t i=0; i<idx; ++i, ++it);
+  return it->first.c_str();
+}
+
+const MethodsTable* Loader::getMethods(const char *name) {
+  std::map<std::string, Factory*>::iterator it = mFactories.find(name);
+  if (it != mFactories.end()) {
+    return it->second->getMethods(name);
+  } else {
+    return 0;
+  }
+}
+
+Object* Loader::create(const char *name) {
+  std::map<std::string, Factory*>::iterator it = mFactories.find(name);
+  if (it != mFactories.end()) {
+    Object *obj = it->second->create(name);
+    obj->setMethodTable(it->second->getMethods(name));
+    obj->setTypeName(name);
+    obj->setLoaderName(getName());
+    return obj;
+  } else {
+    return 0;
+  }
+}
+
+void Loader::destroy(Object *o) {
+  if (!o || o->mLoaderName != getName()) {
+    return;
+  }
+  std::map<std::string, Factory*>::iterator it = mFactories.find(o->mTypeName.c_str());
+  if (it != mFactories.end()) {
+    it->second->destroy(o);
+  }
+}
+
+}
+
+
+

@@ -1,0 +1,45 @@
+
+x Method description as static class members
+  (so we can build a class viewer, don't need to allocate TMethodPointer for each instance)
+x T_BOOL type
+x NOT REQUIRED IS IT? MethodParams class wrapping in python
+x Memory allocation tracking (show results when DeInitialize registry)
+x Method in MethodsTable not as Pointers !
+x Fix python module then
+x Added new methods in registry (getMethods(), getNumTypes(), getTypeName())
+x Make MethodsTable accessible in python
+x With python loader there seems to be a garbage collecting error somewhere
+  at exit time:
+  
+  Exception exceptions.AttributeError: "'il.Object' object has no attribute 'getHeight'" in 'garbage collection' ignored
+  Fatal Python error: unexpected exception during garbage collection
+  Aborted
+  
+x Python loader
+  Nearly done, object are registered properly now
+  Just have to implement to C call to a python method and the shortcut when
+    calling python module objects from python:
+  
+  if (obj->getLoaderName() == "pyloader") {
+    PyILObject *pyobj = (PyILObject*) obj;
+    return PyObject_CallMethod(pyobj->mSelf, "methodName", args)
+  }
+
+- MethodsTable.availableMethods seems to do weird things in python
+- Add information on allocation in python modules (so we know where leaks are if needed)
+x Deleting TMethodPointer from static array fails
+- Unit test (test all arguments, all type and direction)
+x Ruby module and loader
+x Lua module
+x Lua loader
+
+Check
+- lua_checkstack() in callmethod, as in lua, the stack won't grow automatically
+
+Change:
+- only BOOL, INTEGER, REAL, STRING, OBJECT for types?
+
+Add
+- General functions/constants
+- Class constants/methods
+

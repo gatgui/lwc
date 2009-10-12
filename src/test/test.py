@@ -1,0 +1,105 @@
+import lwcpy
+
+print("### Initialize")
+reg = lwcpy.Initialize()
+
+print("### Add loader path")
+reg.addLoaderPath("./components/loaders")
+
+print("### Add module path")
+reg.addModulePath("./components/modules")
+
+print("### Available types")
+for i in xrange(reg.numTypes()):
+  print("  %s" % reg.getTypeName(i))
+
+print("### Has type \"pytest.ObjectList\"?")
+if reg.hasType("pytest.ObjectList"):
+  print("true")
+  ml = reg.getMethods("pytest.ObjectList")
+  print(ml)
+  # This seems to do weird things
+  #for n in ml.availableMethods():
+  #  print(n)
+  print("### Create a pytest.ObjectList")
+  lst = reg.create("pytest.ObjectList")
+  print(lst)
+  print("### Create a test.Box")
+  box = reg.create("test.Box")
+  print(box)
+  print("### Add box to list")
+  lst.push(box)
+  print(lst.size())
+  print("### Destroy box & list")
+  reg.destroy(box)
+  reg.destroy(lst)
+else:
+  print("false")
+
+print("### Methods of test.DoubleBox")
+table = reg.getMethods("test.DoubleBox")
+# DOING THAT, there were a strange behavior in python:
+#  it was complaining 'lwcpy.Object' had no attribute 'size' [this is the last function
+#                                                          called on an object]
+#print(table.availableMethods)
+#methods = table.availableMethods()
+#print(type(methods))
+#for n in methods:
+#  print("  %s%s" % (n, table.findMethod(n)))
+
+print("### Create object test.DoubleBox")
+obj = reg.create("test.DoubleBox")
+print(obj)
+
+print("### list attr")
+print(dir(obj))
+
+print("### Check available methods")
+for n in obj.availableMethods():
+  print(n)
+
+print("### getWidth attrib")
+print(obj.getWidth)
+
+print("### call getters")
+print(obj.getX())
+print(obj.getY())
+print(obj.getWidth())
+print(obj.getHeight())
+
+print("### call setters")
+obj.setX(10)
+obj.setY(2)
+obj.setWidth(300)
+obj.setHeight(150)
+
+print("### clone")
+obj2 = obj.toBox()
+
+print("### call getters on Box")
+print(obj2.getX())
+print(obj2.getY())
+print(obj2.getWidth())
+print(obj2.getHeight())
+
+print("### Destroy objects")
+reg.destroy(obj)
+reg.destroy(obj2)
+
+print("### test lua object")
+obj = reg.create("luatest.Dict")
+print("  size = %d" % obj.size())
+print("  add keys")
+obj.set("poo", "hello")
+obj.set("grrr", "goodbye")
+print("  check keys")
+print(obj.get("poo"))
+print(obj.get("grrr"))
+print(obj.keys())
+print(obj.values())
+reg.destroy(obj)
+
+
+print("### DeInitialize")
+lwcpy.DeInitialize()
+
