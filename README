@@ -1,3 +1,353 @@
 Author: Gaetan Guidet - gatgui@gmail.com
 
+What's lwc?
+-----------
+
 lwc stands for "Light Weight Component"
+
+
+Why lwc?
+--------
+
+
+
+What's implemented so far?
+--------------------------
+
+The base library implements the base introspection and call system and the registry
+from which you can create new objects.
+Python, Ruby and LUA bridges.
+A bridge is the set of the base library wrapper and a component loader for that language
+The component loader is in charge of creating component written in that language so they
+can be used in any other supported language.
+
+  
+How to use lwc?
+---------------
+  
+  * Initialization:
+  
+    C++:
+      lwc::Registry *reg = lwc::Registry::Initialize();
+    
+    Python:
+      import lwcpy
+      reg = lwcpy.Initialize()
+    
+    Ruby:
+      require "RLWC"
+      reg = RLWC.Initialize()
+    
+    LUA:
+      require "llwc"
+      reg = llwc.Initialize()
+  
+  * Add directories to look component loaders for (language support):
+  
+    C++:
+      reg->addLoaderPath("./components/loaders")
+    
+    Python/Ruby:
+      reg.addLoaderPath("./components/loaders")
+    
+    LUA:
+      reg:addLoaderPath("./components/loaders")
+  
+  * Add directories to look modules for (modules are a set of objects that can be instanciated via the registry)
+  
+    C++:
+      reg->addModulePath("./components/modules")
+    
+    Python/Ruby:
+      reg.addModulePath("./components/modules")
+    
+    LUA:
+      reg:addModulePath("./components/modules")
+  
+  * Check available types:
+  
+    C++:  
+      size_t n = reg->numTypes();
+      const char *tn = reg->getTypeName(0);
+      reg->hasType("myType");
+  
+    Python/Ruby:
+      n = reg.numTypes()
+      tn = reg.getTypeName(0)
+      reg.hasType("myType")
+    
+    LUA:
+      n = reg:numTypes()
+      tn = reg:getTypeName(0)
+      reg:hasType("myType")
+      
+  * Creating and destroying objects:
+  
+    C++:
+      lwc::Object *obj = reg->create("myType");
+      reg->destroy(obj);
+    
+    Python/Ruby:
+      obj = reg.create("myType")
+      reg.destroy(obj)
+    
+    LUA:
+      obj = reg:create("myType")
+      reg:destroy(obj)
+  
+  * Calling objects method:
+  
+    Limitation:
+      Objects method can have no more that 16 arguments
+      This is an implementation issue. At the time being, i use template class and methods
+        to do the type checking.
+    
+    C++:
+      obj->call("methodName", arg0, arg1, ...);
+    
+    Python/Ruby:
+      obj.methodName(arg0, arg1, ...)
+    
+    LUA:
+      obj:methodName(arg0, arg1, ...)
+  
+  * Cleanup:
+  
+    C++:
+      lwc::Registry::DeInitialize();
+    
+    Python:
+      lwcpy.DeInitialize()
+    
+    Ruby:
+      RLWC.DeInitialize()
+    
+    LUA:
+      llwc.DeInitialize()
+  
+  How to create Modules:
+    
+    But first, a little work on method description
+      ...
+    
+    in C++:
+      This is by far the most annoying language to write components in.
+      
+      You need first to create subclass of lwc::Object for each of your types
+      
+      Then you'all have to create factory objects (either one for each of your types,
+      or a simple one, whichever you prefer)
+      
+      Define the module functions required by the C loader
+      
+      > simple.cpp
+      
+      
+    in Ruby:
+      Create a file name <modulename>.rb
+      
+      The file must contain a real Ruby module named after the file (with first letter
+        uppercased [this is a ruby requirement for module names])
+      
+      For each of the components you want to put in that module, define a new sub-class
+        of RWLC::Object, and add a class constant named "Methods" to contain the description
+        of all the methods you want to expose.
+      
+      Define the module functions required by the ruby loader 
+        LWC_ModuleGetTypeCount()
+        LWC_ModuleGetTypeName(idx)
+        LWC_ModuleGetTypeClass(idx)
+        
+      > simple.rb
+      
+      require "RLWC"
+      
+      module Simple
+        
+        class Test < RWLC::Object
+          
+          Methods = {
+            :doSomething0 => [[RWLC::AD_IN, RWLC::AT_STRING], [RWLC::AD_RETURN, RWLC::AT_LONG]],
+            :doSomething1 => [[RWLC::AD_RETURN, RWLC::AT_LONG]]
+          }
+          
+          def initialize()
+            super()
+            @longDict = {}
+          end
+          
+          def doSomething0(key)
+            if not @longDict.has_key?(key) then
+              raise "Invalid key"
+            end
+            return @longDict[key]
+          end
+          
+          def doSomething1()
+            return @longDict.size
+          end
+          
+        end
+        
+        
+        def self.LWC_ModuleGetTypeCount()
+          return 1
+        end
+        
+        def self.LWC_ModuleGetTypeName(idx)
+          return (idx == 0 ? "simple.Test" : nil)
+        end
+        
+        def self.LWC_ModuleGetTypeClass(idx)
+          return (idx == 0 ? Simple : nil)
+        end
+      end
+    
+    in Python:
+      Create a file name <modulename>.py
+      
+      For each of the components you want to put in that module, define a new sub-class
+        of lwcpy.Object, and add a class constant named "Methods" to contain the description
+        of all the methods you want to expose.
+      
+      Define the module functions required by the python loader 
+        LWC_ModuleGetTypeCount()
+        LWC_ModuleGetTypeName(idx)
+        LWC_ModuleGetTypeClass(idx)
+      
+      > simple.py
+      
+      import lwcpy
+      
+      class Test(lwcpy.Object):
+          
+        Methods = {
+          "doSomething0": [(lwcpy.AD_IN, lwcpy.AT_STRING), (lwcpy.AD_RETURN, lwcpy.AT_LONG)],
+          "doSomething1": [(lwcpy.AD_RETURN, lwcpy.AT_LONG)]
+        }
+        
+        def __init__(self):
+          lwcpy.Object.__init__(self)
+          self.longDict = {}
+        
+        def doSomething0(self, key):
+          if not key in self.longDict:
+            raise Exception("Invalid key")
+          return self.longDict[key]
+        
+        def doSomething1(self):
+          return len(self.longDict)
+        
+      
+      def LWC_ModuleGetTypeCount():
+        return 1
+      
+      def LWC_ModuleGetTypeName(idx):
+        return "simple.Test" if idx == 0 else None
+      
+      def LWC_ModuleGetTypeClass(idx):
+        return Simple if idx == else None
+      
+    
+    in LUA:  
+      
+      Create a file name <modulename>.lua
+      
+      Create a new module
+      
+      For each of the components you want to put in that module, define a new table
+        (which will be used as a metatable) and add a member named "Methods" to contain
+        the description of all the methods you want to expose.
+      
+      If your object is to be a direct sub-class of llwc.Object (remember, LUA does not
+      have classes, it uses metatables) you'll have to define the __index member in your
+      type metatable so that it forwards any non-defined member request to its "lwcobj"
+      member obj (this member is set by the loader automatically, the reason why the __index
+      event cannot be automatically generated is that it's not necessarily required for every new type)
+      
+      You also have to define a "new" function to your type tables that returns a new table with its metatable
+      set properly
+      
+      NOTE:
+        there is room for improvement in the way the loader handles components
+      
+      Define the module functions required by the lua loader 
+        LWC_ModuleGetTypeCount()
+        LWC_ModuleGetTypeName(idx)
+        LWC_ModuleGetTypeClass(idx)
+      
+      > simple.lua
+      
+      require "llwc"
+      
+      module(..., package.seeall)
+      
+      local Test = {}
+      
+      Test.Methods = {}
+      Test.Methods.doSomething0 = {{llwc.AD_IN, llwc.AT_STRING}, {llwc.AD_RETURN, llwc.AT_LONG}}
+      Test.Methods.doSomething1 = {{llwc.AD_RETURN, llwc.AT_LONG}}
+      
+      Test.__index = function (self, member)
+        val = Test[member]
+        if val == nil then
+          val = self.lwcobj[member]
+        end
+        return val
+      end
+      
+      Test.new = function ()
+        self = {}
+        self.lwcobj = nil -- no required, it will be set by the loader if you forget
+        self.longDict = {}
+        setmetatable(self, Test)
+        return self
+      end
+      
+      Test.doSomething0 = function (self, key)
+        return self.longDict[key]
+      end
+      
+      Test.doSomething1 = function (self)
+        n = 0
+        for k,v in pairs(self.longDict) do
+          n = n + 1
+        end
+        return n
+      end
+      
+      
+      function LWC_ModuleGetTypeCount()
+        return 1
+      end
+      
+      function LWC_ModuleGetTypeName(idx)
+        if idx == 1 then
+          return "simple.Test"
+        else
+          return nil
+        end
+      end
+      
+      function LWC_ModuleGetTypeClass(idx)
+        if idx == 1 then
+          return Test
+        else
+          return nil
+        end
+      end
+
+
+ToDo list
+---------
+
+* Test suite
+* Add support for module constants
+* Add support for module functions
+* Remove the "const" specifier from the argument declaration
+  => Set all input arguments as "const" and the other "non-const"
+* Embedded the "array" specifier in the type
+* Restrict list of types to: boolean, integer, real, string, object
+  (in most scripting language, there's no distinction between long, int, short or char.
+   Pretty much the same way, no distinction between signed and un-signed. This makes
+   things too cryptic anyway, just use long)

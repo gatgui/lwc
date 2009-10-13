@@ -24,6 +24,11 @@ else:
 
 luaprefix = ARGUMENTS.get("luaprefix", luaprefix)
 
+print("LUA prefix: \"%s\" (override using luaprefix=<prefix>" % luaprefix)
+variant = "Debug" if debug_build else "Release"
+variant += " %s build (override using debug=1|0)" % arch
+print(variant)
+
 def MakeBaseEnvironment():
   if plat == WINDOWS:
     msvs_version = ARGUMENTS.get("MSVS_VERSION", "8.0")
