@@ -67,6 +67,16 @@ else
 	print("  numkeys = " .. tostring(obj:size()))
 	print("  " .. obj:get("key"))
 	print("  " .. obj:get("value"))
+	kl = " "
+	vl = " "
+	for idx,val in ipairs(obj:keys()) do
+	  kl = kl .. " " .. tostring(val)
+	end
+	for idx,val in ipairs(obj:values()) do
+	  vl = vl .. " " .. tostring(val)
+	end
+	print(kl)
+	print(vl)
 	reg:destroy(obj)
 end
 

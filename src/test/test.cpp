@@ -24,6 +24,8 @@ USA.
 #include <lwc/object.h>
 #include <lwc/registry.h>
 
+using lwc::Integer;
+
 int main(int, char**) {
   
   lwc::Registry *reg = lwc::Registry::Initialize();
@@ -54,37 +56,58 @@ int main(int, char**) {
     std::cout << names[i] << std::endl;
   }
   
+  lwc::Object *c = 0;
+  Integer val = 0;
+  
   std::cout << "=== Fool around..." << std::endl;
-  b->call("setX", 10);
-  b->call("setY", 10);
-  b->call("setWidth", 400);
-  b->call("setHeight", 400);
+  try {
+    /*
+    val = 10;
+    b->call("setX", val);
+    b->call("setY", val);
+    val = 400;
+    b->call("setWidth", val);
+    b->call("setHeight", val);
+    */
+    b->call("setX", 10);
+    b->call("setY", 10);
+    b->call("setWidth", 400);
+    b->call("setHeight", 400);
+    
+    b->call("getX", &val);
+    std::cout << "getX = " << val << std::endl;
+    b->call("getY", &val);
+    std::cout << "getY = " << val << std::endl;
+    b->call("getWidth", &val);
+    std::cout << "getWidth = " << val << std::endl;
+    b->call("getHeight", &val);
+    std::cout << "getHeight = " << val << std::endl;
+    
+    
+    val = 1;
+    
+    b->call("setY", val);
+    b->call("setX", val);
+    
+    std::cout << "call toBox" << std::endl;
+    
+    b->call("toBox", &c);
+    
+    c->call("getX", &val);
+    std::cout << "getX = " << val << std::endl;
+    c->call("getY", &val);
+    std::cout << "getY = " << val << std::endl;
+    c->call("getWidth", &val);
+    std::cout << "getWidth = " << val << std::endl;
+    c->call("getHeight", &val);
+    std::cout << "getHeight = " << val << std::endl;
+    
+  } catch (std::exception &e) {
+    std::cout << "*** Caught exception: " << e.what() << std::endl;
+  }
   
-  int val;
-  
-  b->call("getX", &val);
-  std::cout << "getX = " << val << std::endl;
-  
-  val = 1;
-  
-  b->call("setY", val);
-  b->call("setX", val);
-  
-  std::cout << "call toBox" << std::endl;
-  lwc::Object *c;
-  b->call("toBox", &c);
-  
-  c->call("getX", &val);
-  std::cout << "getX = " << val << std::endl;
-  c->call("getY", &val);
-  std::cout << "getY = " << val << std::endl;
-  c->call("getWidth", &val);
-  std::cout << "getWidth = " << val << std::endl;
-  c->call("getHeight", &val);
-  std::cout << "getHeight = " << val << std::endl;
-  
-  reg->destroy(c);
-  reg->destroy(b);
+  if (c) reg->destroy(c);
+  if (b) reg->destroy(b);
   
   lwc::Registry::DeInitialize();
   

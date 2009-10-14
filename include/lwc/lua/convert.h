@@ -41,65 +41,17 @@ namespace lua {
     static void ToC(lua_State *L, int idx, bool &val) {val = lua_toboolean(L, idx);}
     static void Dispose(bool &) {}
   };
-  template <> struct LuaType<char> {
+  template <> struct LuaType<lwc::Integer> {
     static const char* Name() {return "integer";}
     static bool Check(lua_State *L, int idx) {return lua_isnumber(L, idx);}
-    static void ToC(lua_State *L, int idx, char &val) {val = (char) lua_tointeger(L, idx);}
-    static void Dispose(char &) {}
+    static void ToC(lua_State *L, int idx, lwc::Integer &val) {val = (lwc::Integer) lua_tointeger(L, idx);}
+    static void Dispose(lwc::Integer &) {}
   };
-  template <> struct LuaType<unsigned char> {
-    static const char* Name() {return "integer";}
-    static bool Check(lua_State *L, int idx) {return lua_isnumber(L, idx);}
-    static void ToC(lua_State *L, int idx, unsigned char &val) {val = (unsigned char) lua_tointeger(L, idx);}
-    static void Dispose(unsigned char &) {}
-  };
-  template <> struct LuaType<short> {
-    static const char* Name() {return "integer";}
-    static bool Check(lua_State *L, int idx) {return lua_isnumber(L, idx);}
-    static void ToC(lua_State *L, int idx, short &val) {val = (short) lua_tointeger(L, idx);}
-    static void Dispose(short &) {}
-  };
-  template <> struct LuaType<unsigned short> {
-    static const char* Name() {return "integer";}
-    static bool Check(lua_State *L, int idx) {return lua_isnumber(L, idx);}
-    static void ToC(lua_State *L, int idx, unsigned short &val) {val = (unsigned short) lua_tointeger(L, idx);}
-    static void Dispose(unsigned short &) {}
-  };
-  template <> struct LuaType<int> {
-    static const char* Name() {return "integer";}
-    static bool Check(lua_State *L, int idx) {return lua_isnumber(L, idx);}
-    static void ToC(lua_State *L, int idx, int &val) {val = (int) lua_tointeger(L, idx);}
-    static void Dispose(int &) {}
-  };
-  template <> struct LuaType<unsigned int> {
-    static const char* Name() {return "integer";}
-    static bool Check(lua_State *L, int idx) {return lua_isnumber(L, idx);}
-    static void ToC(lua_State *L, int idx, unsigned int &val) {val = (unsigned int) lua_tointeger(L, idx);}
-    static void Dispose(unsigned int &) {}
-  };
-  template <> struct LuaType<long> {
-    static const char* Name() {return "integer";}
-    static bool Check(lua_State *L, int idx) {return lua_isnumber(L, idx);}
-    static void ToC(lua_State *L, int idx, long &val) {val = (long) lua_tointeger(L, idx);}
-    static void Dispose(long &) {}
-  };
-  template <> struct LuaType<unsigned long> {
-    static const char* Name() {return "integer";}
-    static bool Check(lua_State *L, int idx) {return lua_isnumber(L, idx);}
-    static void ToC(lua_State *L, int idx, unsigned long &val) {val = (unsigned long) lua_tointeger(L, idx);}
-    static void Dispose(unsigned long &) {}
-  };
-  template <> struct LuaType<float> {
+  template <> struct LuaType<lwc::Real> {
     static const char* Name() {return "real";}
     static bool Check(lua_State *L, int idx) {return lua_isnumber(L, idx);}
-    static void ToC(lua_State *L, int idx, float &val) {val = (float) lua_tonumber(L, idx);}
-    static void Dispose(float &) {}
-  };
-  template <> struct LuaType<double> {
-    static const char* Name() {return "real";}
-    static bool Check(lua_State *L, int idx) {return lua_isnumber(L, idx);}
-    static void ToC(lua_State *L, int idx, double &val) {val = lua_tonumber(L, idx);}
-    static void Dispose(double &) {}
+    static void ToC(lua_State *L, int idx, lwc::Real &val) {val = (lwc::Real) lua_tonumber(L, idx);}
+    static void Dispose(lwc::Real &) {}
   };
   template <> struct LuaType<char*> {
     static const char* Name() {return "string";}
@@ -146,35 +98,11 @@ namespace lua {
       lua_pushboolean(L, val);
     }
   };
-  template <> struct CType<char> {
-    static void ToLua(const char &val, lua_State *L) {lua_pushinteger(L, val);}
+  template <> struct CType<lwc::Integer> {
+    static void ToLua(const lwc::Integer &val, lua_State *L) {lua_pushinteger(L, val);}
   };
-  template <> struct CType<unsigned char> {
-    static void ToLua(const unsigned char &val, lua_State *L) {lua_pushinteger(L, val);}
-  };
-  template <> struct CType<short> {
-    static void ToLua(const short &val, lua_State *L) {lua_pushinteger(L, val);}
-  };
-  template <> struct CType<unsigned short> {
-    static void ToLua(const unsigned short &val, lua_State *L) {lua_pushinteger(L, val);}
-  };
-  template <> struct CType<int> {
-    static void ToLua(const int &val, lua_State *L) {lua_pushinteger(L, val);}
-  };
-  template <> struct CType<unsigned int> {
-    static void ToLua(const unsigned int &val, lua_State *L) {lua_pushinteger(L, val);}
-  };
-  template <> struct CType<long> {
-    static void ToLua(const long &val, lua_State *L) {lua_pushinteger(L, val);}
-  };
-  template <> struct CType<unsigned long> {
-    static void ToLua(const unsigned long &val, lua_State *L) {lua_pushinteger(L, val);}
-  };
-  template <> struct CType<float> {
-    static void ToLua(const float &val, lua_State *L) {lua_pushnumber(L, val);}
-  };
-  template <> struct CType<double> {
-    static void ToLua(const double &val, lua_State *L) {lua_pushnumber(L, val);}
+  template <> struct CType<lwc::Real> {
+    static void ToLua(const lwc::Real &val, lua_State *L) {lua_pushnumber(L, val);}
   };
   template <> struct CType<char*> {
     static void ToLua(const char *val, lua_State *L) {lua_pushstring(L, val);}

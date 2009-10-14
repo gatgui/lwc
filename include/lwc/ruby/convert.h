@@ -42,65 +42,17 @@ namespace rb {
     static void ToC(VALUE obj, bool &val) {val = (obj == Qtrue);}
     static void Dispose(bool &) {}
   };
-  template <> struct RubyType<char> {
+  template <> struct RubyType<lwc::Integer> {
     static const char* Name() {return "integer";}
     static bool Check(VALUE obj) {return (TYPE(obj) == T_FIXNUM || TYPE(obj) == T_BIGNUM);}
-    static void ToC(VALUE obj, char &val) {val = (char) NUM2LONG(obj);}
-    static void Dispose(char &) {}
+    static void ToC(VALUE obj, lwc::Integer &val) {val = (lwc::Integer) NUM2LONG(obj);} // review this one
+    static void Dispose(lwc::Integer &) {}
   };
-  template <> struct RubyType<unsigned char> {
-    static const char* Name() {return "integer";}
-    static bool Check(VALUE obj) {return (TYPE(obj) == T_FIXNUM || TYPE(obj) == T_BIGNUM);}
-    static void ToC(VALUE obj, unsigned char &val) {val = (unsigned char) NUM2LONG(obj);}
-    static void Dispose(unsigned char &) {}
-  };
-  template <> struct RubyType<short> {
-    static const char* Name() {return "integer";}
-    static bool Check(VALUE obj) {return (TYPE(obj) == T_FIXNUM || TYPE(obj) == T_BIGNUM);}
-    static void ToC(VALUE obj, short &val) {val = (short) NUM2LONG(obj);}
-    static void Dispose(short &) {}
-  };
-  template <> struct RubyType<unsigned short> {
-    static const char* Name() {return "integer";}
-    static bool Check(VALUE obj) {return (TYPE(obj) == T_FIXNUM || TYPE(obj) == T_BIGNUM);}
-    static void ToC(VALUE obj, unsigned short &val) {val = (unsigned short) NUM2LONG(obj);}
-    static void Dispose(unsigned short &) {}
-  };
-  template <> struct RubyType<int> {
-    static const char* Name() {return "integer";}
-    static bool Check(VALUE obj) {return (TYPE(obj) == T_FIXNUM || TYPE(obj) == T_BIGNUM);}
-    static void ToC(VALUE obj, int &val) {val = (int) NUM2INT(obj);}
-    static void Dispose(int &) {}
-  };
-  template <> struct RubyType<unsigned int> {
-    static const char* Name() {return "integer";}
-    static bool Check(VALUE obj) {return (TYPE(obj) == T_FIXNUM || TYPE(obj) == T_BIGNUM);}
-    static void ToC(VALUE obj, unsigned int &val) {val = (unsigned int) NUM2UINT(obj);}
-    static void Dispose(unsigned int &) {}
-  };
-  template <> struct RubyType<long> {
-    static const char* Name() {return "integer";}
-    static bool Check(VALUE obj) {return (TYPE(obj) == T_FIXNUM || TYPE(obj) == T_BIGNUM);}
-    static void ToC(VALUE obj, long &val) {val = NUM2LONG(obj);}
-    static void Dispose(long &) {}
-  };
-  template <> struct RubyType<unsigned long> {
-    static const char* Name() {return "integer";}
-    static bool Check(VALUE obj) {return (TYPE(obj) == T_FIXNUM || TYPE(obj) == T_BIGNUM);}
-    static void ToC(VALUE obj, unsigned long &val) {val = NUM2ULONG(obj);}
-    static void Dispose(unsigned long &) {}
-  };
-  template <> struct RubyType<float> {
+  template <> struct RubyType<lwc::Real> {
     static const char* Name() {return "real";}
     static bool Check(VALUE obj) {return (TYPE(obj) == T_FLOAT || TYPE(obj) == T_FIXNUM || TYPE(obj) == T_BIGNUM);}
-    static void ToC(VALUE obj, float &val) {val = (float) NUM2DBL(obj);}
-    static void Dispose(float &) {}
-  };
-  template <> struct RubyType<double> {
-    static const char* Name() {return "real";}
-    static bool Check(VALUE obj) {return (TYPE(obj) == T_FLOAT || TYPE(obj) == T_FIXNUM || TYPE(obj) == T_BIGNUM);}
-    static void ToC(VALUE obj, double &val) {val = NUM2DBL(obj);}
-    static void Dispose(double &) {}
+    static void ToC(VALUE obj, lwc::Real &val) {val = NUM2DBL(obj);}
+    static void Dispose(lwc::Real &) {}
   };
   template <> struct RubyType<char*> {
     static const char* Name() {return "string";}
@@ -129,35 +81,11 @@ namespace rb {
       obj = (val == true ? Qtrue : Qfalse);
     }
   };
-  template <> struct CType<char> {
-    static void ToRuby(const char &val, VALUE &obj) {obj = INT2NUM(val);}
+  template <> struct CType<lwc::Integer> {
+    static void ToRuby(const lwc::Integer &val, VALUE &obj) {obj = LONG2NUM(val);} // review this one
   };
-  template <> struct CType<unsigned char> {
-    static void ToRuby(const unsigned char &val, VALUE &obj) {obj = INT2NUM(val);}
-  };
-  template <> struct CType<short> {
-    static void ToRuby(const short &val, VALUE &obj) {obj = INT2NUM(val);}
-  };
-  template <> struct CType<unsigned short> {
-    static void ToRuby(const unsigned short &val, VALUE &obj) {obj = INT2NUM(val);}
-  };
-  template <> struct CType<int> {
-    static void ToRuby(const int &val, VALUE &obj) {obj = INT2NUM(val);}
-  };
-  template <> struct CType<unsigned int> {
-    static void ToRuby(const unsigned int &val, VALUE &obj) {obj = UINT2NUM(val);}
-  };
-  template <> struct CType<long> {
-    static void ToRuby(const long &val, VALUE &obj) {obj = LONG2NUM(val);}
-  };
-  template <> struct CType<unsigned long> {
-    static void ToRuby(const unsigned long &val, VALUE &obj) {obj = ULONG2NUM(val);}
-  };
-  template <> struct CType<float> {
-    static void ToRuby(const float &val, VALUE &obj) {obj = rb_float_new(val);}
-  };
-  template <> struct CType<double> {
-    static void ToRuby(const double &val, VALUE &obj) {obj = rb_float_new(val);}
+  template <> struct CType<lwc::Real> {
+    static void ToRuby(const lwc::Real &val, VALUE &obj) {obj = rb_float_new(val);}
   };
   template <> struct CType<char*> {
     static void ToRuby(const char *val, VALUE &obj) {obj = rb_str_new2(val);}
@@ -221,8 +149,7 @@ namespace rb {
       lwc::memory::Free((void*)ary);
     }
   };
-
-
+  
   template <lwc::Type T> struct C2Ruby {
     
     typedef typename lwc::Enum2Type<T>::Type Type;
@@ -258,8 +185,7 @@ namespace rb {
       }
     }
   };
-
-
+  
   template <lwc::Type T> struct ParamConverter {
     
     typedef typename lwc::Enum2Type<T>::Type Type;

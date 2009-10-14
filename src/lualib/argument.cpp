@@ -104,14 +104,6 @@ static int luaarg_tos(lua_State *L) {
   return 1;
 }
 
-static int luaarg_isConst(lua_State *L) {
-  CheckArgCount(L, 1);
-  lwc::Argument &a = LuaArgument::UnWrap(L, 1);
-  lua_pop(L, 1);
-  lua_pushboolean(L, a.isConst());
-  return 1;
-}
-
 static int luaarg_isArray(lua_State *L) {
   CheckArgCount(L, 1);
   lwc::Argument &a = LuaArgument::UnWrap(L, 1);
@@ -149,30 +141,6 @@ static int luaarg_getType(lua_State *L) {
   lua_pop(L, 1);
   lua_pushinteger(L, a.getType());
   return 1;
-}
-
-static int luaarg_setConst(lua_State *L) {
-  CheckArgCount(L, 2);
-  lwc::Argument &a = LuaArgument::UnWrap(L, 1);
-  if (!lua_isboolean(L, 2)) {
-    return luaL_typerror(L, 2, "boolean");
-  }
-  bool val = lua_toboolean(L, 2);
-  lua_pop(L, 2);
-  a.setConst(val);
-  return 0;
-}
-
-static int luaarg_setArray(lua_State *L) {
-  CheckArgCount(L, 2);
-  lwc::Argument &a = LuaArgument::UnWrap(L, 1);
-  if (!lua_isboolean(L, 2)) {
-    return luaL_typerror(L, 2, "boolean");
-  }
-  bool val = lua_toboolean(L, 2);
-  lua_pop(L, 2);
-  a.setArray(val);
-  return 0;
 }
 
 static int luaarg_setDir(lua_State *L) {
@@ -240,14 +208,8 @@ bool InitArgument(lua_State *L, int module) {
   lua_setfield(L, klass, "__gc");
   lua_pushcfunction(L, luaarg_tos);
   lua_setfield(L, klass, "__tostring");
-  lua_pushcfunction(L, luaarg_isConst);
-  lua_setfield(L, klass, "isConst");
-  lua_pushcfunction(L, luaarg_setConst);
-  lua_setfield(L, klass, "setConst");
   lua_pushcfunction(L, luaarg_isArray);
   lua_setfield(L, klass, "isArray");
-  lua_pushcfunction(L, luaarg_setArray);
-  lua_setfield(L, klass, "setArray");
   lua_pushcfunction(L, luaarg_getDir);
   lua_setfield(L, klass, "getDir");
   lua_pushcfunction(L, luaarg_setDir);

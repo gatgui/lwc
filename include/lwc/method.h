@@ -24,205 +24,20 @@ USA.
 #ifndef __lwc_method_h__
 #define __lwc_method_h__
 
-#include <lwc/config.h>
-#include <lwc/types.h>
-#include <lwc/traits.h>
+#include <lwc/argument.h>
 #include <map>
 
 namespace lwc {
   
   class LWC_API Object;
-  class LWC_API MethodParams;
   class LWC_API MethodPointer;
+  class LWC_API MethodParams;
   
-  enum Direction {
-    AD_IN = 0,
-    AD_OUT,
-    AD_INOUT,
-    AD_RETURN
-  };
-  
-  struct LWC_API ArgumentDecl {
-    Direction dir;
-    Type type;
-    bool cst;
-    bool ptr;
-    bool ary;
-    size_t arylen;
-  };
-
   struct LWC_API MethodDecl {
     const char *name;
-    size_t nargs;
+    Integer nargs;
     ArgumentDecl args[16];
     MethodPointer *ptr;
-  };
-  
-  namespace details {
-    
-    template <typename T> struct GetSet {
-      inline static void Get(size_t i, void **p, T &val) {
-        // This error in linux: complaining it cannot cast void* to int because or loss of data
-        //val = (T) p[i];
-        val = *((T*)&p[i]);
-      }
-      inline static void Set(size_t i, void **p, T val) {
-        p[i] = (void*) val;
-        // This doesn't work properly with int on linux
-        //p[i] = *((void**)&val);
-      }
-    };
-    
-    template <> struct GetSet<Empty> {
-      inline static void Get(size_t, void**, Empty&) {
-      }
-      inline static void Set(size_t, void**, Empty) {
-      }
-    };
-    
-    // might not be necessary
-    template <> struct GetSet<float> {
-      inline static void Get(size_t i, void **p, float &val) {
-        val = *((float*)&p[i]);
-      }
-      inline static void Set(size_t i, void **p, float val) {
-        // will this work?
-        p[i] = *((void**)&val);
-      }
-    };
-    
-    // might not be necessary
-    template <> struct GetSet<double> {
-      inline static void Get(size_t i, void **p, double &val) {
-        val = *((double*)&p[i]);
-      }
-      inline static void Set(size_t i, void **p, double val) {
-        // will this work?
-        p[i] = *((void**)&val);
-      }
-    };
-  }
-  
-  class LWC_API Argument {
-    
-    public:
-      
-      friend class Object;
-      
-      Argument();
-      Argument(Direction d, Type t, bool cst=false, bool ptr=false, bool array=false, int lenidx=-1);
-      Argument(const Argument &rhs);
-      ~Argument();
-      
-      Argument& operator=(const Argument &rhs);
-      
-      void fromDeclaration(const ArgumentDecl &decl);
-      
-      std::string toString() const;
-      
-      inline const std::string& getError() const {return mErr;}
-      
-      inline Argument& setConst(bool cst) {mConst=cst; return *this;}
-      inline Argument& setPtr(bool ptr) {mPtr=ptr; return *this;}
-      inline Argument& setArray(bool ary) {mArray=ary; return *this;}
-      inline Argument& setArraySizeArg(int idx) {mArraySizeArg=idx; return *this;}
-      inline Argument& setArrayArg(int idx) {mArrayArg=idx; return *this;}
-      inline Argument& setType(Type t) {mType=t; return *this;}
-      inline Argument& setDir(Direction d) {mDir=d; return *this;}
-      //inline Argument& setAllocated(bool alloc) {mAllocated=alloc; return *this;}
-      
-      inline bool isConst() const {return mConst;}
-      inline bool isPtr() const {return mPtr;}
-      inline bool isArray() const {return mArray;}
-      inline int arraySizeArg() const {return mArraySizeArg;}
-      inline int arrayArg() const {return mArrayArg;}
-      inline Type getType() const {return mType;}
-      inline Direction getDir() const {return mDir;}
-      //inline bool isAllocated() const {return mAllocated;}
-      
-      template <typename T> bool check() const {
-        mErr = "";
-        int ilevel = (mDir!=AD_IN?1:0) + (mPtr?1:0) + (mArray?1:0);
-        switch (ilevel) {
-        case 3:
-          if (TypeTraits<T>::IsPtr == 0 ||
-              TypeTraits<typename TypeTraits<T>::Value>::IsPtr == 0 ||
-              TypeTraits<typename TypeTraits<typename TypeTraits<T>::Value>::Value>::IsPtr == 0) {
-            mErr ="Expected 3 level of indirection";
-            return false;
-          }
-          if (TypeTraits<typename TypeTraits<typename TypeTraits<T>::Value>::Value>::IsConst != int(mConst)) {
-            mErr ="Expected " + std::string(mConst?"":"non-") + "const";
-            return false;
-          }
-          if (Type2Enum<typename TypeTraits<typename TypeTraits<typename TypeTraits<T>::Value>::Value>::Value>::Enum != int(mType)) {
-            mErr ="Invalid type";
-            return false;
-          }
-          return true;
-        case 2:
-          if (TypeTraits<T>::IsPtr == 0 ||
-              TypeTraits<typename TypeTraits<T>::Value>::IsPtr == 0) {
-            mErr ="Expected 2 level of indirection";
-            return false;
-          }
-          if (TypeTraits<typename TypeTraits<T>::Value>::IsConst != int(mConst)) {
-            mErr ="Expected " + std::string(mConst?"":"non-") + "const";
-            return false;
-          }
-          if (Type2Enum<typename TypeTraits<typename TypeTraits<T>::Value>::Value>::Enum != int(mType)) {
-            mErr ="Invalid type";
-            return false;
-          }
-          return true;
-        case 1:
-          if (TypeTraits<T>::IsPtr == 0) {
-            mErr ="Expected 1 level of indirection";
-            return false;
-          }
-          if (TypeTraits<T>::IsConst != int(mConst)) {
-            mErr ="Expected " + std::string(mConst?"":"non-") + "const";
-            return false;
-          }
-          if (Type2Enum<typename TypeTraits<T>::Value>::Enum != int(mType)) {
-            mErr ="Invalid type";
-            return false;
-          }
-          return true;
-        case 0:
-          if (TypeTraits<T>::IsConst != int(mConst)) {
-            mErr ="Expected " + std::string(mConst?"":"non-") + "const";
-            return false;
-          }
-          if (Type2Enum<T>::Enum != int(mType)) {
-            mErr ="Invalid type";
-            return false;
-          }
-          return true;
-        default:
-          mErr ="Invalid level of indirection";
-          return false;
-        }
-      }
-      
-      
-    private:
-      
-      Type mType;
-      
-      Direction mDir;
-      
-      bool mConst;
-      
-      bool mPtr;
-      
-      bool mArray;
-      int mArraySizeArg;
-      int mArrayArg;
-      
-      //bool mAllocated;
-      
-      mutable std::string mErr;
   };
   
   // Ugly work around to have things work on windows
@@ -248,6 +63,398 @@ namespace lwc {
     protected:
       void (T::*mPtr)(MethodParams &);
   };
+  
+  
+  namespace details {
+    
+    // general case (plain types)
+    template <typename T> struct GetSet {
+      static bool Get(const Argument &arg, ArgumentValue &src, T &dst, std::string &err) {
+        err = "";
+        if (arg.indirectionLevel() != 0) {
+          err ="Expected 0 level of indirection";
+          return false;
+        }
+        switch (arg.getType()) {
+          case AT_BOOL: {
+            if (!Convertion<bool, typename NoRefOrConst<T>::Type>::Possible()) {
+              err = "Invalid argument type";
+              return false;
+            }
+            Convertion<bool, typename NoRefOrConst<T>::Type>::Do(src.boolean, dst);
+            return true;
+          }
+          case AT_INT: {
+            if (!Convertion<Integer, typename NoRefOrConst<T>::Type>::Possible()) {
+              err = "Invalid argument type";
+              return false;
+            }
+            Convertion<Integer, typename NoRefOrConst<T>::Type>::Do(src.integer, dst);
+            return true;
+          }
+          case AT_REAL: {
+            if (!Convertion<Real, typename NoRefOrConst<T>::Type>::Possible()) {
+              err = "Invalid argument type";
+              return false;
+            }
+            Convertion<Real, typename NoRefOrConst<T>::Type>::Do(src.real, dst);
+            return true;
+          }
+          case AT_STRING: {
+            if (!Convertion<char*, typename NoRefOrConst<T>::Type>::Possible()) {
+              err = "Invalid argument type";
+              return false;
+            }
+            char *val = (char*) src.ptr;
+            Convertion<char*, typename NoRefOrConst<T>::Type>::Do(val, dst);
+            return true;
+          }
+          case AT_OBJECT: {
+            if (!Convertion<Object*, typename NoRefOrConst<T>::Type>::Possible()) {
+              err = "Invalid argument type";
+              return false;
+            }
+            lwc::Object *val = (lwc::Object*) src.ptr;
+            Convertion<Object*, typename NoRefOrConst<T>::Type>::Do(val, dst);
+            return true;
+          }
+          default:
+            err = "Invalid argument type";
+            return false;
+        }
+        return true;
+      }
+      static bool Set(const Argument &arg, T &src, ArgumentValue &dst, std::string &err) {
+        err = "";
+        if (arg.indirectionLevel() != 0) {
+          err ="Expected 0 level of indirection";
+          return false;
+        }
+        switch (arg.getType()) {
+          case AT_BOOL: {
+            if (!Convertion<typename NoRefOrConst<T>::Type, bool>::Possible()) {
+              err = "Invalid argument type";
+              return false;
+            }
+            Convertion<typename NoRefOrConst<T>::Type, bool>::Do(src, dst.boolean);
+            return true;
+          }
+          case AT_INT: {
+            if (!Convertion<typename NoRefOrConst<T>::Type, Integer>::Possible()) {
+              err = "Invalid argument type";
+              return false;
+            }
+            Convertion<typename NoRefOrConst<T>::Type, Integer>::Do(src, dst.integer);
+            return true;
+          }
+          case AT_REAL: {
+            if (!Convertion<typename NoRefOrConst<T>::Type, Real>::Possible()) {
+              err = "Invalid argument type";
+              return false;
+            }
+            Convertion<typename NoRefOrConst<T>::Type, Real>::Do(src, dst.real);
+            return true;
+          }
+          case AT_STRING: {
+            if (!Convertion<typename NoRefOrConst<T>::Type, char*>::Possible()) {
+              err = "Invalid argument type";
+              return false;
+            }
+            char *val;
+            Convertion<typename NoRefOrConst<T>::Type, char*>::Do(src, val);
+            dst.ptr = (void*) val;
+            return true;
+          }
+          case AT_OBJECT: {
+            if (!Convertion<typename NoRefOrConst<T>::Type, Object*>::Possible()) {
+              err = "Invalid argument type";
+              return false;
+            }
+            lwc::Object *val;
+            Convertion<typename NoRefOrConst<T>::Type, Object*>::Do(src, val);
+            dst.ptr = (void*) val;
+            return true;
+          }
+          default:
+            err = "Invalid argument type";
+            return false;
+        }
+        return true;
+      }
+    };
+    template <typename T> struct GetSet<T*> {
+      static bool Get(const Argument &arg, ArgumentValue &src, T* &dst, std::string &err) {
+        err = "";
+        // use typetraits?
+        if (arg.indirectionLevel() != 1) {
+          err ="Expected 1 level of indirection";
+          return false;
+        }
+        if (Type2Enum<T>::Enum != int(arg.getType())) {
+          err ="Invalid type";
+          return false;
+        }
+        // check constness?
+        dst = (T*) src.ptr;
+        return true;
+      }
+      static bool Set(const Argument &arg, T* &src, ArgumentValue &dst, std::string &err) {
+        err = "";
+        // use typetraits?
+        if (arg.indirectionLevel() != 1) {
+          err ="Expected 1 level of indirection";
+          return false;
+        }
+        if (Type2Enum<T>::Enum != int(arg.getType())) {
+          err ="Invalid type";
+          return false;
+        }
+        // check constness ?
+        dst.ptr = (void*) src;
+        return true;
+      }
+    };
+    template <typename T> struct GetSet<T**> {
+      static bool Get(const Argument &arg, ArgumentValue &src, T** &dst, std::string &err) {
+        err = "";
+        // use typetraits?
+        if (arg.indirectionLevel() != 2) {
+          err = "Expected 2 level of indirection";
+          return false;
+        }
+        if (Type2Enum<T>::Enum != int(arg.getType())) {
+          err = "Invalid type";
+          return false;
+        }
+        // check constness?
+        dst = (T**) src.ptr;
+        return true;
+      }
+      static bool Set(const Argument &arg, T** &src, ArgumentValue &dst, std::string &err) {
+        err = "";
+        // use typetraits?
+        if (arg.indirectionLevel() != 2) {
+          err = "Expected 2 level of indirection";
+          return false;
+        }
+        if (Type2Enum<T>::Enum != int(arg.getType())) {
+          err = "Invalid type";
+          return false;
+        }
+        // check constness?
+        dst.ptr = (void*) src;
+        return true;
+      }
+    };
+    
+    // string specual case
+    template <> struct GetSet<char*> {
+      static bool Get(const Argument &arg, ArgumentValue &src, char* &dst, std::string &err) {
+        err = "";
+        // use typetraits?
+        if (arg.indirectionLevel() != 0) {
+          err = "Expected 2 level of indirection";
+          return false;
+        }
+        if (arg.getType () != AT_STRING) {
+          err = "Invalid type";
+          return false;
+        }
+        // check constness?
+        dst = (char*) src.ptr;
+        return true;
+      }
+      static bool Set(const Argument &arg, char* &src, ArgumentValue &dst, std::string &err) {
+        err = "";
+        // use typetraits?
+        if (arg.indirectionLevel() != 0) {
+          err = "Expected 2 level of indirection";
+          return false;
+        }
+        if (arg.getType() != AT_STRING) {
+          err = "Invalid type";
+          return false;
+        }
+        // check constness?
+        dst.ptr = (void*) src;
+        return true;
+      }
+    };
+    template <> struct GetSet<char**> {
+      static bool Get(const Argument &arg, ArgumentValue &src, char** &dst, std::string &err) {
+        err = "";
+        // use typetraits?
+        if (arg.indirectionLevel() != 1) {
+          err = "Expected 2 level of indirection";
+          return false;
+        }
+        if (arg.getType () != AT_STRING) {
+          err = "Invalid type";
+          return false;
+        }
+        // check constness?
+        dst = (char**) src.ptr;
+        return true;
+      }
+      static bool Set(const Argument &arg, char** &src, ArgumentValue &dst, std::string &err) {
+        err = "";
+        // use typetraits?
+        if (arg.indirectionLevel() != 1) {
+          err = "Expected 2 level of indirection";
+          return false;
+        }
+        if (arg.getType() != AT_STRING) {
+          err = "Invalid type";
+          return false;
+        }
+        // check constness?
+        dst.ptr = (void*) src;
+        return true;
+      }
+    };
+    template <> struct GetSet<char***> {
+      static bool Get(const Argument &arg, ArgumentValue &src, char*** &dst, std::string &err) {
+        err = "";
+        // use typetraits?
+        if (arg.indirectionLevel() != 2) {
+          err = "Expected 2 level of indirection";
+          return false;
+        }
+        if (arg.getType () != AT_STRING) {
+          err = "Invalid type";
+          return false;
+        }
+        // check constness?
+        dst = (char***) src.ptr;
+        return true;
+      }
+      static bool Set(const Argument &arg, char*** &src, ArgumentValue &dst, std::string &err) {
+        err = "";
+        // use typetraits?
+        if (arg.indirectionLevel() != 2) {
+          err = "Expected 2 level of indirection";
+          return false;
+        }
+        if (arg.getType() != AT_STRING) {
+          err = "Invalid type";
+          return false;
+        }
+        // check constness?
+        dst.ptr = (void*) src;
+        return true;
+      }
+    };
+    
+    // object special case
+    template <> struct GetSet<Object*> {
+      static bool Get(const Argument &arg, ArgumentValue &src, Object* &dst, std::string &err) {
+        err = "";
+        // use typetraits?
+        if (arg.indirectionLevel() != 0) {
+          err = "Expected 1 level of indirection";
+          return false;
+        }
+        if (arg.getType() != AT_OBJECT) {
+          err = "Invalid type";
+          return false;
+        }
+        // check constness?
+        dst = (Object*) src.ptr;
+        return true;
+      }
+      static bool Set(const Argument &arg, Object* &src, ArgumentValue &dst, std::string &err) {
+        err = "";
+        // use typetraits?
+        if (arg.indirectionLevel() != 0) {
+          err = "Expected 1 level of indirection";
+          return false;
+        }
+        if (arg.getType() != AT_OBJECT) {
+          err = "Invalid type";
+          return false;
+        }
+        // check constness?
+        dst.ptr = (void*) src;
+        return true;
+      }
+    };
+    template <> struct GetSet<Object**> {
+      static bool Get(const Argument &arg, ArgumentValue &src, Object** &dst, std::string &err) {
+        err = "";
+        // use typetraits?
+        if (arg.indirectionLevel() != 1) {
+          err = "Expected 1 level of indirection";
+          return false;
+        }
+        if (arg.getType() != AT_OBJECT) {
+          err = "Invalid type";
+          return false;
+        }
+        // check constness?
+        dst = (Object**) src.ptr;
+        return true;
+      }
+      static bool Set(const Argument &arg, Object** &src, ArgumentValue &dst, std::string &err) {
+        err = "";
+        // use typetraits?
+        if (arg.indirectionLevel() != 1) {
+          err = "Expected 1 level of indirection";
+          return false;
+        }
+        if (arg.getType() != AT_OBJECT) {
+          err = "Invalid type";
+          return false;
+        }
+        // check constness?
+        dst.ptr = (void*) src;
+        return true;
+      }
+    };
+    template <> struct GetSet<Object***> {
+      static bool Get(const Argument &arg, ArgumentValue &src, Object*** &dst, std::string &err) {
+        err = "";
+        // use typetraits?
+        if (arg.indirectionLevel() != 2) {
+          err = "Expected 2 level of indirection";
+          return false;
+        }
+        if (arg.getType() != AT_OBJECT) {
+          err = "Invalid type";
+          return false;
+        }
+        // check constness?
+        dst = (Object***) src.ptr;
+        return true;
+      }
+      static bool Set(const Argument &arg, Object*** &src, ArgumentValue &dst, std::string &err) {
+        err = "";
+        // use typetraits?
+        if (arg.indirectionLevel() != 2) {
+          err = "Expected 2 level of indirection";
+          return false;
+        }
+        if (arg.getType() != AT_OBJECT) {
+          err = "Invalid type";
+          return false;
+        }
+        // check constness?
+        dst.ptr = (void*) src;
+        return true;
+      }
+    };
+    
+    // empty special case
+    template <> struct GetSet<Empty> {
+      static bool Get(const Argument &, ArgumentValue &, Empty &, std::string &err) {
+        err = "Empty is not a valid argument type";
+        return false;
+      }
+      static bool Set(const Argument &, Empty &, ArgumentValue &, std::string &err) {
+        err = "Empty is not a valid argument type";
+        return false;
+      }
+    };
+  }
   
   // IMPORTANT NODE:
   // Method DOES NOT OWN the MethodPointer object
@@ -333,12 +540,12 @@ namespace lwc {
           oss << "Invalid method argument index " << i;
           throw std::runtime_error(oss.str());
         }
-        if (!mMethod[i].check<T>()) {
+        std::string err;
+        if (!details::GetSet<T>::Set(mMethod[i], value, mParams[i], err)) {
           std::ostringstream oss;
-          oss << "Method argument " << i << ": " << mMethod[i].getError();
+          oss << "Method argument " << i << ": " << err;
           throw std::runtime_error(oss.str());
         }
-        details::GetSet<T>::Set(i, mParams, value);
       }
       
       template <typename T>
@@ -348,12 +555,29 @@ namespace lwc {
           oss << "Invalid method argument index " << i;
           throw std::runtime_error(oss.str());
         }
-        if (!mMethod[i].check<T>()) {
+        std::string err;
+        if (!details::GetSet<T>::Get(mMethod[i], mParams[i], value, err)) {
           std::ostringstream oss;
-          oss << "Method argument " << i << ": " << mMethod[i].getError();
+          oss << "Method argument " << i << ": " << err;
           throw std::runtime_error(oss.str());
         }
-        details::GetSet<T>::Get(i, mParams, value);
+      }
+      
+      template <typename T>
+      T get(size_t i) throw(std::runtime_error)  {
+        if (i >= mMethod.numArgs()) {
+          std::ostringstream oss;
+          oss << "Invalid method argument index " << i;
+          throw std::runtime_error(oss.str());
+        }
+        T value;
+        std::string err;
+        if (!details::GetSet<T>::Get(mMethod[i], mParams[i], value, err)) {
+          std::ostringstream oss;
+          oss << "Method argument " << i << ": " << err;
+          throw std::runtime_error(oss.str());
+        }
+        return value;
       }
       
     private:
@@ -364,7 +588,7 @@ namespace lwc {
     private:
       
       const Method &mMethod;
-      void *mParams[16];
+      ArgumentValue mParams[16];
   };
   
 }

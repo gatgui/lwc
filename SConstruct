@@ -326,7 +326,7 @@ AsLuaExtension(luamodenv)
 lwcluamod = luamodenv.SharedLibrary("lua/llwc", ["src/lua/main.cpp"])
 Depends(lwcluamod, lwc)
 Depends(lwcluamod, lwclualib)
-Alias("lwcrbmod", lwcluamod)
+Alias("lwcluamod", lwcluamod)
 NoMSVCShit(luamodenv, lwcluamod, lib=True)
 CleanWindows(luamodenv, lwcluamod)
 

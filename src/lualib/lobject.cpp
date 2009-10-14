@@ -95,9 +95,6 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
   
   for (size_t i=0; i<meth.numArgs(); ++i) {
     const lwc::Argument &arg = meth[i];
-    if (arg.isPtr()) {
-      throw std::runtime_error("Ruby does not support pointer arguments");
-    }
     if (arg.getDir() == lwc::AD_INOUT && !arg.isArray()) {
       throw std::runtime_error("Ruby does not support non-array inout arguments");
     }
@@ -139,97 +136,13 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       const lwc::Argument &lenarg = meth[arg.arraySizeArg()];
       
       switch(lenarg.getType()) {
-        case lwc::AT_CHAR: {
-          if (!out) {
-            char sz;
-            params.get(arg.arraySizeArg(), sz);
-            len = size_t(sz);
-          } else {
-            char *sz;
-            params.get(arg.arraySizeArg(), sz);
-            len = size_t(*sz);
-          }
-          break;
-        }
-        case lwc::AT_UCHAR: {
-          if (!out) {
-            unsigned char sz;
-            params.get(arg.arraySizeArg(), sz);
-            len = size_t(sz);
-          } else {
-            unsigned char *sz;
-            params.get(arg.arraySizeArg(), sz);
-            len = size_t(*sz);
-          }
-          break;
-        }
-        case lwc::AT_SHORT: {
-          if (!out) {
-            short sz;
-            params.get(arg.arraySizeArg(), sz);
-            len = size_t(sz);
-          } else {
-            short *sz;
-            params.get(arg.arraySizeArg(), sz);
-            len = size_t(*sz);
-          }
-          break;
-        }
-        case lwc::AT_USHORT: {
-          if (!out) {
-            unsigned short sz;
-            params.get(arg.arraySizeArg(), sz);
-            len = size_t(sz);
-          } else {
-            unsigned short *sz;
-            params.get(arg.arraySizeArg(), sz);
-            len = size_t(*sz);
-          }
-          break;
-        }
         case lwc::AT_INT: {
           if (!out) {
-            int sz;
+            lwc::Integer sz;
             params.get(arg.arraySizeArg(), sz);
             len = size_t(sz);
           } else {
-            int *sz;
-            params.get(arg.arraySizeArg(), sz);
-            len = size_t(*sz);
-          }
-          break;
-        }
-        case lwc::AT_UINT: {
-          if (!out) {
-            unsigned int sz;
-            params.get(arg.arraySizeArg(), sz);
-            len = size_t(sz);
-          } else {
-            unsigned int *sz;
-            params.get(arg.arraySizeArg(), sz);
-            len = size_t(*sz);
-          }
-          break;
-        }
-        case lwc::AT_LONG: {
-          if (!out) {
-            long sz;
-            params.get(arg.arraySizeArg(), sz);
-            len = size_t(sz);
-          } else {
-            long *sz;
-            params.get(arg.arraySizeArg(), sz);
-            len = size_t(*sz);
-          }
-          break;
-        }
-        case lwc::AT_ULONG: {
-          if (!out) {
-            unsigned long sz;
-            params.get(arg.arraySizeArg(), sz);
-            len = size_t(sz);
-          } else {
-            unsigned long *sz;
+            lwc::Integer *sz;
             params.get(arg.arraySizeArg(), sz);
             len = size_t(*sz);
           }
@@ -257,128 +170,27 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
           }
           break;
         }
-        case lwc::AT_CHAR: {
-          if (!out) {
-            char *ary;
-            params.get(i, ary);
-            C2Lua<lwc::AT_CHAR>::ToArray(ary, len, mState);
-            
-          } else {
-            char **ary;
-            params.get(i, ary);
-            C2Lua<lwc::AT_CHAR>::ToArray(*ary, len, mState);
-          }
-          break;
-        }
-        case lwc::AT_UCHAR: {
-          if (!out) {
-            unsigned char *ary;
-            params.get(i, ary);
-            C2Lua<lwc::AT_UCHAR>::ToArray(ary, len, mState);
-            
-          } else {
-            unsigned char **ary;
-            params.get(i, ary);
-            C2Lua<lwc::AT_UCHAR>::ToArray(*ary, len, mState);
-          }
-          break;
-        }
-        case lwc::AT_SHORT: {
-          if (!out) {
-            short *ary;
-            params.get(i, ary);
-            C2Lua<lwc::AT_SHORT>::ToArray(ary, len, mState);
-            
-          } else {
-            short **ary;
-            params.get(i, ary);
-            C2Lua<lwc::AT_SHORT>::ToArray(*ary, len, mState);
-            
-          }
-          break;
-        }
-        case lwc::AT_USHORT: {
-          if (!out) {
-            unsigned short *ary;
-            params.get(i, ary);
-            C2Lua<lwc::AT_USHORT>::ToArray(ary, len, mState);
-            
-          } else {
-            unsigned short **ary;
-            params.get(i, ary);
-            C2Lua<lwc::AT_USHORT>::ToArray(*ary, len, mState);
-          }
-          break;
-        }
         case lwc::AT_INT: {
           if (!out) {
-            int *ary;
+            lwc::Integer *ary;
             params.get(i, ary);
             C2Lua<lwc::AT_INT>::ToArray(ary, len, mState);
           } else {
-            int **ary;
+            lwc::Integer **ary;
             params.get(i, ary);
             C2Lua<lwc::AT_INT>::ToArray(*ary, len, mState);
           }
           break;
         }
-        case lwc::AT_UINT: {
+        case lwc::AT_REAL: {
           if (!out) {
-            unsigned int *ary;
+            lwc::Real *ary;
             params.get(i, ary);
-            C2Lua<lwc::AT_UINT>::ToArray(ary, len, mState);
+            C2Lua<lwc::AT_REAL>::ToArray(ary, len, mState);
           } else {
-            unsigned int **ary;
+            lwc::Real **ary;
             params.get(i, ary);
-            C2Lua<lwc::AT_UINT>::ToArray(*ary, len, mState);
-          }
-          break;
-        }
-        case lwc::AT_LONG: {
-          if (!out) {
-            long *ary;
-            params.get(i, ary);
-            C2Lua<lwc::AT_LONG>::ToArray(ary, len, mState);
-          } else {
-            long **ary;
-            params.get(i, ary);
-            C2Lua<lwc::AT_LONG>::ToArray(*ary, len, mState);
-          }
-          break;
-        }
-        case lwc::AT_ULONG: {
-          if (!out) {
-            unsigned long *ary;
-            params.get(i, ary);
-            C2Lua<lwc::AT_ULONG>::ToArray(ary, len, mState);
-          } else {
-            unsigned long **ary;
-            params.get(i, ary);
-            C2Lua<lwc::AT_ULONG>::ToArray(*ary, len, mState);
-          }
-          break;
-        }
-        case lwc::AT_FLOAT: {
-          if (!out) {
-            float *ary;
-            params.get(i, ary);
-            C2Lua<lwc::AT_FLOAT>::ToArray(ary, len, mState);
-          } else {
-            float **ary;
-            params.get(i, ary);
-            C2Lua<lwc::AT_FLOAT>::ToArray(*ary, len, mState);
-          }
-          break;
-        }
-        case lwc::AT_DOUBLE: {
-          if (!out) {
-            double *ary;
-            params.get(i, ary);
-            C2Lua<lwc::AT_DOUBLE>::ToArray(ary, len, mState);
-          } else {
-            double **ary;
-            params.get(i, ary);
-            C2Lua<lwc::AT_DOUBLE>::ToArray(*ary, len, mState);
+            C2Lua<lwc::AT_REAL>::ToArray(*ary, len, mState);
           }
           break;
         }
@@ -428,64 +240,16 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
           C2Lua<lwc::AT_BOOL>::ToValue(val, mState);
           break;
         }
-        case lwc::AT_CHAR: {
-          char val;
-          params.get(i, val);
-          C2Lua<lwc::AT_CHAR>::ToValue(val, mState);
-          break;
-        }
-        case lwc::AT_UCHAR: {
-          unsigned char val;
-          params.get(i, val);
-          C2Lua<lwc::AT_UCHAR>::ToValue(val, mState);
-          break;
-        }
-        case lwc::AT_SHORT: {
-          short val;
-          params.get(i, val);
-          C2Lua<lwc::AT_SHORT>::ToValue(val, mState);
-          break;
-        }
-        case lwc::AT_USHORT: {
-          unsigned short val;
-          params.get(i, val);
-          C2Lua<lwc::AT_USHORT>::ToValue(val, mState);
-          break;
-        }
         case lwc::AT_INT: {
-          int val;
+          lwc::Integer val;
           params.get(i, val);
           C2Lua<lwc::AT_INT>::ToValue(val, mState);
           break;
         }
-        case lwc::AT_UINT: {
-          unsigned int val;
+        case lwc::AT_REAL: {
+          lwc::Real val;
           params.get(i, val);
-          C2Lua<lwc::AT_UINT>::ToValue(val, mState);
-          break;
-        }
-        case lwc::AT_LONG: {
-          long val;
-          params.get(i, val);
-          C2Lua<lwc::AT_LONG>::ToValue(val, mState);
-          break;
-        }
-        case lwc::AT_ULONG: {
-          unsigned long val;
-          params.get(i, val);
-          C2Lua<lwc::AT_ULONG>::ToValue(val, mState);
-          break;
-        }
-        case lwc::AT_FLOAT: {
-          float val;
-          params.get(i, val);
-          C2Lua<lwc::AT_FLOAT>::ToValue(val, mState);
-          break;
-        }
-        case lwc::AT_DOUBLE: {
-          double val;
-          params.get(i, val);
-          C2Lua<lwc::AT_DOUBLE>::ToValue(val, mState);
+          C2Lua<lwc::AT_REAL>::ToValue(val, mState);
           break;
         }
         case lwc::AT_STRING: {
@@ -570,64 +334,17 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
           Lua2C<lwc::AT_BOOL>::ToArray(mState, crv, *ary, len);
           break;
         }
-        case lwc::AT_CHAR: {
-          char **ary;
-          params.get(i, ary);
-          Lua2C<lwc::AT_CHAR>::ToArray(mState, crv, *ary, len);
-          break;
-        }
-        case lwc::AT_UCHAR: {
-          unsigned char **ary;
-          params.get(i, ary);
-          Lua2C<lwc::AT_UCHAR>::ToArray(mState, crv, *ary, len);
-          break;
-        }
-        case lwc::AT_SHORT: {
-          short **ary;
-          params.get(i, ary);
-          Lua2C<lwc::AT_SHORT>::ToArray(mState, crv, *ary, len);
-          break;
-        }
-        case lwc::AT_USHORT: {
-          unsigned short **ary;
-          params.get(i, ary);
-          Lua2C<lwc::AT_USHORT>::ToArray(mState, crv, *ary, len);
-          break;
-        }
+        
         case lwc::AT_INT: {
-          int **ary;
+          lwc::Integer **ary;
           params.get(i, ary);
           Lua2C<lwc::AT_INT>::ToArray(mState, crv, *ary, len);
           break;
         }
-        case lwc::AT_UINT: {
-          unsigned int **ary;
+        case lwc::AT_REAL: {
+          lwc::Real **ary;
           params.get(i, ary);
-          Lua2C<lwc::AT_UINT>::ToArray(mState, crv, *ary, len);
-          break;
-        }
-        case lwc::AT_LONG: {
-          long **ary;
-          params.get(i, ary);
-          Lua2C<lwc::AT_LONG>::ToArray(mState, crv, *ary, len);
-          break;
-        }
-        case lwc::AT_ULONG: {
-          unsigned long **ary;
-          params.get(i, ary);
-          Lua2C<lwc::AT_ULONG>::ToArray(mState, crv, *ary, len);
-          break;
-        }
-        case lwc::AT_FLOAT: {
-          float **ary;
-          params.get(i, ary);
-          Lua2C<lwc::AT_FLOAT>::ToArray(mState, crv, *ary, len);
-          break;
-        }
-        case lwc::AT_DOUBLE: {
-          double **ary;
-          params.get(i, ary);
-          Lua2C<lwc::AT_DOUBLE>::ToArray(mState, crv, *ary, len);
+          Lua2C<lwc::AT_REAL>::ToArray(mState, crv, *ary, len);
           break;
         }
         case lwc::AT_STRING: {
@@ -650,52 +367,10 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       const lwc::Argument &lenarg = meth[arg.arraySizeArg()];
       
       switch(lenarg.getType()) {
-        case lwc::AT_CHAR: {
-          char *sz;
-          params.get(arg.arraySizeArg(), sz);
-          *sz = (char) len;
-          break;
-        }
-        case lwc::AT_UCHAR: {
-          unsigned char *sz;
-          params.get(arg.arraySizeArg(), sz);
-          *sz = (unsigned char) len;
-          break;
-        }
-        case lwc::AT_SHORT: {
-          short *sz;
-          params.get(arg.arraySizeArg(), sz);
-          *sz = (short) len;
-          break;
-        }
-        case lwc::AT_USHORT: {
-          unsigned short *sz;
-          params.get(arg.arraySizeArg(), sz);
-          *sz = (unsigned short) len;
-          break;
-        }
         case lwc::AT_INT: {
-          int *sz;
+          lwc::Integer *sz;
           params.get(arg.arraySizeArg(), sz);
-          *sz = (int) len;
-          break;
-        }
-        case lwc::AT_UINT: {
-          unsigned int *sz;
-          params.get(arg.arraySizeArg(), sz);
-          *sz = (unsigned int) len;
-          break;
-        }
-        case lwc::AT_LONG: {
-          long *sz;
-          params.get(arg.arraySizeArg(), sz);
-          *sz = (long) len;
-          break;
-        }
-        case lwc::AT_ULONG: {
-          unsigned long *sz;
-          params.get(arg.arraySizeArg(), sz);
-          *sz = (unsigned long) len;
+          *sz = (lwc::Integer) len;
           break;
         }
         default:
@@ -714,64 +389,16 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
           Lua2C<lwc::AT_BOOL>::ToValue(mState, crv, *val);
           break;
         }
-        case lwc::AT_CHAR: {
-          char *val;
-          params.get(i, val);
-          Lua2C<lwc::AT_CHAR>::ToValue(mState, crv, *val);
-          break;
-        }
-        case lwc::AT_UCHAR: {
-          unsigned char *val;
-          params.get(i, val);
-          Lua2C<lwc::AT_UCHAR>::ToValue(mState, crv, *val);
-          break;
-        }
-        case lwc::AT_SHORT: {
-          short *val;
-          params.get(i, val);
-          Lua2C<lwc::AT_SHORT>::ToValue(mState, crv, *val);
-          break;
-        }
-        case lwc::AT_USHORT: {
-          unsigned short *val;
-          params.get(i, val);
-          Lua2C<lwc::AT_USHORT>::ToValue(mState, crv, *val);
-          break;
-        }
         case lwc::AT_INT: {
-          int *val;
+          lwc::Integer *val;
           params.get(i, val);
           Lua2C<lwc::AT_INT>::ToValue(mState, crv, *val);
           break;
         }
-        case lwc::AT_UINT: {
-          unsigned int *val;
+        case lwc::AT_REAL: {
+          lwc::Real *val;
           params.get(i, val);
-          Lua2C<lwc::AT_UINT>::ToValue(mState, crv, *val);
-          break;
-        }
-        case lwc::AT_LONG: {
-          long *val;
-          params.get(i, val);
-          Lua2C<lwc::AT_LONG>::ToValue(mState, crv, *val);
-          break;
-        }
-        case lwc::AT_ULONG: {
-          unsigned long *val;
-          params.get(i, val);
-          Lua2C<lwc::AT_ULONG>::ToValue(mState, crv, *val);
-          break;
-        }
-        case lwc::AT_FLOAT: {
-          float *val;
-          params.get(i, val);
-          Lua2C<lwc::AT_FLOAT>::ToValue(mState, crv, *val);
-          break;
-        }
-        case lwc::AT_DOUBLE: {
-          double *val;
-          params.get(i, val);
-          Lua2C<lwc::AT_DOUBLE>::ToValue(mState, crv, *val);
+          Lua2C<lwc::AT_REAL>::ToValue(mState, crv, *val);
           break;
         }
         case lwc::AT_STRING: {

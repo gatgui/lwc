@@ -167,8 +167,8 @@ How to use lwc?
         class Test < RWLC::Object
           
           Methods = {
-            :doSomething0 => [[RWLC::AD_IN, RWLC::AT_STRING], [RWLC::AD_RETURN, RWLC::AT_LONG]],
-            :doSomething1 => [[RWLC::AD_RETURN, RWLC::AT_LONG]]
+            :doSomething0 => [[RWLC::AD_IN, RWLC::AT_STRING], [RWLC::AD_RETURN, RWLC::AT_INT]],
+            :doSomething1 => [[RWLC::AD_RETURN, RWLC::AT_INT]]
           }
           
           def initialize()
@@ -222,8 +222,8 @@ How to use lwc?
       class Test(lwcpy.Object):
           
         Methods = {
-          "doSomething0": [(lwcpy.AD_IN, lwcpy.AT_STRING), (lwcpy.AD_RETURN, lwcpy.AT_LONG)],
-          "doSomething1": [(lwcpy.AD_RETURN, lwcpy.AT_LONG)]
+          "doSomething0": [(lwcpy.AD_IN, lwcpy.AT_STRING), (lwcpy.AD_RETURN, lwcpy.AT_INT)],
+          "doSomething1": [(lwcpy.AD_RETURN, lwcpy.AT_INT)]
         }
         
         def __init__(self):
@@ -285,8 +285,8 @@ How to use lwc?
       local Test = {}
       
       Test.Methods = {}
-      Test.Methods.doSomething0 = {{llwc.AD_IN, llwc.AT_STRING}, {llwc.AD_RETURN, llwc.AT_LONG}}
-      Test.Methods.doSomething1 = {{llwc.AD_RETURN, llwc.AT_LONG}}
+      Test.Methods.doSomething0 = {{llwc.AD_IN, llwc.AT_STRING}, {llwc.AD_RETURN, llwc.AT_INT}}
+      Test.Methods.doSomething1 = {{llwc.AD_RETURN, llwc.AT_INT}}
       
       Test.__index = function (self, member)
         val = Test[member]
@@ -344,10 +344,9 @@ ToDo list
 * Test suite
 * Add support for module constants
 * Add support for module functions
-* Remove the "const" specifier from the argument declaration
-  => Set all input arguments as "const" and the other "non-const"
-* Embedded the "array" specifier in the type
-* Restrict list of types to: boolean, integer, real, string, object
+x Remove the "const" specifier from the argument declaration
+x Embedded the "array" specifier in the type
+x Restrict list of types to: boolean, integer, real, string, object
   (in most scripting language, there's no distinction between long, int, short or char.
    Pretty much the same way, no distinction between signed and un-signed. This makes
    things too cryptic anyway, just use long)

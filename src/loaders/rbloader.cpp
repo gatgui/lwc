@@ -147,8 +147,8 @@ class RbFactory : public lwc::Factory {
           
           VALUE arg = RARRAY(val)->ptr[i];
           
-          if (TYPE(arg) != T_ARRAY || RARRAY(arg)->len < 2 || RARRAY(arg)->len > 5) {
-            std::cout << "rbloader: Arguments must be arrays with 2 to 5 elements" << std::endl;
+          if (TYPE(arg) != T_ARRAY || RARRAY(arg)->len < 2 || RARRAY(arg)->len > 3) {
+            std::cout << "rbloader: Arguments must be arrays with 2 to 3 elements" << std::endl;
             add = false;
             break;
           }
@@ -157,15 +157,8 @@ class RbFactory : public lwc::Factory {
           
           a.setDir(lwc::Direction(NUM2LONG(RARRAY(arg)->ptr[0])));
           a.setType(lwc::Type(NUM2LONG(RARRAY(arg)->ptr[1])));
-          
           if (RARRAY(arg)->len >= 3) {
-            a.setConst(RARRAY(arg)->ptr[2] == Qtrue);
-          }
-          if (RARRAY(arg)->len >= 4) {
-            a.setArray(RARRAY(arg)->ptr[3] == Qtrue);
-          }
-          if (RARRAY(arg)->len >= 5) {
-            a.setArraySizeArg(NUM2ULONG(RARRAY(arg)->ptr[4]));
+            a.setArraySizeArg(NUM2ULONG(RARRAY(arg)->ptr[2]));
           }
           meth.addArg(a);
         }

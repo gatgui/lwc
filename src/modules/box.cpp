@@ -45,19 +45,19 @@ class Box : public lwc::Object {
       return *this;
     }
     
-    void setX(lwc::MethodParams &p) {int x; p.get(0, x); mX = x;}
-    void setY(lwc::MethodParams &p) {int y; p.get(0, y); mY = y;}
-    void setWidth(lwc::MethodParams &p) {int w; p.get(0, w); mW = w;}
-    void setHeight(lwc::MethodParams &p) {int h; p.get(0, h); mH = h;}
+    void setX(lwc::MethodParams &p) {lwc::Integer x; p.get(0, x); mX = x;}
+    void setY(lwc::MethodParams &p) {lwc::Integer y; p.get(0, y); mY = y;}
+    void setWidth(lwc::MethodParams &p) {lwc::Integer w; p.get(0, w); mW = w;}
+    void setHeight(lwc::MethodParams &p) {lwc::Integer h; p.get(0, h); mH = h;}
     
-    void getX(lwc::MethodParams &p) {int *x; p.get(0, x); *x = mX;}
-    void getY(lwc::MethodParams &p) {int *y; p.get(0, y); *y = mY;}
-    void getWidth(lwc::MethodParams &p) {int *w; p.get(0, w); *w =  mW;}
-    void getHeight(lwc::MethodParams &p) {int *h; p.get(0, h); *h = mH;}
+    void getX(lwc::MethodParams &p) {lwc::Integer *x; p.get(0, x); *x = mX;}
+    void getY(lwc::MethodParams &p) {lwc::Integer *y; p.get(0, y); *y = mY;}
+    void getWidth(lwc::MethodParams &p) {lwc::Integer *w; p.get(0, w); *w =  mW;}
+    void getHeight(lwc::MethodParams &p) {lwc::Integer *h; p.get(0, h); *h = mH;}
   
   protected:
     
-    int mX, mY, mW, mH;
+    lwc::Integer mX, mY, mW, mH;
 };
 
 class DoubleBox : public Box {
@@ -77,13 +77,13 @@ class DoubleBox : public Box {
       return *this;
     }
     
-    void setX(lwc::MethodParams &p) {int x; p.get(0, x); mX = 2*x;}
+    void setX(lwc::MethodParams &p) {lwc::Integer x; p.get(0, x); mX = 2*x;}
     
-    void setY(lwc::MethodParams &p) {int y; p.get(0, y); mY = 2*y;}
+    void setY(lwc::MethodParams &p) {lwc::Integer y; p.get(0, y); mY = 2*y;}
     
-    void setWidth(lwc::MethodParams &p) {int w; p.get(0, w); mW = 2*w;}
+    void setWidth(lwc::MethodParams &p) {lwc::Integer w; p.get(0, w); mW = 2*w;}
     
-    void setHeight(lwc::MethodParams &p) {int h; p.get(0, h); mH = 2*h;}
+    void setHeight(lwc::MethodParams &p) {lwc::Integer h; p.get(0, h); mH = 2*h;}
     
     void toBox(lwc::MethodParams &p) {
       lwc::Object **b;
@@ -101,14 +101,14 @@ class DoubleBox : public Box {
 #define METHOD(Class,Name) new lwc::TMethodPointer<Class>(&Class::Name)
 
 static lwc::MethodDecl BoxMethods[] = {
-  {"setX", 1, {{lwc::AD_IN, lwc::AT_INT, 0, 0, 0, -1}}, METHOD(Box,setX)},
-  {"setY", 1, {{lwc::AD_IN, lwc::AT_INT, 0, 0, 0, -1}}, METHOD(Box,setY)},
-  {"setWidth", 1, {{lwc::AD_IN, lwc::AT_INT, 0, 0, 0, -1}}, METHOD(Box,setWidth)},
-  {"setHeight", 1, {{lwc::AD_IN, lwc::AT_INT, 0, 0, 0, -1}}, METHOD(Box,setHeight)},
-  {"getX", 1, {{lwc::AD_RETURN, lwc::AT_INT, 0, 0, 0, -1}}, METHOD(Box,getX)},
-  {"getY", 1, {{lwc::AD_RETURN, lwc::AT_INT, 0, 0, 0, -1}}, METHOD(Box,getY)},
-  {"getWidth", 1, {{lwc::AD_RETURN, lwc::AT_INT, 0, 0, false, -1}}, METHOD(Box,getWidth)},
-  {"getHeight", 1, {{lwc::AD_RETURN, lwc::AT_INT, 0, 0, 0, -1}}, METHOD(Box,getHeight)},
+  {"setX", 1,      {{lwc::AD_IN, lwc::AT_INT, -1}},     METHOD(Box, setX)},
+  {"setY", 1,      {{lwc::AD_IN, lwc::AT_INT, -1}},     METHOD(Box, setY)},
+  {"setWidth", 1,  {{lwc::AD_IN, lwc::AT_INT, -1}},     METHOD(Box, setWidth)},
+  {"setHeight", 1, {{lwc::AD_IN, lwc::AT_INT, -1}},     METHOD(Box, setHeight)},
+  {"getX", 1,      {{lwc::AD_RETURN, lwc::AT_INT, -1}}, METHOD(Box, getX)},
+  {"getY", 1,      {{lwc::AD_RETURN, lwc::AT_INT, -1}}, METHOD(Box, getY)},
+  {"getWidth", 1,  {{lwc::AD_RETURN, lwc::AT_INT, -1}}, METHOD(Box, getWidth)},
+  {"getHeight", 1, {{lwc::AD_RETURN, lwc::AT_INT, -1}}, METHOD(Box, getHeight)},
 };
 
 class BoxFactory : public lwc::Factory {
@@ -146,15 +146,15 @@ class BoxFactory : public lwc::Factory {
 };
 
 static lwc::MethodDecl DoubleBoxMethods[] = {
-  {"setX", 1, {{lwc::AD_IN, lwc::AT_INT, 0, 0, 0, -1}}, METHOD(DoubleBox,setX)},
-  {"setY", 1, {{lwc::AD_IN, lwc::AT_INT, 0, 0, 0, -1}}, METHOD(DoubleBox,setY)},
-  {"setWidth", 1, {{lwc::AD_IN, lwc::AT_INT, 0, 0, 0, -1}}, METHOD(DoubleBox,setWidth)},
-  {"setHeight", 1, {{lwc::AD_IN, lwc::AT_INT, 0, 0, 0, -1}}, METHOD(DoubleBox,setHeight)},
-  {"getX", 1, {{lwc::AD_RETURN, lwc::AT_INT, 0, 0, 0, -1}}, METHOD(Box,getX)},
-  {"getY", 1, {{lwc::AD_RETURN, lwc::AT_INT, 0, 0, 0, -1}}, METHOD(Box,getY)},
-  {"getWidth", 1, {{lwc::AD_RETURN, lwc::AT_INT, 0, 0, false, -1}}, METHOD(Box,getWidth)},
-  {"getHeight", 1, {{lwc::AD_RETURN, lwc::AT_INT, 0, 0, 0, -1}}, METHOD(Box,getHeight)},
-  {"toBox", 1, {{lwc::AD_RETURN, lwc::AT_OBJECT, 0, 0, 0, -1}}, METHOD(DoubleBox,toBox)},
+  {"setX", 1,      {{lwc::AD_IN, lwc::AT_INT, -1}},        METHOD(DoubleBox, setX)},
+  {"setY", 1,      {{lwc::AD_IN, lwc::AT_INT, -1}},        METHOD(DoubleBox, setY)},
+  {"setWidth", 1,  {{lwc::AD_IN, lwc::AT_INT, -1}},        METHOD(DoubleBox, setWidth)},
+  {"setHeight", 1, {{lwc::AD_IN, lwc::AT_INT, -1}},        METHOD(DoubleBox, setHeight)},
+  {"getX", 1,      {{lwc::AD_RETURN, lwc::AT_INT, -1}},    METHOD(Box, getX)},
+  {"getY", 1,      {{lwc::AD_RETURN, lwc::AT_INT, -1}},    METHOD(Box, getY)},
+  {"getWidth", 1,  {{lwc::AD_RETURN, lwc::AT_INT, -1}},    METHOD(Box, getWidth)},
+  {"getHeight", 1, {{lwc::AD_RETURN, lwc::AT_INT, -1}},    METHOD(Box, getHeight)},
+  {"toBox", 1,     {{lwc::AD_RETURN, lwc::AT_OBJECT, -1}}, METHOD(DoubleBox, toBox)},
 };
 
 class DoubleBoxFactory : public lwc::Factory {

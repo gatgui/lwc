@@ -108,25 +108,16 @@ class PFactory : public lwc::Factory {
         for (long i=0; i<n; ++i) {
           PyObject *arg = PyList_GetItem(value, i);
           Py_ssize_t ts = PyTuple_Size(arg);
-          if (!PyTuple_Check(arg) || ts < 2 || ts > 5) {
-            std::cout << "pyloader: Arguments must be tuples with 2 to 5 elements" << std::endl;
+          if (!PyTuple_Check(arg) || ts < 2 || ts > 3) {
+            std::cout << "pyloader: Arguments must be tuples with 2 to 3 elements" << std::endl;
             add = false;
             break;
           }
           lwc::Argument a;
           a.setDir(lwc::Direction(PyInt_AsLong(PyTuple_GetItem(arg, 0))));
           a.setType(lwc::Type(PyInt_AsLong(PyTuple_GetItem(arg, 1))));
-          //if (ts >= 3) {
-          //  a.setAllocated(PyTuple_GetItem(arg, 2) == Py_True);
-          //}
           if (ts >= 3) {
-            a.setConst(PyTuple_GetItem(arg, 2) == Py_True);
-          }
-          if (ts >= 4) {
-            a.setArray(PyTuple_GetItem(arg, 3) == Py_True);
-          }
-          if (ts >= 5) {
-            a.setArraySizeArg(PyInt_AsLong(PyTuple_GetItem(arg, 4)));
+            a.setArraySizeArg(PyInt_AsLong(PyTuple_GetItem(arg, 2)));
           }
           meth.addArg(a);
         }

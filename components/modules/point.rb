@@ -27,11 +27,11 @@ module Point
   
   class Point < RLWC::Object
     
-    Methods = {:getX => [[RLWC::AD_RETURN, RLWC::AT_LONG]],
-               :getY => [[RLWC::AD_RETURN, RLWC::AT_LONG]],
-               :set  => [[RLWC::AD_IN, RLWC::AT_LONG], [RLWC::AD_IN, RLWC::AT_LONG]],
-               :setX => [[RLWC::AD_IN, RLWC::AT_LONG]],
-               :setY => [[RLWC::AD_IN, RLWC::AT_LONG]]}
+    Methods = {:getX => [[RLWC::AD_RETURN, RLWC::AT_INT]],
+               :getY => [[RLWC::AD_RETURN, RLWC::AT_INT]],
+               :set  => [[RLWC::AD_IN, RLWC::AT_INT], [RLWC::AD_IN, RLWC::AT_INT]],
+               :setX => [[RLWC::AD_IN, RLWC::AT_INT]],
+               :setY => [[RLWC::AD_IN, RLWC::AT_INT]]}
     
     def initialize()
       super()

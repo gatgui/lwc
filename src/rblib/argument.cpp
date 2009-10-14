@@ -46,30 +46,10 @@ static VALUE rbarg_init(VALUE self) {
   return self;
 }
 
-static VALUE rbarg_isConst(VALUE self) {
-  lwc::Argument *arg;
-  rb::Exc::GetPointer(self, arg);
-  return (arg->isConst() ? Qtrue : Qfalse);
-}
-
-static VALUE rbarg_setConst(VALUE self, VALUE val) {
-  lwc::Argument *arg;
-  rb::Exc::GetPointer(self, arg);
-  arg->setConst(val == Qnil);
-  return self;
-}
-
 static VALUE rbarg_isArray(VALUE self) {
   lwc::Argument *arg;
   rb::Exc::GetPointer(self, arg);
   return (arg->isArray() ? Qtrue : Qfalse);
-}
-
-static VALUE rbarg_setArray(VALUE self, VALUE val) {
-  lwc::Argument *arg;
-  rb::Exc::GetPointer(self, arg);
-  arg->setArray(val == Qnil);
-  return self;
 }
 
 static VALUE rbarg_getDir(VALUE self) {
@@ -138,10 +118,7 @@ bool InitArgument(VALUE mod) {
   cLWCArgument = rb_define_class_under(mod, "Argument", rb_cObject);
   rb_define_alloc_func(cLWCArgument, rbarg_alloc);
   rb_define_method(cLWCArgument, "initialize", RBM(rbarg_init), 0);
-  rb_define_method(cLWCArgument, "const?", RBM(rbarg_isConst), 0);
-  rb_define_method(cLWCArgument, "const=", RBM(rbarg_setConst), 1);
   rb_define_method(cLWCArgument, "array?", RBM(rbarg_isArray), 0);
-  rb_define_method(cLWCArgument, "array=", RBM(rbarg_setArray), 1);
   rb_define_method(cLWCArgument, "dir", RBM(rbarg_getDir), 0);
   rb_define_method(cLWCArgument, "dir=", RBM(rbarg_setDir), 1);
   rb_define_method(cLWCArgument, "type", RBM(rbarg_getType), 0);
@@ -159,18 +136,15 @@ bool InitArgument(VALUE mod) {
   
   rb_define_const(mod, "AT_UNKNOWN", INT2NUM(lwc::AT_UNKNOWN));
   rb_define_const(mod, "AT_BOOL", INT2NUM(lwc::AT_BOOL));
-  rb_define_const(mod, "AT_CHAR", INT2NUM(lwc::AT_CHAR));
-  rb_define_const(mod, "AT_UCHAR", INT2NUM(lwc::AT_UCHAR));
-  rb_define_const(mod, "AT_SHORT", INT2NUM(lwc::AT_SHORT));
-  rb_define_const(mod, "AT_USHORT", INT2NUM(lwc::AT_USHORT));
   rb_define_const(mod, "AT_INT", INT2NUM(lwc::AT_INT));
-  rb_define_const(mod, "AT_UINT", INT2NUM(lwc::AT_UINT));
-  rb_define_const(mod, "AT_LONG", INT2NUM(lwc::AT_LONG));
-  rb_define_const(mod, "AT_ULONG", INT2NUM(lwc::AT_ULONG));
-  rb_define_const(mod, "AT_FLOAT", INT2NUM(lwc::AT_FLOAT));
-  rb_define_const(mod, "AT_DOUBLE", INT2NUM(lwc::AT_DOUBLE));
+  rb_define_const(mod, "AT_REAL", INT2NUM(lwc::AT_REAL));
   rb_define_const(mod, "AT_STRING", INT2NUM(lwc::AT_STRING));
   rb_define_const(mod, "AT_OBJECT", INT2NUM(lwc::AT_OBJECT));
+  rb_define_const(mod, "AT_BOOL_ARRAY", INT2NUM(lwc::AT_BOOL_ARRAY));
+  rb_define_const(mod, "AT_INT_ARRAY", INT2NUM(lwc::AT_INT_ARRAY));
+  rb_define_const(mod, "AT_REAL_ARRAY", INT2NUM(lwc::AT_REAL_ARRAY));
+  rb_define_const(mod, "AT_STRING_ARRAY", INT2NUM(lwc::AT_STRING_ARRAY));
+  rb_define_const(mod, "AT_OBJECT_ARRAY", INT2NUM(lwc::AT_OBJECT_ARRAY));
   
   return true;
 }

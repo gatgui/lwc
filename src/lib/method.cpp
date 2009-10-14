@@ -27,80 +27,6 @@ USA.
 
 namespace lwc {
 
-Argument::Argument()
-  : mType(AT_UNKNOWN), mDir(AD_IN), mConst(false), mPtr(false),
-    mArray(false), mArraySizeArg(-1), mArrayArg(-1) { //, mAllocated(false) {
-}
-
-Argument::Argument(Direction d, Type t, bool cst, bool ptr, bool array, int lenidx)
-  : mType(t), mDir(d), mConst(cst), mPtr(ptr), mArray(array), mArraySizeArg(lenidx),
-    mArrayArg(-1) { //, mAllocated(false) {
-}
-
-Argument::Argument(const Argument &rhs)
-  : mType(rhs.mType), mDir(rhs.mDir), mConst(rhs.mConst), mPtr(rhs.mPtr),
-    mArray(rhs.mArray), mArraySizeArg(rhs.mArraySizeArg), mArrayArg(rhs.mArrayArg) { //,
-    //mAllocated(rhs.mAllocated) {
-}
-
-Argument& Argument::operator=(const Argument &rhs) {
-  if (this != &rhs) {
-    mType = rhs.mType;
-    mDir = rhs.mDir;
-    mConst = rhs.mConst;
-    mPtr = rhs.mPtr;
-    mArray = rhs.mArray;
-    mArraySizeArg = rhs.mArraySizeArg;
-    mArrayArg = rhs.mArrayArg;
-    //mAllocated = rhs.mAllocated;
-  }
-  return *this;
-}
-
-Argument::~Argument() {
-}
-
-void Argument::fromDeclaration(const ArgumentDecl &decl) {
-  mType = decl.type;
-  mDir = decl.dir;
-  mConst = decl.cst;
-  mPtr = decl.ptr;
-  mArray = decl.ary;
-  mArraySizeArg = decl.arylen;
-  mArrayArg = -1;
-  //mAllocated = decl.alloc;
-}
-
-std::string Argument::toString() const {
-  static const char* argdir[] = {
-    "in", "out", "inout", "return"
-  };
-
-  static const char* argtype[] = {
-    "bool", "char", "unsigned char", "short", "unsigned short",
-    "int", "unsigned int", "long", "unsigned long", "float", "double",
-    "string", "object"
-  };
-  
-  std::ostringstream oss;
-  oss << "[";
-  oss << argdir[mDir];
-  oss << "] ";
-  if (mConst) {
-    oss << "const ";
-  }
-  oss << argtype[mType];
-  if (mPtr) {
-    oss << " [ptr]";
-  }
-  if (mArray) {
-    oss << " [array, size arg @" << mArraySizeArg << "]";
-  }
-  return oss.str();
-}
-
-// ---
-
 MethodPointer::MethodPointer() {
 }
 
@@ -153,47 +79,29 @@ void Method::validateArgs() throw(std::runtime_error) {
   for (size_t i=0; i<mArgs.size(); ++i) {
     if (mArgs[i].isArray()) {
       if (mArgs[i].arraySizeArg() == -1) {
-        //return false;
         std::ostringstream oss;
         oss << "argument " << i << " missing array size argument";
         throw std::runtime_error(oss.str());
       }
-      int idx = mArgs[i].arraySizeArg();
+      Integer idx = mArgs[i].arraySizeArg();
       if (idx >= mArgs.size()) {
-        //return false;
         std::ostringstream oss;
         oss << "argument " << i << " has an invalid array size argument";
         throw std::runtime_error(oss.str());
       }
-      switch (mArgs[idx].getType()) {
-        case AT_BOOL:
-        case AT_OBJECT:
-        case AT_STRING:
-        case AT_DOUBLE:
-        case AT_FLOAT: {
-          //return false;
-          std::ostringstream oss;
-          oss << "argument " << i << " has an invalid array size argument type";
-          throw std::runtime_error(oss.str());
-        }
-        default:
-          break;
+      if (mArgs[idx].getType() != AT_INT) {
+        std::ostringstream oss;
+        oss << "argument " << i << " has an invalid array size argument type";
+        throw std::runtime_error(oss.str());
       }
       if (mArgs[i].getDir() != mArgs[idx].getDir()) {
         std::ostringstream oss;
         oss << "argument " << i << " has an invalid array size argument direction";
         throw std::runtime_error(oss.str());
       }
-      mArgs[idx].setArrayArg(int(i));
-    }
-    if (mArgs[i].getDir() != AD_IN && mArgs[i].isConst()) {
-      //return false;
-      std::ostringstream oss;
-      oss << "argument " << i << " is inout, out or return but is specified as const";
-      throw std::runtime_error(oss.str());
+      mArgs[idx].setArrayArg(Integer(i));
     }
   }
-  //return true;
 }
 
 // ---

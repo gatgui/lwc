@@ -40,67 +40,19 @@ namespace py {
     static void ToC(PyObject *obj, bool &val) {val = (obj == Py_True);}
     static void Dispose(bool &) {}
   };
-  template <> struct PythonType<char> {
+  template <> struct PythonType<lwc::Integer> {
     static const char* Name() {return "integer";}
     static bool Check(PyObject *obj) {return PyInt_Check(obj);}
-    static void ToC(PyObject *obj, char &val) {val = (char) PyInt_AsLong(obj);}
-    static void Dispose(char &) {}
+    static void ToC(PyObject *obj, lwc::Integer &val) {val = (lwc::Integer) PyInt_AsLong(obj);}
+    static void Dispose(lwc::Integer &) {}
   };
-  template <> struct PythonType<unsigned char> {
-    static const char* Name() {return "integer";}
-    static bool Check(PyObject *obj) {return PyInt_Check(obj);}
-    static void ToC(PyObject *obj, unsigned char &val) {val = (unsigned char) PyInt_AsLong(obj);}
-    static void Dispose(unsigned char &) {}
-  };
-  template <> struct PythonType<short> {
-    static const char* Name() {return "integer";}
-    static bool Check(PyObject *obj) {return PyInt_Check(obj);}
-    static void ToC(PyObject *obj, short &val) {val = (short) PyInt_AsLong(obj);}
-    static void Dispose(short &) {}
-  };
-  template <> struct PythonType<unsigned short> {
-    static const char* Name() {return "integer";}
-    static bool Check(PyObject *obj) {return PyInt_Check(obj);}
-    static void ToC(PyObject *obj, unsigned short &val) {val = (unsigned short) PyInt_AsLong(obj);}
-    static void Dispose(unsigned short &) {}
-  };
-  template <> struct PythonType<int> {
-    static const char* Name() {return "integer";}
-    static bool Check(PyObject *obj) {return PyInt_Check(obj);}
-    static void ToC(PyObject *obj, int &val) {val = (int) PyInt_AsLong(obj);}
-    static void Dispose(int &) {}
-  };
-  template <> struct PythonType<unsigned int> {
-    static const char* Name() {return "integer";}
-    static bool Check(PyObject *obj) {return PyInt_Check(obj);}
-    static void ToC(PyObject *obj, unsigned int &val) {val = (unsigned int) PyInt_AsLong(obj);}
-    static void Dispose(unsigned int &) {}
-  };
-  template <> struct PythonType<long> {
-    static const char* Name() {return "integer";}
-    static bool Check(PyObject *obj) {return PyInt_Check(obj);}
-    static void ToC(PyObject *obj, long &val) {val = (long) PyInt_AsLong(obj);}
-    static void Dispose(long &) {}
-  };
-  template <> struct PythonType<unsigned long> {
-    static const char* Name() {return "integer";}
-    static bool Check(PyObject *obj) {return PyInt_Check(obj);}
-    static void ToC(PyObject *obj, unsigned long &val) {val = (unsigned long) PyInt_AsLong(obj);}
-    static void Dispose(unsigned long &) {}
-  };
-  template <> struct PythonType<float> {
+  template <> struct PythonType<lwc::Real> {
     static const char* Name() {return "real";}
     static bool Check(PyObject *obj) {return (PyFloat_Check(obj) || PyInt_Check(obj));}
-    static void ToC(PyObject *obj, float &val) {
-      val = (float) (PyInt_Check(obj) ? PyInt_AsLong(obj) : PyFloat_AsDouble(obj));}
-    static void Dispose(float &) {}
-  };
-  template <> struct PythonType<double> {
-    static const char* Name() {return "real";}
-    static bool Check(PyObject *obj) {return (PyFloat_Check(obj) || PyInt_Check(obj));}
-    static void ToC(PyObject *obj, double &val) {
-      val = (double) (PyInt_Check(obj) ? PyInt_AsLong(obj) : PyFloat_AsDouble(obj));}
-    static void Dispose(double &) {}
+    static void ToC(PyObject *obj, lwc::Real &val) {
+      val = (lwc::Real) (PyInt_Check(obj) ? PyInt_AsLong(obj) : PyFloat_AsDouble(obj));
+    }
+    static void Dispose(lwc::Real &) {}
   };
   template <> struct PythonType<char*> {
     static const char* Name() {return "string";}
@@ -133,35 +85,11 @@ namespace py {
       Py_INCREF(obj);
     }
   };
-  template <> struct CType<char> {
-    static void ToPython(const char &val, PyObject *&obj) {obj = PyInt_FromLong(val);}
+  template <> struct CType<lwc::Integer> {
+    static void ToPython(const lwc::Integer &val, PyObject *&obj) {obj = PyInt_FromLong(val);}
   };
-  template <> struct CType<unsigned char> {
-    static void ToPython(const unsigned char &val, PyObject *&obj) {obj = PyInt_FromLong(val);}
-  };
-  template <> struct CType<short> {
-    static void ToPython(const short &val, PyObject *&obj) {obj = PyInt_FromLong(val);}
-  };
-  template <> struct CType<unsigned short> {
-    static void ToPython(const unsigned short &val, PyObject *&obj) {obj = PyInt_FromLong(val);}
-  };
-  template <> struct CType<int> {
-    static void ToPython(const int &val, PyObject *&obj) {obj = PyInt_FromLong(val);}
-  };
-  template <> struct CType<unsigned int> {
-    static void ToPython(const unsigned int &val, PyObject *&obj) {obj = PyInt_FromLong(val);}
-  };
-  template <> struct CType<long> {
-    static void ToPython(const long &val, PyObject *&obj) {obj = PyInt_FromLong(val);}
-  };
-  template <> struct CType<unsigned long> {
-    static void ToPython(const unsigned long &val, PyObject *&obj) {obj = PyInt_FromLong(val);}
-  };
-  template <> struct CType<float> {
-    static void ToPython(const float &val, PyObject *&obj) {obj = PyFloat_FromDouble(val);}
-  };
-  template <> struct CType<double> {
-    static void ToPython(const double &val, PyObject *&obj) {obj = PyFloat_FromDouble(val);}
+  template <> struct CType<lwc::Real> {
+    static void ToPython(const lwc::Real &val, PyObject *&obj) {obj = PyFloat_FromDouble(val);}
   };
   template <> struct CType<char*> {
     static void ToPython(const char *val, PyObject *&obj) {obj = PyString_FromString(val);}

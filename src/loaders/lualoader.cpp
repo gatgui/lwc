@@ -140,8 +140,8 @@ class LuaFactory : public lwc::Factory {
           }
           
           size_t alen = lua_objlen(mState, -1);
-          if (alen < 2 || alen > 5) {
-            std::cout << "lualoader: Arguments must be arrays with 2 to 5 elements" << std::endl;
+          if (alen < 2 || alen > 3) {
+            std::cout << "lualoader: Arguments must be arrays with 2 to 3 elements" << std::endl;
             lua_pop(mState, 1); // stack +2
             add = false;
             break;
@@ -176,34 +176,8 @@ class LuaFactory : public lwc::Factory {
           if (alen >= 3) {
             lua_pushinteger(mState, 3);
             lua_gettable(mState, -2); // stack +4
-            if (!lua_isboolean(mState, -1)) {
-              std::cout << "lualoader: Argument array third element must be a boolean" << std::endl;
-              lua_pop(mState, 2); // stack +2
-              add = false;
-              break;
-            }
-            a.setConst(lua_toboolean(mState, -1));
-            lua_pop(mState, 1); // stack +3
-          }
-          
-          if (alen >= 4) {
-            lua_pushinteger(mState, 4);
-            lua_gettable(mState, -2); // stack +4
-            if (!lua_isboolean(mState, -1)) {
-              std::cout << "lualoader: Argument array 4th element must be a boolean" << std::endl;
-              lua_pop(mState, 2); // stack +2
-              add = false;
-              break;
-            }
-            a.setArray(lua_toboolean(mState, -1));
-            lua_pop(mState, 1); // stack +3
-          }
-          
-          if (alen >= 5) {
-            lua_pushinteger(mState, 5);
-            lua_gettable(mState, -2); // stack +4
             if (!lua_isnumber(mState, -1)) {
-              std::cout << "lualoader: Argument array 5th element must be an integer" << std::endl;
+              std::cout << "lualoader: Argument array 3th element must be an integer" << std::endl;
               lua_pop(mState, 2); // stack +2
               add = false;
               break;

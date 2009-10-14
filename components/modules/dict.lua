@@ -28,28 +28,28 @@ local Dict = {}
 
 -- for lwc to do automatic type mapping
 Dict.Methods        = {}
-Dict.Methods.keys   = {{llwc.AD_OUT, llwc.AT_STRING, false, true, 1}, {llwc.AD_OUT, llwc.AT_ULONG}}
-Dict.Methods.values = {{llwc.AD_OUT, llwc.AT_STRING, false, true, 1}, {llwc.AD_OUT, llwc.AT_ULONG}}
-Dict.Methods.size   = {{llwc.AD_RETURN, llwc.AT_ULONG}}
+Dict.Methods.keys   = {{llwc.AD_OUT, llwc.AT_STRING_ARRAY, 1}, {llwc.AD_OUT, llwc.AT_INT}}
+Dict.Methods.values = {{llwc.AD_OUT, llwc.AT_STRING_ARRAY, 1}, {llwc.AD_OUT, llwc.AT_INT}}
+Dict.Methods.size   = {{llwc.AD_RETURN, llwc.AT_INT}}
 Dict.Methods.get    = {{llwc.AD_IN, llwc.AT_STRING}, {llwc.AD_RETURN, llwc.AT_STRING}}
 Dict.Methods.set    = {{llwc.AD_IN, llwc.AT_STRING}, {llwc.AD_IN, llwc.AT_STRING}}
 
 -- could this be automatically generated?
 Dict.__index = function (self, member)
-	val = Dict[member]
-	if val == nil then
-		val = self.lwcobj[member]
-	end
-	return val
+  val = Dict[member]
+  if val == nil then
+    val = self.lwcobj[member]
+  end
+  return val
 end
 
 Dict.new = function ()
-	self = {}
-	-- place holder for llwc native object, you don't have to set it, but it makes things more explicit
-	self.lwcobj = nil
-	self.dict = {}
-	setmetatable(self, Dict)
-	return self
+  self = {}
+  -- place holder for llwc native object, you don't have to set it, but it makes things more explicit
+  self.lwcobj = nil
+  self.dict = {}
+  setmetatable(self, Dict)
+  return self
 end
 
 Dict.keys = function (self)

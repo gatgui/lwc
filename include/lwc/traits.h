@@ -48,6 +48,23 @@ namespace lwc {
     typedef T Type;
   };
   
+  template <typename T> struct NoConst {
+    typedef T Type;
+  };
+  template <typename T> struct NoConst<const T> {
+    typedef T Type;
+  };
+  template <typename T> struct NoConst<const T&> {
+    typedef T& Type;
+  };
+  template <typename T> struct NoConst<const T*> {
+    typedef T* Type;
+  };
+  
+  template <typename T> struct NoRefOrConst {
+    typedef typename NoRef<typename NoConst<T>::Type>::Type Type;
+  };
+  
   template <typename T> struct TypeTraits {
     typedef const T& ConstRef;
     typedef const T* ConstPtr;

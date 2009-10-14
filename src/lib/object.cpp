@@ -47,7 +47,6 @@ Object::~Object() {
 }
 
 void Object::call(const char *name, MethodParams &params) throw(std::runtime_error) {
-  //TMethodPointer<Object> *mptr = params.getMethod().getPointer<Object>();
   TMethodPointer<Object> *mptr = (TMethodPointer<Object>*) params.getMethod().getPointer();
   if (!mptr) {
     std::ostringstream oss;

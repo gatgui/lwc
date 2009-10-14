@@ -82,11 +82,6 @@ PyObject* CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, i
     
     const lwc::Argument &ad = m[cArg];
     
-    if (ad.isPtr()) {
-      PyErr_SetString(PyExc_RuntimeError, "Pointer arguments not supported in python");
-      return NULL;
-    }
-    
     if (!ad.isArray() && ad.getDir() == lwc::AD_INOUT) {
       PyErr_SetString(PyExc_RuntimeError, "inout non array arguments not supported in python");
       return NULL;
@@ -101,11 +96,7 @@ PyObject* CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, i
           bool *ary=0;
           ParamConverter<lwc::AT_BOOL>::PreCallArray(ad, cArg, args, pyArg, arraySizes, ary);
           if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const bool*)ary);
-            } else {
-              params.set(cArg, ary);
-            }
+            params.set(cArg, ary);
           } else {
             params.set(cArg, &ary);
           }
@@ -116,11 +107,7 @@ PyObject* CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, i
           bool val;
           ParamConverter<lwc::AT_BOOL>::PreCall(ad, cArg, args, pyArg, arraySizes, val);
           if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const bool)val);
-            } else {
-              params.set(cArg, val);
-            }
+            params.set(cArg, val);
           } else {
             params.set(cArg, &val);
           }
@@ -129,148 +116,12 @@ PyObject* CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, i
         }
         break;
       }
-      case lwc::AT_CHAR: {
-        if (ad.isArray()) {
-          char *ary=0;
-          ParamConverter<lwc::AT_CHAR>::PreCallArray(ad, cArg, args, pyArg, arraySizes, ary);
-          if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const char*)ary);
-            } else {
-              params.set(cArg, ary);
-            }
-          } else {
-            params.set(cArg, &ary);
-          }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
-          ParamConverter<lwc::AT_CHAR>::PostCallArray(ad, cArg, args, oldPyArg, arraySizes, ary, rv);
-          
-        } else {
-          char val;
-          ParamConverter<lwc::AT_CHAR>::PreCall(ad, cArg, args, pyArg, arraySizes, val);
-          if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const char)val);
-            } else {
-              params.set(cArg, val);
-            }
-          } else {
-            params.set(cArg, &val);
-          }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
-          ParamConverter<lwc::AT_CHAR>::PostCall(ad, cArg, args, oldPyArg, arraySizes, val, rv);
-        }
-        break;
-      }
-      case lwc::AT_UCHAR: {
-        if (ad.isArray()) {
-          unsigned char *ary=0;
-          ParamConverter<lwc::AT_UCHAR>::PreCallArray(ad, cArg, args, pyArg, arraySizes, ary);
-          if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const unsigned char*)ary);
-            } else {
-              params.set(cArg, ary);
-            }
-          } else {
-            params.set(cArg, &ary);
-          }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
-          ParamConverter<lwc::AT_UCHAR>::PostCallArray(ad, cArg, args, oldPyArg, arraySizes, ary, rv);
-          
-        } else {
-          unsigned char val;
-          ParamConverter<lwc::AT_UCHAR>::PreCall(ad, cArg, args, pyArg, arraySizes, val);
-          if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const unsigned char)val);
-            } else {
-              params.set(cArg, val);
-            }
-          } else {
-            params.set(cArg, &val);
-          }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
-          ParamConverter<lwc::AT_UCHAR>::PostCall(ad, cArg, args, oldPyArg, arraySizes, val, rv);
-        }
-        break;
-      }
-      case lwc::AT_SHORT: {
-        if (ad.isArray()) {
-          short *ary=0;
-          ParamConverter<lwc::AT_SHORT>::PreCallArray(ad, cArg, args, pyArg, arraySizes, ary);
-          if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const short*)ary);
-            } else {
-              params.set(cArg, ary);
-            }
-          } else {
-            params.set(cArg, &ary);
-          }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
-          ParamConverter<lwc::AT_SHORT>::PostCallArray(ad, cArg, args, oldPyArg, arraySizes, ary, rv);
-          
-        } else {
-          short val;
-          ParamConverter<lwc::AT_SHORT>::PreCall(ad, cArg, args, pyArg, arraySizes, val);
-          if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const short)val);
-            } else {
-              params.set(cArg, val);
-            }
-          } else {
-            params.set(cArg, &val);
-          }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
-          ParamConverter<lwc::AT_SHORT>::PostCall(ad, cArg, args, oldPyArg, arraySizes, val, rv);
-        }
-        break;
-      }
-      case lwc::AT_USHORT: {
-        if (ad.isArray()) {
-          unsigned short *ary=0;
-          ParamConverter<lwc::AT_USHORT>::PreCallArray(ad, cArg, args, pyArg, arraySizes, ary);
-          if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const unsigned short*)ary);
-            } else {
-              params.set(cArg, ary);
-            }
-          } else {
-            params.set(cArg, &ary);
-          }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
-          ParamConverter<lwc::AT_USHORT>::PostCallArray(ad, cArg, args, oldPyArg, arraySizes, ary, rv);
-          
-        } else {
-          unsigned short val;
-          ParamConverter<lwc::AT_USHORT>::PreCall(ad, cArg, args, pyArg, arraySizes, val);
-          if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const unsigned short)val);
-            } else {
-              params.set(cArg, val);
-            }
-          } else {
-            params.set(cArg, &val);
-          }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
-          ParamConverter<lwc::AT_USHORT>::PostCall(ad, cArg, args, oldPyArg, arraySizes, val, rv);
-        }
-        break;
-      }
       case lwc::AT_INT: {
         if (ad.isArray()) {
-          int *ary=0;
+          lwc::Integer *ary=0;
           ParamConverter<lwc::AT_INT>::PreCallArray(ad, cArg, args, pyArg, arraySizes, ary);
           if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const int*)ary);
-            } else {
-              params.set(cArg, ary);
-            }
+            params.set(cArg, ary);
           } else {
             params.set(cArg, &ary);
           }
@@ -278,14 +129,10 @@ PyObject* CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, i
           ParamConverter<lwc::AT_INT>::PostCallArray(ad, cArg, args, oldPyArg, arraySizes, ary, rv);
           
         } else {
-          int val;
+          lwc::Integer val;
           ParamConverter<lwc::AT_INT>::PreCall(ad, cArg, args, pyArg, arraySizes, val);
           if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const int)val);
-            } else {
-              params.set(cArg, val);
-            }
+            params.set(cArg, val);
           } else {
             params.set(cArg, &val);
           }
@@ -294,168 +141,28 @@ PyObject* CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, i
         }
         break;
       }
-      case lwc::AT_UINT: {
+      case lwc::AT_REAL: {
         if (ad.isArray()) {
-          unsigned int *ary=0;
-          ParamConverter<lwc::AT_UINT>::PreCallArray(ad, cArg, args, pyArg, arraySizes, ary);
+          lwc::Real *ary=0;
+          ParamConverter<lwc::AT_REAL>::PreCallArray(ad, cArg, args, pyArg, arraySizes, ary);
           if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const unsigned int*)ary);
-            } else {
-              params.set(cArg, ary);
-            }
+            params.set(cArg, ary);
           } else {
             params.set(cArg, &ary);
           }
           rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
-          ParamConverter<lwc::AT_UINT>::PostCallArray(ad, cArg, args, oldPyArg, arraySizes, ary, rv);
+          ParamConverter<lwc::AT_REAL>::PostCallArray(ad, cArg, args, oldPyArg, arraySizes, ary, rv);
           
         } else {
-          unsigned int val;
-          ParamConverter<lwc::AT_UINT>::PreCall(ad, cArg, args, pyArg, arraySizes, val);
+          lwc::Real val;
+          ParamConverter<lwc::AT_REAL>::PreCall(ad, cArg, args, pyArg, arraySizes, val);
           if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const unsigned int)val);
-            } else {
-              params.set(cArg, val);
-            }
+            params.set(cArg, val);
           } else {
             params.set(cArg, &val);
           }
           rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
-          ParamConverter<lwc::AT_UINT>::PostCall(ad, cArg, args, oldPyArg, arraySizes, val, rv);
-        }
-        break;
-      }
-      case lwc::AT_LONG: {
-        if (ad.isArray()) {
-          long *ary=0;
-          ParamConverter<lwc::AT_LONG>::PreCallArray(ad, cArg, args, pyArg, arraySizes, ary);
-          if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const long*)ary);
-            } else {
-              params.set(cArg, ary);
-            }
-          } else {
-            params.set(cArg, &ary);
-          }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
-          ParamConverter<lwc::AT_LONG>::PostCallArray(ad, cArg, args, oldPyArg, arraySizes, ary, rv);
-          
-        } else {
-          long val;
-          ParamConverter<lwc::AT_LONG>::PreCall(ad, cArg, args, pyArg, arraySizes, val);
-          if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const long)val);
-            } else {
-              params.set(cArg, val);
-            }
-          } else {
-            params.set(cArg, &val);
-          }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
-          ParamConverter<lwc::AT_LONG>::PostCall(ad, cArg, args, oldPyArg, arraySizes, val, rv);
-        }
-        break;
-      }
-      case lwc::AT_ULONG: {
-        if (ad.isArray()) {
-          unsigned long *ary=0;
-          ParamConverter<lwc::AT_ULONG>::PreCallArray(ad, cArg, args, pyArg, arraySizes, ary);
-          if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const unsigned long*)ary);
-            } else {
-              params.set(cArg, ary);
-            }
-          } else {
-            params.set(cArg, &ary);
-          }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
-          ParamConverter<lwc::AT_ULONG>::PostCallArray(ad, cArg, args, oldPyArg, arraySizes, ary, rv);
-          
-        } else {
-          unsigned long val;
-          ParamConverter<lwc::AT_ULONG>::PreCall(ad, cArg, args, pyArg, arraySizes, val);
-          if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const unsigned long)val);
-            } else {
-              params.set(cArg, val);
-            }
-          } else {
-            params.set(cArg, &val);
-          }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
-          ParamConverter<lwc::AT_ULONG>::PostCall(ad, cArg, args, oldPyArg, arraySizes, val, rv);
-        }
-        break;
-      }
-      case lwc::AT_FLOAT: {
-        if (ad.isArray()) {
-          float *ary=0;
-          ParamConverter<lwc::AT_FLOAT>::PreCallArray(ad, cArg, args, pyArg, arraySizes, ary);
-          if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const float*)ary);
-            } else {
-              params.set(cArg, ary);
-            }
-          } else {
-            params.set(cArg, &ary);
-          }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
-          ParamConverter<lwc::AT_FLOAT>::PostCallArray(ad, cArg, args, oldPyArg, arraySizes, ary, rv);
-          
-        } else {
-          float val;
-          ParamConverter<lwc::AT_FLOAT>::PreCall(ad, cArg, args, pyArg, arraySizes, val);
-          if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const float)val);
-            } else {
-              params.set(cArg, val);
-            }
-          } else {
-            params.set(cArg, &val);
-          }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
-          ParamConverter<lwc::AT_FLOAT>::PostCall(ad, cArg, args, oldPyArg, arraySizes, val, rv);
-        }
-        break;
-      }
-      case lwc::AT_DOUBLE: {
-        if (ad.isArray()) {
-          double *ary=0;
-          ParamConverter<lwc::AT_DOUBLE>::PreCallArray(ad, cArg, args, pyArg, arraySizes, ary);
-          if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const double*)ary);
-            } else {
-              params.set(cArg, ary);
-            }
-          } else {
-            params.set(cArg, &ary);
-          }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
-          ParamConverter<lwc::AT_DOUBLE>::PostCallArray(ad, cArg, args, oldPyArg, arraySizes, ary, rv);
-          
-        } else {
-          double val;
-          ParamConverter<lwc::AT_DOUBLE>::PreCall(ad, cArg, args, pyArg, arraySizes, val);
-          if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const double)val);
-            } else {
-              params.set(cArg, val);
-            }
-          } else {
-            params.set(cArg, &val);
-          }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
-          ParamConverter<lwc::AT_DOUBLE>::PostCall(ad, cArg, args, oldPyArg, arraySizes, val, rv);
+          ParamConverter<lwc::AT_REAL>::PostCall(ad, cArg, args, oldPyArg, arraySizes, val, rv);
         }
         break;
       }
@@ -464,11 +171,7 @@ PyObject* CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, i
           char **ary=0;
           ParamConverter<lwc::AT_STRING>::PreCallArray(ad, cArg, args, pyArg, arraySizes, ary);
           if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const char**)ary);
-            } else {
-              params.set(cArg, ary);
-            }
+            params.set(cArg, ary);
           } else {
             params.set(cArg, &ary);
           }
@@ -479,11 +182,7 @@ PyObject* CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, i
           char *val;
           ParamConverter<lwc::AT_STRING>::PreCall(ad, cArg, args, pyArg, arraySizes, val);
           if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const char*)val);
-            } else {
-              params.set(cArg, val);
-            }
+            params.set(cArg, val);
           } else {
             params.set(cArg, &val);
           }
@@ -497,11 +196,7 @@ PyObject* CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, i
           lwc::Object **ary=0;
           ParamConverter<lwc::AT_OBJECT>::PreCallArray(ad, cArg, args, pyArg, arraySizes, ary);
           if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const lwc::Object**)ary);
-            } else {
-              params.set(cArg, ary);
-            }
+            params.set(cArg, ary);
           } else {
             params.set(cArg, &ary);
           }
@@ -512,11 +207,7 @@ PyObject* CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, i
           lwc::Object *val;
           ParamConverter<lwc::AT_OBJECT>::PreCall(ad, cArg, args, pyArg, arraySizes, val);
           if (ad.getDir() == lwc::AD_IN) {
-            if (ad.isConst()) {
-              params.set(cArg, (const lwc::Object*)val);
-            } else {
-              params.set(cArg, val);
-            }
+            params.set(cArg, val);
           } else {
             params.set(cArg, &val);
           }

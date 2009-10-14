@@ -37,7 +37,7 @@ Check
 - lua_checkstack() in callmethod, as in lua, the stack won't grow automatically
 
 Change:
-- only BOOL, INTEGER, REAL, STRING, OBJECT for types?
+x only BOOL, INTEGER, REAL, STRING, OBJECT for types?
 
 Add
 - General functions/constants

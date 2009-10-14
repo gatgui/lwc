@@ -64,7 +64,13 @@ namespace lwc {
             self->call(name, params);\
             return;\
           } else {\
-            params.set(n, arg##n);\
+            try {\
+              params.set(n, arg##n);\
+            } catch (std::exception &e) {\
+              std::ostringstream oss;\
+              oss << "In method \"" << name << "\": " << e.what();\
+              throw std::runtime_error(oss.str());\
+            }\
           }
           
           SETPARAMORCALL(0)
