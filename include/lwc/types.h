@@ -63,10 +63,13 @@ namespace lwc {
   typedef double Real;
   
 #if defined(__LP64__) || defined(_LP64) || (_MIPS_SZLONG == 64) || (__WORDSIZE == 64)
+# define NATIVE_64BIT_LONG 1
   typedef long Integer;
 #elif defined(_MSC_VER) || (defined(__BCPLUSPLUS__) && __BORLANDC__ > 0x500) || defined(__WATCOM_INT64__)
+# define NATIVE_64BIT_LONG 0
   typedef __int64 Integer;
 #elif defined(__GNUG__) || defined(__GNUC__) || defined(__SUNPRO_CC) || defined(__MWERKS__) || defined(__SC__) || defined(_LONGLONG)
+# define NATIVE_64BIT_LONG 0
   typedef long long Integer;
 #else
 #error "Integer not defined for this architecture!"
@@ -152,6 +155,7 @@ namespace lwc {
     static bool Possible() {return true;}
     static void Do(const Integer &from, unsigned int &to) {to = (unsigned int)from;}
   };
+#ifndef NATIVE_64BIT_LONG
   template <> struct Convertion<long, Integer> {
     static bool Possible() {return true;}
     static void Do(const long &from, Integer &to) {to = (Integer)from;}
@@ -160,6 +164,7 @@ namespace lwc {
     static bool Possible() {return true;}
     static void Do(const Integer &from, long &to) {to = (long)from;}
   };
+#endif
   template <> struct Convertion<unsigned long, Integer> {
     static bool Possible() {return true;}
     static void Do(const unsigned long &from, Integer &to) {to = (Integer)from;}
@@ -314,6 +319,7 @@ namespace lwc {
     static bool Possible() {return true;}
     static void Do(const Real &from, unsigned int &to) {to = (unsigned int)from;}
   };
+#ifndef NATIVE_64BIT_LONG
   template <> struct Convertion<long, Real> {
     static bool Possible() {return true;}
     static void Do(const long &from, Real &to) {to = (Real)from;}
@@ -322,6 +328,7 @@ namespace lwc {
     static bool Possible() {return true;}
     static void Do(const Real &from, long &to) {to = (long)from;}
   };
+#endif
   template <> struct Convertion<unsigned long, Real> {
     static bool Possible() {return true;}
     static void Do(const unsigned long &from, Real &to) {to = (Real)from;}
