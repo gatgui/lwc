@@ -80,7 +80,7 @@ static PyObject* lwcmeth_getArg(PyObject *pself, PyObject *args) {
     return NULL;
   }
   if (idx >= self->meth.numArgs()) {
-    PyErr_Format(PyExc_RuntimeError, "Invalid argument index: %d", idx);
+    PyErr_Format(PyExc_RuntimeError, "Invalid argument index: %lu", idx);
     return NULL;
   }
   PyObject *oarg = PyObject_CallObject((PyObject*)&PyLWCArgumentType, NULL);

@@ -34,6 +34,9 @@ USA.
 # define LWC_API
 #endif
 
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
 #include <map>
 #include <string>
 #include <vector>
@@ -41,5 +44,6 @@ USA.
 #include <sstream>
 #include <stdexcept>
 #include <algorithm>
+#include <typeinfo>
 
 #endif
