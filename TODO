@@ -35,6 +35,12 @@ x Lua loader
 - Better exception handling [object creationg and method call]
 - Handling NULL values for string and objects
 - Remove the AD_RETURN, same a AD_OUT
+- Problem with python module scope (having a component module file name being the same as another usual python filename)
+  => imports the wrong file
+  => probably same problem with ruby and/or lua
+x It seems that passing AT_OBJECT around makes segmentation fault
+  => when doing object translation when argument passing, should check if object of the language or not maybe?
+x When method has several return values, they are returned in the inverse order
 
 Check
 - lua_checkstack() in callmethod, as in lua, the stack won't grow automatically

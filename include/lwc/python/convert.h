@@ -25,9 +25,10 @@ USA.
 #define __lwc_py_convert_h__
 
 #include <lwc/python/config.h>
+#include <lwc/python/pobject.h>
 
 namespace py {
-
+  
   template <typename T> struct PythonType {
     static const char* Name() {return "unknown";}
     static bool Check(PyObject *obj) {return false;}
@@ -96,8 +97,15 @@ namespace py {
   };
   template <> struct CType<lwc::Object*> {
     static void ToPython(const lwc::Object *val, PyObject *&obj) {
-      obj = PyObject_CallObject((PyObject*)&PyLWCObjectType, NULL);
-      SetObjectPointer((PyLWCObject*)obj, (lwc::Object*)val);
+      //obj = PyObject_CallObject((PyObject*)&PyLWCObjectType, NULL);
+      //SetObjectPointer((PyLWCObject*)obj, (lwc::Object*)val);
+      if (!strcmp(val->getLoaderName(), "pyloader")) {
+        obj = ((py::Object*)val)->self();
+        Py_INCREF(obj);
+      } else {
+        obj = PyObject_CallObject((PyObject*)&PyLWCObjectType, NULL);
+        SetObjectPointer((PyLWCObject*)obj, (lwc::Object*)val);
+      }
     }
   };
 

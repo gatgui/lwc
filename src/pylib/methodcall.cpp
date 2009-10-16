@@ -236,6 +236,14 @@ PyObject* CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, i
           Py_INCREF(o);
           Py_DECREF(rv);
           rv = o;
+        } else {
+          // reverse array
+          size_t hl = sz / 2;
+          for (size_t i=0; i<hl; ++i) {
+            PyObject *tmp = PyTuple_GetItem(rv, i);
+            PyTuple_SetItem(rv, i, PyTuple_GetItem(rv, sz-i-1));
+            PyTuple_SetItem(rv, sz-i-1, tmp);
+          }
         }
       }
     }

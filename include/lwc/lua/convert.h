@@ -109,7 +109,13 @@ namespace lua {
   };
   template <> struct CType<lwc::Object*> {
     static void ToLua(const lwc::Object *val, lua_State *L) {
-      LuaObject::Wrap(L, (lwc::Object*)val);
+      //LuaObject::Wrap(L, (lwc::Object*)val);
+      if (!strcmp(val->getLoaderName(), "lualoader")) {
+        lua_pushlightuserdata(L, (void*)val);
+        lua_gettable(L, LUA_REGISTRYINDEX);
+      } else {
+        LuaObject::Wrap(L, (lwc::Object*)val);
+      }
     }
   };
 

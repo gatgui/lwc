@@ -207,25 +207,13 @@ int CallMethod(lwc::Object *o, const char *n,
           std::cout << "*** lcwlua: CallMethod -> return value should be on top of the stack..." << std::endl;
         }
         size_t sz = lua_objlen(L, rv);
-        for (size_t i=0; i<sz; ++i) {
-          lua_pushinteger(L, i+1);
+        for (size_t i=sz; i>0; --i) {
+          lua_pushinteger(L, i);
           lua_gettable(L, rv);
         }
         lua_remove(L, rv);
         return sz;
-        /*
-        if (sz == 0) {
-          lua_remove(L, rv);
-          rv = NO_RETVAL;
-          
-        } else if (sz == 1) {
-          // replace rv by its first item
-          lua_pushinteger(L, 1);
-          lua_gettable(L, rv);
-          lua_remove(L, rv);
-          rv = lua_gettop(L);
-        }
-        */
+        
       } else {
         
         return 0;

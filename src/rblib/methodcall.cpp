@@ -203,6 +203,16 @@ VALUE CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, int c
         
       } else if (sz == 1) {
         rv = RARRAY(rv)->ptr[0];
+      
+      } else {
+        // reverse array
+        size_t hl = sz / 2;
+        for (size_t i=0; i<hl; ++i) {
+          VALUE tmp = RARRAY(rv)->ptr[i];
+          RARRAY(rv)->ptr[i] = RARRAY(rv)->ptr[sz-i-1];
+          RARRAY(rv)->ptr[sz-i-1] = tmp;
+        }
+        
       }
     }
     

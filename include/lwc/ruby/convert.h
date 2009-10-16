@@ -27,6 +27,7 @@ USA.
 #include <lwc/ruby/config.h>
 #include <lwc/ruby/utils.h>
 #include <lwc/ruby/types.h>
+#include <lwc/ruby/rbobject.h>
 
 namespace rb {
 
@@ -92,8 +93,14 @@ namespace rb {
   };
   template <> struct CType<lwc::Object*> {
     static void ToRuby(const lwc::Object *val, VALUE &obj) {
-      obj = rb_funcall(cLWCObject, rb_intern("new"), 0, NULL);
-      SetObjectPointer(obj, (lwc::Object*)val);
+      //obj = rb_funcall2(cLWCObject, rb_intern("new"), 0, NULL);
+      //SetObjectPointer(obj, (lwc::Object*)val);
+      if (!strcmp(val->getLoaderName(), "rbloader")) {
+        obj = ((rb::Object*)obj)->self();
+      } else {
+        obj = rb_funcall2(cLWCObject, rb_intern("new"), 0, NULL);
+        SetObjectPointer(obj, (lwc::Object*)val);
+      }
     }
   };
 
