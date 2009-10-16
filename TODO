@@ -32,6 +32,9 @@ x Deleting TMethodPointer from static array fails
 x Ruby module and loader
 x Lua module
 x Lua loader
+- Better exception handling [object creationg and method call]
+- Handling NULL values for string and objects
+- Remove the AD_RETURN, same a AD_OUT
 
 Check
 - lua_checkstack() in callmethod, as in lua, the stack won't grow automatically

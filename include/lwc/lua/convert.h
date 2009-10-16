@@ -208,7 +208,7 @@ namespace lua {
       for (size_t i=0; i<length; ++i) {
         lua_pushinteger(L, i+1);
         CType<Type>::ToLua(ary[i], L);
-        lua_settable(L, -2);
+        lua_settable(L, -3);
       }
     }
   };
@@ -292,7 +292,7 @@ namespace lua {
           // array both input and output -> need to set the onTop in C2Lua<>::ToArray
           onTop = true;
           lua_pushvalue(L, firstArg+iarg);
-        }  
+        }
         C2Lua<T>::ToArray(ary, arraySizes[idesc], L, onTop);
         if (onTop) {
           lua_pop(L, 1);

@@ -294,6 +294,11 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       continue;
     }
     
+    if (arg.arrayArg() != -1) {
+      // array sizes handled when dealing with the array arg
+      continue;
+    }
+    
     if (noutputs == 0) {
       throw std::runtime_error("Expected return value, got None");
     }
@@ -304,11 +309,6 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
     }
     
     // can be inout, out or return
-    
-    if (arg.arrayArg() != -1) {
-      // array sizes handled when dealing with the array arg
-      continue;
-    }
     
     if (arg.isArray()) {
       
