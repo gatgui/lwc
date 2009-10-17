@@ -250,9 +250,9 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       continue;
     }
     
-    if (rv == Qnil) {
-      throw std::runtime_error("Expected return value, got None");
-    }
+    //if (rv == Qnil) {
+    //  throw std::runtime_error("Expected return value, got None");
+    //}
     if (cur > 0 && !array) {
       throw std::runtime_error("Expected array as return value (multiple output)");
     }
@@ -272,6 +272,10 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
         len = inoutInSizes[i];
         
       } else {
+        
+        if (rv == Qnil) {
+          throw std::runtime_error("Expected return value, got nil");
+        }
         
         if (array) {
           crv = RARRAY(rv)->ptr[cur];
@@ -342,9 +346,15 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       VALUE crv; // get from PyTuple or rv
       
       if (array) {
+        if (rv == Qnil) {
+          throw std::runtime_error("Expected return value, got nil");
+        }
         crv = RARRAY(rv)->ptr[cur];
       } else {
         crv = rv;
+      }
+      if (crv == Qnil && arg.getType() != lwc::AT_STRING && arg.getType() != lwc::AT_OBJECT) {
+        throw std::runtime_error("Expected return value, got nil");
       }
       ++cur;
       

@@ -57,22 +57,32 @@ namespace py {
   };
   template <> struct PythonType<char*> {
     static const char* Name() {return "string";}
-    static bool Check(PyObject *obj) {return PyString_Check(obj);}
+    static bool Check(PyObject *obj) {return (obj == Py_None || PyString_Check(obj));}
     static void ToC(PyObject *obj, char* &val) {
-      char *str = PyString_AsString(obj);
-      val = (char*) lwc::memory::Alloc(strlen(str)+1, sizeof(char));
-      strcpy(val, str);
+      if (obj == Py_None) {
+        val = 0;
+      } else {
+        char *str = PyString_AsString(obj);
+        val = (char*) lwc::memory::Alloc(strlen(str)+1, sizeof(char));
+        strcpy(val, str);
+      }
     }
     static void Dispose(char* &val) {
-      lwc::memory::Free((void*)val);
+      if (val) {
+        lwc::memory::Free((void*)val);
+      }
     }
   };
   template <> struct PythonType<lwc::Object*> {
     static const char* Name() {return "LWC object";}
-    static bool Check(PyObject *obj) {return PyObject_TypeCheck(obj, &PyLWCObjectType);}
+    static bool Check(PyObject *obj) {return (obj == Py_None || PyObject_TypeCheck(obj, &PyLWCObjectType));}
     static void ToC(PyObject *obj, lwc::Object* &val) {
-      PyLWCObject *ilo = (PyLWCObject*)obj;
-      val = ilo->obj;
+      if (obj == Py_None) {
+        val = 0;
+      } else {
+        PyLWCObject *ilo = (PyLWCObject*)obj;
+        val = ilo->obj;
+      }
     }
     static void Dispose(lwc::Object *&) {}
   };
@@ -93,18 +103,30 @@ namespace py {
     static void ToPython(const lwc::Real &val, PyObject *&obj) {obj = PyFloat_FromDouble(val);}
   };
   template <> struct CType<char*> {
-    static void ToPython(const char *val, PyObject *&obj) {obj = PyString_FromString(val);}
+    static void ToPython(const char *val, PyObject *&obj) {
+      if (!val) {
+        obj = Py_None;
+        Py_INCREF(obj);
+      
+      } else {
+        obj = PyString_FromString(val);
+      }
+    }
   };
   template <> struct CType<lwc::Object*> {
     static void ToPython(const lwc::Object *val, PyObject *&obj) {
-      //obj = PyObject_CallObject((PyObject*)&PyLWCObjectType, NULL);
-      //SetObjectPointer((PyLWCObject*)obj, (lwc::Object*)val);
-      if (!strcmp(val->getLoaderName(), "pyloader")) {
-        obj = ((py::Object*)val)->self();
+      if (!val) {
+        obj = Py_None;
         Py_INCREF(obj);
+        
       } else {
-        obj = PyObject_CallObject((PyObject*)&PyLWCObjectType, NULL);
-        SetObjectPointer((PyLWCObject*)obj, (lwc::Object*)val);
+        if (!strcmp(val->getLoaderName(), "pyloader")) {
+          obj = ((py::Object*)val)->self();
+          Py_INCREF(obj);
+        } else {
+          obj = PyObject_CallObject((PyObject*)&PyLWCObjectType, NULL);
+          SetObjectPointer((PyLWCObject*)obj, (lwc::Object*)val);
+        }
       }
     }
   };

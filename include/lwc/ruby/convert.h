@@ -57,20 +57,32 @@ namespace rb {
   };
   template <> struct RubyType<char*> {
     static const char* Name() {return "string";}
-    static bool Check(VALUE obj) {return TYPE(obj) == T_STRING;}
+    static bool Check(VALUE obj) {return (TYPE(obj) == T_NIL || TYPE(obj) == T_STRING);}
     static void ToC(VALUE obj, char* &val) {
-      char *str = RSTRING(obj)->ptr;
-      val = (char*) lwc::memory::Alloc(strlen(str)+1, sizeof(char));
-      strcpy(val, str);
+      if (obj == Qnil) {
+        val = 0;
+      } else {
+        char *str = RSTRING(obj)->ptr;
+        val = (char*) lwc::memory::Alloc(strlen(str)+1, sizeof(char));
+        strcpy(val, str);
+      }
     }
     static void Dispose(char* &val) {
-      lwc::memory::Free((void*)val);
+      if (val) {
+        lwc::memory::Free((void*)val);
+      }
     }
   };
   template <> struct RubyType<lwc::Object*> {
     static const char* Name() {return "il.Object";}
-    static bool Check(VALUE obj) {return rb::IsKindOf(obj, cLWCObject);}
-    static void ToC(VALUE obj, lwc::Object* &val) {rb::GetPointer(obj, val);}
+    static bool Check(VALUE obj) {return (TYPE(obj) == T_NIL || rb::IsKindOf(obj, cLWCObject));}
+    static void ToC(VALUE obj, lwc::Object* &val) {
+      if (obj == Qnil) {
+        val = 0;
+      } else {
+        rb::GetPointer(obj, val);
+      }
+    }
     static void Dispose(lwc::Object *&) {}
   };
 
@@ -89,17 +101,25 @@ namespace rb {
     static void ToRuby(const lwc::Real &val, VALUE &obj) {obj = rb_float_new(val);}
   };
   template <> struct CType<char*> {
-    static void ToRuby(const char *val, VALUE &obj) {obj = rb_str_new2(val);}
+    static void ToRuby(const char *val, VALUE &obj) {
+      if (!val) {
+        obj = Qnil;
+      } else {
+        obj = rb_str_new2(val);
+      }
+    }
   };
   template <> struct CType<lwc::Object*> {
     static void ToRuby(const lwc::Object *val, VALUE &obj) {
-      //obj = rb_funcall2(cLWCObject, rb_intern("new"), 0, NULL);
-      //SetObjectPointer(obj, (lwc::Object*)val);
-      if (!strcmp(val->getLoaderName(), "rbloader")) {
-        obj = ((rb::Object*)obj)->self();
+      if (!val) {
+        obj = Qnil;
       } else {
-        obj = rb_funcall2(cLWCObject, rb_intern("new"), 0, NULL);
-        SetObjectPointer(obj, (lwc::Object*)val);
+        if (!strcmp(val->getLoaderName(), "rbloader")) {
+          obj = ((rb::Object*)obj)->self();
+        } else {
+          obj = rb_funcall2(cLWCObject, rb_intern("new"), 0, NULL);
+          SetObjectPointer(obj, (lwc::Object*)val);
+        }
       }
     }
   };

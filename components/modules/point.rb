@@ -27,8 +27,8 @@ module Point
   
   class Point < RLWC::Object
     
-    Methods = {:getX => [[RLWC::AD_RETURN, RLWC::AT_INT]],
-               :getY => [[RLWC::AD_RETURN, RLWC::AT_INT]],
+    Methods = {:getX => [[RLWC::AD_OUT, RLWC::AT_INT]],
+               :getY => [[RLWC::AD_OUT, RLWC::AT_INT]],
                :set  => [[RLWC::AD_IN, RLWC::AT_INT], [RLWC::AD_IN, RLWC::AT_INT]],
                :setX => [[RLWC::AD_IN, RLWC::AT_INT]],
                :setY => [[RLWC::AD_IN, RLWC::AT_INT]]}

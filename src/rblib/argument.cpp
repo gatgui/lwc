@@ -132,7 +132,6 @@ bool InitArgument(VALUE mod) {
   rb_define_const(mod, "AD_IN", INT2NUM(lwc::AD_IN));
   rb_define_const(mod, "AD_INOUT", INT2NUM(lwc::AD_INOUT));
   rb_define_const(mod, "AD_OUT", INT2NUM(lwc::AD_OUT));
-  rb_define_const(mod, "AD_RETURN", INT2NUM(lwc::AD_RETURN));
   
   rb_define_const(mod, "AT_UNKNOWN", INT2NUM(lwc::AT_UNKNOWN));
   rb_define_const(mod, "AT_BOOL", INT2NUM(lwc::AT_BOOL));

@@ -30,7 +30,7 @@ local Dict = {}
 Dict.Methods        = {}
 Dict.Methods.keys   = {{llwc.AD_OUT, llwc.AT_STRING_ARRAY, 1}, {llwc.AD_OUT, llwc.AT_INT}}
 Dict.Methods.values = {{llwc.AD_OUT, llwc.AT_STRING_ARRAY, 1}, {llwc.AD_OUT, llwc.AT_INT}}
-Dict.Methods.size   = {{llwc.AD_RETURN, llwc.AT_INT}}
+Dict.Methods.size   = {{llwc.AD_OUT, llwc.AT_INT}}
 Dict.Methods.get    = {{llwc.AD_IN, llwc.AT_STRING}, {llwc.AD_RETURN, llwc.AT_STRING}}
 Dict.Methods.set    = {{llwc.AD_IN, llwc.AT_STRING}, {llwc.AD_IN, llwc.AT_STRING}}
 

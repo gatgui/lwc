@@ -55,19 +55,28 @@ namespace lua {
   };
   template <> struct LuaType<char*> {
     static const char* Name() {return "string";}
-    static bool Check(lua_State *L, int idx) {return lua_isstring(L, idx);}
+    static bool Check(lua_State *L, int idx) {return (lua_isstring(L, idx) || lua_isnil(L, idx));}
     static void ToC(lua_State *L, int idx, char* &val) {
-      const char *str = lua_tostring(L, idx);
-      val = (char*) lwc::memory::Alloc(strlen(str)+1, sizeof(char));
-      strcpy(val, str);
+      if (lua_isnil(L, idx)) {
+        val = 0;
+      } else {
+        const char *str = lua_tostring(L, idx);
+        val = (char*) lwc::memory::Alloc(strlen(str)+1, sizeof(char));
+        strcpy(val, str);
+      }
     }
     static void Dispose(char* &val) {
-      lwc::memory::Free((void*)val);
+      if (val) {
+        lwc::memory::Free((void*)val);
+      }
     }
   };
   template <> struct LuaType<lwc::Object*> {
     static const char* Name() {return "il.Object";}
     static bool Check(lua_State *L, int idx) {
+      if (lua_isnil(L, idx)) {
+        return true;
+      }
       if (!lua_isuserdata(L, idx)) {
         return false;
       }
@@ -85,7 +94,11 @@ namespace lua {
       return ret;
     }
     static void ToC(lua_State *L, int idx, lwc::Object* &val) {
-      val = LuaObject::UnWrap(L, idx);
+      if (lua_isnil(L, idx)) {
+        val = 0;
+      } else {
+        val = LuaObject::UnWrap(L, idx);
+      }
     }
     static void Dispose(lwc::Object *&) {}
   };
@@ -105,11 +118,20 @@ namespace lua {
     static void ToLua(const lwc::Real &val, lua_State *L) {lua_pushnumber(L, val);}
   };
   template <> struct CType<char*> {
-    static void ToLua(const char *val, lua_State *L) {lua_pushstring(L, val);}
+    static void ToLua(const char *val, lua_State *L) {
+      if (!val) {
+        lua_pushnil(L);
+      } else {
+        lua_pushstring(L, val);
+      }
+    }
   };
   template <> struct CType<lwc::Object*> {
     static void ToLua(const lwc::Object *val, lua_State *L) {
-      //LuaObject::Wrap(L, (lwc::Object*)val);
+      if (!val) {
+        lua_pushnil(L);
+        return;
+      }
       if (!strcmp(val->getLoaderName(), "lualoader")) {
         lua_pushlightuserdata(L, (void*)val);
         lua_gettable(L, LUA_REGISTRYINDEX);

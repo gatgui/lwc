@@ -22,12 +22,12 @@ import lwcpy
 class ObjectList(lwcpy.Object):
   
   Methods = {"push"  : [(lwcpy.AD_IN, lwcpy.AT_OBJECT)],
-             "at"    : [(lwcpy.AD_IN, lwcpy.AT_INT), (lwcpy.AD_RETURN, lwcpy.AT_OBJECT)],
+             "at"    : [(lwcpy.AD_IN, lwcpy.AT_INT), (lwcpy.AD_OUT, lwcpy.AT_OBJECT)],
              "set"   : [(lwcpy.AD_IN, lwcpy.AT_INT), (lwcpy.AD_IN, lwcpy.AT_OBJECT)],
-             "first" : [(lwcpy.AD_RETURN, lwcpy.AT_OBJECT)],
-             "last"  : [(lwcpy.AD_RETURN, lwcpy.AT_OBJECT)],
+             "first" : [(lwcpy.AD_OUT, lwcpy.AT_OBJECT)],
+             "last"  : [(lwcpy.AD_OUT, lwcpy.AT_OBJECT)],
              "erase" : [(lwcpy.AD_IN, lwcpy.AT_INT)],
-             "size"  : [(lwcpy.AD_RETURN, lwcpy.AT_INT)],
+             "size"  : [(lwcpy.AD_OUT, lwcpy.AT_INT)],
              "pop"   : []}
   
   def __init__(self):

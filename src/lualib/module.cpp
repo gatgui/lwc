@@ -43,7 +43,6 @@ static void InitEnumConstants() {
   EnumConstants["AT_OBJECT_ARRAY"] = lwc::AT_OBJECT_ARRAY;
   EnumConstants["AD_IN"] = lwc::AD_IN;
   EnumConstants["AD_INOUT"] = lwc::AD_INOUT;
-  EnumConstants["AD_RETURN"] = lwc::AD_RETURN;
   EnumConstants["AD_OUT"] = lwc::AD_OUT;
 }
 

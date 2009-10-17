@@ -324,6 +324,9 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       } else {
         
         crv = retPos + cur;
+        if (lua_isnil(mState, crv)) {
+          throw std::runtime_error("Expected return value, got nil");
+        }
         ++cur;
       }
       
@@ -380,6 +383,9 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
     } else {
       
       int crv = retPos + cur;
+      if (lua_isnil(mState, crv) && arg.getType() != lwc::AT_STRING && arg.getType() != lwc::AT_OBJECT) {
+        throw std::runtime_error("Expected return value, got nil");
+      }
       ++cur;
       
       switch(arg.getType()) {

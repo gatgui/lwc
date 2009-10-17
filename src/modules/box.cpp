@@ -105,10 +105,10 @@ static lwc::MethodDecl BoxMethods[] = {
   {"setY", 1,      {{lwc::AD_IN, lwc::AT_INT, -1}},     METHOD(Box, setY)},
   {"setWidth", 1,  {{lwc::AD_IN, lwc::AT_INT, -1}},     METHOD(Box, setWidth)},
   {"setHeight", 1, {{lwc::AD_IN, lwc::AT_INT, -1}},     METHOD(Box, setHeight)},
-  {"getX", 1,      {{lwc::AD_RETURN, lwc::AT_INT, -1}}, METHOD(Box, getX)},
-  {"getY", 1,      {{lwc::AD_RETURN, lwc::AT_INT, -1}}, METHOD(Box, getY)},
-  {"getWidth", 1,  {{lwc::AD_RETURN, lwc::AT_INT, -1}}, METHOD(Box, getWidth)},
-  {"getHeight", 1, {{lwc::AD_RETURN, lwc::AT_INT, -1}}, METHOD(Box, getHeight)},
+  {"getX", 1,      {{lwc::AD_OUT, lwc::AT_INT, -1}}, METHOD(Box, getX)},
+  {"getY", 1,      {{lwc::AD_OUT, lwc::AT_INT, -1}}, METHOD(Box, getY)},
+  {"getWidth", 1,  {{lwc::AD_OUT, lwc::AT_INT, -1}}, METHOD(Box, getWidth)},
+  {"getHeight", 1, {{lwc::AD_OUT, lwc::AT_INT, -1}}, METHOD(Box, getHeight)},
 };
 
 class BoxFactory : public lwc::Factory {
@@ -150,11 +150,11 @@ static lwc::MethodDecl DoubleBoxMethods[] = {
   {"setY", 1,      {{lwc::AD_IN, lwc::AT_INT, -1}},        METHOD(DoubleBox, setY)},
   {"setWidth", 1,  {{lwc::AD_IN, lwc::AT_INT, -1}},        METHOD(DoubleBox, setWidth)},
   {"setHeight", 1, {{lwc::AD_IN, lwc::AT_INT, -1}},        METHOD(DoubleBox, setHeight)},
-  {"getX", 1,      {{lwc::AD_RETURN, lwc::AT_INT, -1}},    METHOD(Box, getX)},
-  {"getY", 1,      {{lwc::AD_RETURN, lwc::AT_INT, -1}},    METHOD(Box, getY)},
-  {"getWidth", 1,  {{lwc::AD_RETURN, lwc::AT_INT, -1}},    METHOD(Box, getWidth)},
-  {"getHeight", 1, {{lwc::AD_RETURN, lwc::AT_INT, -1}},    METHOD(Box, getHeight)},
-  {"toBox", 1,     {{lwc::AD_RETURN, lwc::AT_OBJECT, -1}}, METHOD(DoubleBox, toBox)},
+  {"getX", 1,      {{lwc::AD_OUT, lwc::AT_INT, -1}},    METHOD(Box, getX)},
+  {"getY", 1,      {{lwc::AD_OUT, lwc::AT_INT, -1}},    METHOD(Box, getY)},
+  {"getWidth", 1,  {{lwc::AD_OUT, lwc::AT_INT, -1}},    METHOD(Box, getWidth)},
+  {"getHeight", 1, {{lwc::AD_OUT, lwc::AT_INT, -1}},    METHOD(Box, getHeight)},
+  {"toBox", 1,     {{lwc::AD_OUT, lwc::AT_OBJECT, -1}}, METHOD(DoubleBox, toBox)},
 };
 
 class DoubleBoxFactory : public lwc::Factory {

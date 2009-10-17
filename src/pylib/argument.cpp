@@ -173,7 +173,6 @@ bool InitArgument(PyObject *m) {
   PyModule_AddIntConstant(m, "AD_IN", lwc::AD_IN);
   PyModule_AddIntConstant(m, "AD_INOUT", lwc::AD_INOUT);
   PyModule_AddIntConstant(m, "AD_OUT", lwc::AD_OUT);
-  PyModule_AddIntConstant(m, "AD_RETURN", lwc::AD_RETURN);
   
   PyLWCArgumentType.tp_flags = Py_TPFLAGS_DEFAULT;
   PyLWCArgumentType.tp_doc = "Method argument class";

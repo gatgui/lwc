@@ -36,8 +36,7 @@ namespace lwc {
   enum Direction {
     AD_IN = 0,
     AD_OUT,
-    AD_INOUT,
-    AD_RETURN
+    AD_INOUT
   };
   
   struct LWC_API ArgumentDecl {

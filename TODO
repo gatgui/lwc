@@ -33,8 +33,8 @@ x Ruby module and loader
 x Lua module
 x Lua loader
 - Better exception handling [object creationg and method call]
-- Handling NULL values for string and objects
-- Remove the AD_RETURN, same a AD_OUT
+x Handling NULL values for string and objects
+x Remove the AD_RETURN, same a AD_OUT
 - Problem with python module scope (having a component module file name being the same as another usual python filename)
   => imports the wrong file
   => probably same problem with ruby and/or lua

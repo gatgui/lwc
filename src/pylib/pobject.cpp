@@ -252,9 +252,9 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       continue;
     }
     
-    if (rv == Py_None) {
-      throw std::runtime_error("Expected return value, got None");
-    }
+    //if (rv == Py_None) {
+    //  throw std::runtime_error("Expected return value, got None");
+    //}
     if (cur > 0 && !tuple) {
       throw std::runtime_error("Expected tuple as return value (multiple output)");
     }
@@ -275,6 +275,10 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
         len = inoutInSizes[i];
         
       } else {
+        
+        if (rv == Py_None) {
+          throw std::runtime_error("Expected return value, got None");
+        }
         
         if (tuple) {
           crv = PyTuple_GetItem(rv, cur);
@@ -345,9 +349,15 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       PyObject *crv; // get from PyTuple or rv
       
       if (tuple) {
+        if (rv == Py_None) {
+          throw std::runtime_error("Expected return value, got None");
+        }
         crv = PyTuple_GetItem(rv, cur);
       } else {
         crv = rv;
+      }
+      if (crv == Py_None && arg.getType() != lwc::AT_STRING && arg.getType() != lwc::AT_OBJECT) {
+        throw std::runtime_error("Expected return value, got None");
       }
       ++cur;
       
@@ -373,7 +383,6 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
         case lwc::AT_STRING: {
           char **val;
           params.get(i, val);
-          // Python2C for string allocates ... does the arg specify this properly?
           Python2C<lwc::AT_STRING>::ToValue(crv, *val);
           break;
         }
