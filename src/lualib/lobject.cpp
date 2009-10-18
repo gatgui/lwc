@@ -71,7 +71,7 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
   int mSelf = lua_gettop(mState);
   
   if (lua_isnil(mState, mSelf)) {
-    throw std::runtime_error("Underlying ruby object does not exist");
+    throw std::runtime_error("Underlying lua object does not exist");
   }
   
   lua_getmetatable(mState, mSelf);
@@ -274,9 +274,26 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
   }
   
   // ninputs + 1 because we always add mSelf as first arg
-  lua_call(mState, ninputs+1, noutputs);
+  //lua_call(mState, ninputs+1, noutputs);
+  // instead of 0, giving the index of an error function would enable printing of more precise information
+  // (need to investigate that)
+  int err = lua_pcall(mState, ninputs+1, noutputs, 0);
+  if (err != 0) {
+    // error string is at the top of the stack
+    std::ostringstream oss;
+    std::string lines = lua_tostring(mState, -1);
+    size_t p0 = 0, p1 = lines.find('\n', p0);
+    while (p1 != std::string::npos) {
+      std::string line = lines.substr(p0, p1-p0);
+      oss << std::endl << "--- Lua --- " << line;
+      p0 = p1 + 1;
+      p1 = lines.find('\n', p0);
+    }
+    oss << std::endl;
+    throw std::runtime_error(oss.str().c_str());
+  }
   
-  // convert Ruby outputs to C
+  // convert Lua outputs to C
   
   // params.get(idx, var) is not quite the same as: params.set(idx, var)
   // beware, the last is called by the caller to set the address of an output var

@@ -26,6 +26,20 @@ USA.
 
 namespace rb {
 
+struct CallArgs {
+  VALUE self;
+  const char *name;
+  int argc;
+  VALUE *argv;
+};
+
+inline static VALUE WrappedCall(VALUE args) {
+  CallArgs *a = (CallArgs*)args;
+  return rb_funcall2(a->self, rb_intern(a->name), a->argc, a->argv);
+}
+
+// ---
+
 Object::Object(VALUE self)
   : mSelf(self) {
   if (mSelf != Qnil) {
@@ -225,8 +239,32 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
     ++cur;
   }
   
-  // call ruby method
-  VALUE rv = rb_funcall2(mSelf, rb_intern(name), ninputs, args);
+  //VALUE rv = rb_funcall2(mSelf, rb_intern(name), ninputs, args);
+  CallArgs callargs;
+  callargs.self = mSelf;
+  callargs.name = name;
+  callargs.argc = ninputs;
+  callargs.argv = args;
+  
+  int err = 0;
+  
+  VALUE rv = rb_protect(WrappedCall, (VALUE)&callargs, &err);
+  
+  if (err != 0) {
+    std::ostringstream oss;
+    VALUE lasterr = rb_gv_get("$!");
+    VALUE message = rb_obj_as_string(lasterr);
+    oss << std::endl << "--- Ruby --- " << RSTRING(message)->ptr;
+    if (!NIL_P(ruby_errinfo)) {
+      oss << std::endl << "--- Ruby --- Backtrace:";
+      VALUE ary = rb_funcall(ruby_errinfo, rb_intern("backtrace"), 0);
+      for (int c=0; c<RARRAY(ary)->len; ++c) {
+        oss << std::endl << "--- Ruby ---   from " << RSTRING(RARRAY(ary)->ptr[c])->ptr;
+      }
+    }
+    oss << std::endl;
+    throw std::runtime_error(oss.str().c_str());
+  }
   
   // convert Ruby outputs to C
   

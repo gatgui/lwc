@@ -57,7 +57,7 @@ static void methcall_free(PyObject *pself) {
 // This needs to be a recursive call rather than a for loop inside
 // because real parameters are created on the stack [important for return value]
 PyObject* CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, int cArg,
-                     PyObject *args, size_t pyArg, std::map<size_t,size_t> &arraySizes) {
+                     PyObject *args, size_t pyArg, std::map<size_t,size_t> &arraySizes) throw(std::runtime_error) {
   
   const lwc::Method &m = params.getMethod();
   

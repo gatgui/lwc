@@ -31,7 +31,7 @@ namespace rb {
   LWCRB_API VALUE CallMethod(lwc::Object *o, const char *n,
                              lwc::MethodParams &params, int cArg,
                              VALUE *args, size_t nargs, size_t rbArg,
-                             std::map<size_t,size_t> &arraySizes);
+                             std::map<size_t,size_t> &arraySizes) throw(std::runtime_error);
 
   }
 

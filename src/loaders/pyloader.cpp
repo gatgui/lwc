@@ -333,6 +333,7 @@ __declspec(dllexport)
       //PyEval_InitThreads();
       Py_Initialize();
     }
+    
     lwc::Loader *l = new PLoader();
     return l;
   }
