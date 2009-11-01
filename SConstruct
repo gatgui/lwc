@@ -1,4 +1,4 @@
-import os, sys, glob, platform
+import os, re, sys, glob, platform
 from string import Template
 
 arch      = "x86" if platform.architecture()[0] == '32bit' else "x64"
@@ -34,7 +34,7 @@ class Env(Environment):
     self.debug_build = 0
     
     if self.plat == Env.WINDOWS:
-      self.msvs_version = ARGUMENTS.get("MSVS_VERSION", "8.0")
+      self.msvs_version = ARGUMENTS.get("mscver", "8.0")
       kwargs["MSVS_VERSION"] = self.msvs_version
     
     Environment.__init__(self, **kwargs)
@@ -61,9 +61,14 @@ class Env(Environment):
     self.Append(CCFLAGS=" -GR -EHsc -FD")
     self.Append(CPPDEFINES=["_WIN32", "WIN32", "_CONSOLE", "_MBCS"])
     
+    mt = os.popen("which mt").read().strip()
+    m = re.search(r"^/cygdrive/([a-zA-Z])/", mt)
+    if m:
+      mt = mt.replace(m.group(0), m.group(1)+":/", 1)
+    
     if float(self.msvs_version) > 7.1:
-      self['LINKCOM'] = [self['LINKCOM'], 'mt.exe -nologo -manifest ${TARGET}.manifest -outputresource:$TARGET;1']
-      self['SHLINKCOM'] = [self['SHLINKCOM'], 'mt.exe -nologo -manifest ${TARGET}.manifest -outputresource:$TARGET;2']
+      self['LINKCOM'] = [self['LINKCOM'], '%s -nologo -manifest ${TARGET}.manifest -outputresource:$TARGET;1' % mt]
+      self['SHLINKCOM'] = [self['SHLINKCOM'], '%s -nologo -manifest ${TARGET}.manifest -outputresource:$TARGET;2' % mt]
       self.Append(CPPDEFINES='_CRT_SECURE_NO_DEPRECATE')
     
     if "INCLUDE" in os.environ:
@@ -231,6 +236,7 @@ class Env(Environment):
     e.NoMSVCShit(tgt, lib=True)
     e.CleanWindows(tgt)
     return tgt
+  
 
 
 env = Env(debug=debug, arch=arch, luaprefix=luaprefix)
