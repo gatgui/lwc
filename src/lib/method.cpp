@@ -78,28 +78,28 @@ void Method::addArg(const Argument &arg) throw(std::runtime_error) {
 void Method::validateArgs() throw(std::runtime_error) {
   for (size_t i=0; i<mArgs.size(); ++i) {
     if (mArgs[i].isArray()) {
-      if (mArgs[i].arraySizeArg() == -1) {
+      if (mArgs[i].arraySizeArg() <= 0) {
         std::ostringstream oss;
         oss << "argument " << i << " missing array size argument";
         throw std::runtime_error(oss.str());
       }
-      Integer idx = mArgs[i].arraySizeArg();
+      size_t idx = mArgs[i].arraySizeArg();
       if (idx >= mArgs.size()) {
         std::ostringstream oss;
         oss << "argument " << i << " has an invalid array size argument";
         throw std::runtime_error(oss.str());
       }
-      if (mArgs[size_t(idx)].getType() != AT_INT) {
+      if (mArgs[idx].getType() != AT_INT) {
         std::ostringstream oss;
         oss << "argument " << i << " has an invalid array size argument type";
         throw std::runtime_error(oss.str());
       }
-      if (mArgs[i].getDir() != mArgs[size_t(idx)].getDir()) {
+      if (mArgs[i].getDir() != mArgs[idx].getDir()) {
         std::ostringstream oss;
         oss << "argument " << i << " has an invalid array size argument direction";
         throw std::runtime_error(oss.str());
       }
-      mArgs[size_t(idx)].setArrayArg(Integer(i));
+      mArgs[idx].setArrayArg(Integer(i));
     }
   }
 }
@@ -151,7 +151,7 @@ void MethodsTable::fromDeclaration(const MethodDecl *decls, size_t n, bool overr
     
     m.setPointer(decl.ptr);
     
-    for (size_t j=0; j<decl.nargs; ++j) {
+    for (Integer j=0; j<decl.nargs; ++j) {
       const ArgumentDecl &a = decl.args[j];
       
       arg.fromDeclaration(a);

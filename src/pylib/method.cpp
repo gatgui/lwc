@@ -25,12 +25,7 @@ USA.
 
 namespace py {
 
-PyTypeObject PyLWCMethodType = {
-  PyObject_HEAD_INIT(NULL)
-  0,
-  "lwcpy.Method",
-  sizeof(PyLWCMethod)
-};
+PyTypeObject PyLWCMethodType;
 
 // ---
 
@@ -120,13 +115,18 @@ static PyMethodDef lwcmeth_methods[] = {
   {"addArg", lwcmeth_addArg, METH_VARARGS, "Add method argument"},
   {"setArg", lwcmeth_setArg, METH_VARARGS, "Set method argument at position"},
   {"getArg", lwcmeth_getArg, METH_VARARGS, "Get argument at position"},
-  NULL
+  {NULL, NULL, 0, NULL},
 };
 
 // ---
 
 bool InitMethod(PyObject *m) {
   
+  memset(&PyLWCMethodType, 0, sizeof(PyTypeObject));
+  PyLWCMethodType.ob_refcnt = 1;
+  PyLWCMethodType.ob_size = 0;
+  PyLWCMethodType.tp_name = "lwcpy.Method";
+  PyLWCMethodType.tp_basicsize = sizeof(PyLWCMethod);
   PyLWCMethodType.tp_flags = Py_TPFLAGS_DEFAULT;
   PyLWCMethodType.tp_doc = "Method class";
   PyLWCMethodType.tp_new = lwcmeth_new;
@@ -138,7 +138,7 @@ bool InitMethod(PyObject *m) {
     return false;
   }
   
-  Py_INCREF(&PyLWCMethodType);
+  Py_INCREF((PyObject*) &PyLWCMethodType);
   PyModule_AddObject(m, "Method", (PyObject*)&PyLWCMethodType);
   
   return true;

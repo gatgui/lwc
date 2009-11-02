@@ -25,12 +25,7 @@ USA.
 
 namespace py {
 
-PyTypeObject PyLWCArgumentType = {
-  PyObject_HEAD_INIT(NULL)
-  0,
-  "lwcpy.Argument",
-  sizeof(PyLWCArgument)
-};
+PyTypeObject PyLWCArgumentType;
 
 // ---
 
@@ -151,7 +146,7 @@ static PyGetSetDef lwcarg_getset[] = {
   {"type", lwcarg_getType, lwcarg_setType, "Argument type", NULL},
   {"arraySizeArg", lwcarg_getArraySizeArg, lwcarg_setArraySizeArg, "Index of argument containing array size", NULL},
   {"arrayArg", lwcarg_getArrayArg, lwcarg_setArrayArg, "Index or refering array", NULL},
-  NULL
+  {NULL, NULL, NULL, NULL, NULL}
 };
 
 // ---
@@ -174,6 +169,11 @@ bool InitArgument(PyObject *m) {
   PyModule_AddIntConstant(m, "AD_INOUT", lwc::AD_INOUT);
   PyModule_AddIntConstant(m, "AD_OUT", lwc::AD_OUT);
   
+  memset(&PyLWCArgumentType, 0, sizeof(PyTypeObject));
+  PyLWCArgumentType.ob_refcnt = 1;
+  PyLWCArgumentType.ob_size = 0;
+  PyLWCArgumentType.tp_name = "lwcpy.Argument";
+  PyLWCArgumentType.tp_basicsize = sizeof(PyLWCArgument);
   PyLWCArgumentType.tp_flags = Py_TPFLAGS_DEFAULT;
   PyLWCArgumentType.tp_doc = "Method argument class";
   PyLWCArgumentType.tp_new = lwcarg_new;
@@ -185,7 +185,7 @@ bool InitArgument(PyObject *m) {
     return false;
   }
   
-  Py_INCREF(&PyLWCArgumentType);
+  Py_INCREF((PyObject*) &PyLWCArgumentType);
   PyModule_AddObject(m, "Argument", (PyObject*)&PyLWCArgumentType);
   
   return true;

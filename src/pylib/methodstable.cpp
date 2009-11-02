@@ -25,12 +25,7 @@ USA.
 
 namespace py {
 
-PyTypeObject PyLWCMethodsTableType = {
-  PyObject_HEAD_INIT(NULL)
-  0,
-  "lwcpy.MethodsTable",
-  sizeof(PyLWCMethodsTable)
-};
+PyTypeObject PyLWCMethodsTableType;
 
 // ---
 
@@ -109,13 +104,18 @@ static PyMethodDef lwcmtbl_methods[] = {
   {"availableMethods", lwcmtbl_availableMethods, METH_VARARGS, "Get names of available methods"},
   {"findMethod", lwcmtbl_find, METH_VARARGS, "Find method in table"},
   {"numMethods", lwcmtbl_nummeth, METH_VARARGS, "Get methods count"},
-  {NULL}
+  {NULL, NULL, 0, NULL}
 };
 
 // ---
 
 bool InitMethodsTable(PyObject *m) {
-
+  
+  memset(&PyLWCMethodsTableType, 0, sizeof(PyTypeObject));
+  PyLWCMethodsTableType.ob_refcnt = 1;
+  PyLWCMethodsTableType.ob_size = 0;
+  PyLWCMethodsTableType.tp_name = "lwcpy.MethodsTable";
+  PyLWCMethodsTableType.tp_basicsize = sizeof(PyLWCMethodsTable);
   PyLWCMethodsTableType.tp_flags = Py_TPFLAGS_DEFAULT;
   PyLWCMethodsTableType.tp_doc = "Methods table class";
   PyLWCMethodsTableType.tp_new = lwcmtbl_new;
@@ -127,7 +127,7 @@ bool InitMethodsTable(PyObject *m) {
     return false;
   }
   
-  Py_INCREF(&PyLWCMethodsTableType);
+  Py_INCREF((PyObject*) &PyLWCMethodsTableType);
   PyModule_AddObject(m, "MethodsTable", (PyObject*)&PyLWCMethodsTableType);
   
   return true;

@@ -48,7 +48,7 @@ const char* Loader::getTypeName(size_t idx) const throw(std::runtime_error) {
     throw std::runtime_error(oss.str());
   }
   std::map<std::string, Factory*>::const_iterator it = mFactories.begin();
-  for (size_t i=0; i<idx; ++i, ++it);
+  for (size_t i=0; i<idx; ++i, ++it) {}
   return it->first.c_str();
 }
 

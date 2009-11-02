@@ -26,12 +26,7 @@ USA.
 
 namespace py {
 
-PyTypeObject PyLWCRegistryType = {
-  PyObject_HEAD_INIT(NULL)
-  0,
-  "lwcpy.Registry",
-  sizeof(PyLWCRegistry)
-};
+PyTypeObject PyLWCRegistryType;
 
 // ---
 
@@ -205,13 +200,18 @@ static PyMethodDef lwcreg_methods[] = {
   {"getMethods", lwcreg_getMethods, METH_VARARGS, "Get method table of a type"},
   {"create", lwcreg_create, METH_VARARGS, "Create a new object"},
   {"destroy", lwcreg_destroy, METH_VARARGS, "Destroy an object"},
-  NULL
+  {NULL, NULL, 0, NULL}
 };
 
 // ---
 
 bool InitRegistry(PyObject *m) {
   
+  memset(&PyLWCRegistryType, 0, sizeof(PyTypeObject));
+  PyLWCRegistryType.ob_refcnt = 1;
+  PyLWCRegistryType.ob_size = 0;
+  PyLWCRegistryType.tp_name = "lwcpy.Registry";
+  PyLWCRegistryType.tp_basicsize = sizeof(PyLWCRegistry);
   PyLWCRegistryType.tp_flags = Py_TPFLAGS_DEFAULT;
   PyLWCRegistryType.tp_doc = "Registry class";
   PyLWCRegistryType.tp_new = lwcreg_new;
@@ -222,7 +222,7 @@ bool InitRegistry(PyObject *m) {
     return false;
   }
   
-  Py_INCREF(&PyLWCRegistryType);
+  Py_INCREF((PyObject*) &PyLWCRegistryType);
   PyModule_AddObject(m, "Registry", (PyObject*)&PyLWCRegistryType);
   
   return true;

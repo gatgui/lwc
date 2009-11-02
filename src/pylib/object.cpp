@@ -26,12 +26,7 @@ USA.
 
 namespace py {
 
-PyTypeObject PyLWCObjectType = {
-  PyObject_HEAD_INIT(NULL)
-  0,
-  "lwcpy.Object",
-  sizeof(PyLWCObject)
-};
+PyTypeObject PyLWCObjectType;
 
 // ---
 
@@ -155,7 +150,7 @@ static PyMethodDef lwcobj_methods[] = {
   {"getMethods", lwcobj_getMethods, METH_VARARGS, "Get object methods table"},
   {"getTypeName", lwcobj_getTypeName, METH_VARARGS, "Get object type name"},
   {"getLoaderName", lwcobj_getLoaderName, METH_VARARGS, "Get object loader name"},
-  NULL
+  {NULL, NULL, 0, NULL}
 };
 
 static PyObject* lwcobj_getattr(PyObject *pself, char *name) {
@@ -199,6 +194,11 @@ static PyObject* lwcobj_getattr(PyObject *pself, char *name) {
 
 bool InitObject(PyObject *m) {
   
+  memset(&PyLWCObjectType, 0, sizeof(PyTypeObject));
+  PyLWCObjectType.ob_refcnt = 1;
+  PyLWCObjectType.ob_size = 0;
+  PyLWCObjectType.tp_name = "lwcpy.Object";
+  PyLWCObjectType.tp_basicsize = sizeof(PyLWCObject);
   PyLWCObjectType.tp_flags = Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE;
   PyLWCObjectType.tp_doc = "Object class";
   PyLWCObjectType.tp_new = lwcobj_new;
@@ -210,7 +210,7 @@ bool InitObject(PyObject *m) {
     return false;
   }
   
-  Py_INCREF(&PyLWCObjectType);
+  Py_INCREF((PyObject*) &PyLWCObjectType);
   PyModule_AddObject(m, "Object", (PyObject*)&PyLWCObjectType);
   
   return true;

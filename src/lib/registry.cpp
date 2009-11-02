@@ -176,7 +176,7 @@ const char* Registry::getTypeName(size_t idx) const {
     return 0;
   } else {
     std::map<std::string, Loader*>::const_iterator it = mObjectLoaders.begin();
-    for (size_t i=0; i<idx; ++i, ++it);
+    for (size_t i=0; i<idx; ++i, ++it) {}
     return it->first.c_str();
   }
 }

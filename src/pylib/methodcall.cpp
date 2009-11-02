@@ -26,12 +26,7 @@ USA.
 
 namespace py {
 
-PyTypeObject PyLWCMethodCallType = {
-  PyObject_HEAD_INIT(NULL)
-  0,
-  "lwcpy.MethodCall",
-  sizeof(PyLWCMethodCall)
-};
+PyTypeObject PyLWCMethodCallType;
 
 // ---
 
@@ -268,6 +263,12 @@ static PyObject *methcall_doit(PyObject *pself, PyObject *args, PyObject *) {
 // ---
 
 bool InitMethodCall(PyObject *m) {
+  
+  memset(&PyLWCMethodCallType, 0, sizeof(PyTypeObject));
+  PyLWCMethodCallType.ob_refcnt = 1;
+  PyLWCMethodCallType.ob_size = 0;
+  PyLWCMethodCallType.tp_name = "lwcpy.MethodCall";
+  PyLWCMethodCallType.tp_basicsize = sizeof(PyLWCMethodCall);
   PyLWCMethodCallType.tp_flags = Py_TPFLAGS_DEFAULT;
   PyLWCMethodCallType.tp_doc = "MethodCall class";
   PyLWCMethodCallType.tp_new = methcall_new;
@@ -278,7 +279,7 @@ bool InitMethodCall(PyObject *m) {
     return false;
   }
   
-  Py_INCREF(&PyLWCMethodCallType);
+  Py_INCREF((PyObject*) &PyLWCMethodCallType);
   PyModule_AddObject(m, "MethodCall", (PyObject*)&PyLWCMethodCallType);
   
   return true;

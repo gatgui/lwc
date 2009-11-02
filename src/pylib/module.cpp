@@ -49,7 +49,7 @@ static PyMethodDef lwc_methods[] = {
   {"Initialize", lwc_init, METH_VARARGS, "Initialize LWC"},
   {"GetRegistry", lwc_getreg, METH_VARARGS, "Get LWC registry"},
   {"DeInitialize", lwc_deinit, METH_VARARGS, "DeInitialize LWC"},
-  NULL
+  {NULL, NULL, 0, NULL}
 };
 
 PyObject* CreateModule() {
