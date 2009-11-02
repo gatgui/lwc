@@ -34,11 +34,11 @@ VALUE CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, int c
   //std::cout << "rb::CallMethod(\"" << n << "\", " << cArg << ", " << nargs << ", " << rbArg << ")" << std::endl;
   const lwc::Method &m = params.getMethod();
   
-  if (m.numArgs() == cArg) {
+  if (m.numArgs() == size_t(cArg)) {
     
     if (rbArg != nargs) {
       rb_raise(rb_eRuntimeError, "Invalid arguments. None expected");
-      return Qnil;
+      //return Qnil;
     }
     
     //std::cout << "  " << cArg << ": call C++ proxy" << std::endl;
@@ -58,7 +58,7 @@ VALUE CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, int c
     
     if (!ad.isArray() && ad.getDir() == lwc::AD_INOUT) {
       rb_raise(rb_eRuntimeError, "inout non array arguments not supported in ruby");
-      return Qnil;
+      //return Qnil;
     }
     
     // PreCallArray will increment rbArg if necessarys
@@ -178,7 +178,7 @@ VALUE CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, int c
           ParamConverter<lwc::AT_OBJECT>::PostCallArray(ad, cArg, args, nargs, oldRbArg, arraySizes, ary, rv);
           
         } else {
-          lwc::Object *val;
+          lwc::Object *val=0;
           ParamConverter<lwc::AT_OBJECT>::PreCall(ad, cArg, args, nargs, rbArg, arraySizes, val);
           if (ad.getDir() == lwc::AD_IN) {
             params.set(cArg, val);
@@ -192,7 +192,7 @@ VALUE CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, int c
       }
       default:
         rb_raise(rb_eRuntimeError, "Invalid argument type");
-        return Qnil;
+        //return Qnil;
     }
     
     //if (rv != Qnil) {

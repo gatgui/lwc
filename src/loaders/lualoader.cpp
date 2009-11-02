@@ -280,14 +280,14 @@ class LuaLoader : public lwc::Loader {
       //std::cout << "= Add \"" << modpath << "\" to package.path" << std::endl;
       //std::cout << "  package.path = \"" << path << "\"" << std::endl;
       size_t p0 = 0;
-      size_t p1 = path.find(p0, ';');
+      size_t p1 = path.find(';', p0);
       while (p1 != std::string::npos) {
         std::string curpath = path.substr(p0, p1-p0);
         if (lwc::file::IsSamePath(curpath, modpath)) {
           return;
         }
         p0 = p1 + 1;
-        p1 = path.find(p0, ';');
+        p1 = path.find(';', p0);
       }
       std::string lastpath = path.substr(p0);
       if (lwc::file::IsSamePath(lastpath, modpath)) {

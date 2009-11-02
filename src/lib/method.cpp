@@ -89,17 +89,17 @@ void Method::validateArgs() throw(std::runtime_error) {
         oss << "argument " << i << " has an invalid array size argument";
         throw std::runtime_error(oss.str());
       }
-      if (mArgs[idx].getType() != AT_INT) {
+      if (mArgs[size_t(idx)].getType() != AT_INT) {
         std::ostringstream oss;
         oss << "argument " << i << " has an invalid array size argument type";
         throw std::runtime_error(oss.str());
       }
-      if (mArgs[i].getDir() != mArgs[idx].getDir()) {
+      if (mArgs[i].getDir() != mArgs[size_t(idx)].getDir()) {
         std::ostringstream oss;
         oss << "argument " << i << " has an invalid array size argument direction";
         throw std::runtime_error(oss.str());
       }
-      mArgs[idx].setArrayArg(Integer(i));
+      mArgs[size_t(idx)].setArrayArg(Integer(i));
     }
   }
 }

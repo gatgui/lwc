@@ -37,13 +37,13 @@ PyTypeObject PyLWCMethodsTableType = {
 // do not wrap "addMethod" and "fromDeclaration"
 // as we cannot create a MethodsTable from scratch in python
 
-static PyObject* lwcmtbl_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
+static PyObject* lwcmtbl_new(PyTypeObject *type, PyObject *, PyObject *) {
   PyLWCMethodsTable *self = (PyLWCMethodsTable*) type->tp_alloc(type, 0);
   self->table = 0;
   return (PyObject*)self;
 }
 
-static int lwcmtbl_init(PyObject *pself, PyObject *args, PyObject *kwargs) {
+static int lwcmtbl_init(PyObject *, PyObject *, PyObject *) {
   return 0;
 }
 
@@ -51,7 +51,7 @@ static void lwcmtbl_free(PyObject *pself) {
   pself->ob_type->tp_free(pself);
 }
 
-static PyObject* lwcmtbl_availableMethods(PyObject *pself, PyObject *args) {
+static PyObject* lwcmtbl_availableMethods(PyObject *pself, PyObject *) {
   PyLWCMethodsTable *self = (PyLWCMethodsTable*) pself;
   if (!self->table) {
     PyErr_SetString(PyExc_RuntimeError, "Underlying object does not exist");
@@ -96,7 +96,7 @@ static PyObject* lwcmtbl_str(PyObject *pself) {
   return PyString_FromString(self->table->toString().c_str());
 }
 
-static PyObject* lwcmtbl_nummeth(PyObject *pself, PyObject *args) {
+static PyObject* lwcmtbl_nummeth(PyObject *pself, PyObject *) {
   PyLWCMethodsTable *self = (PyLWCMethodsTable*) pself;
   if (!self->table) {
     PyErr_SetString(PyExc_RuntimeError, "Underlying object does not exist");

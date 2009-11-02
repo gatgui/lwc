@@ -28,13 +28,13 @@ namespace rb {
 
 VALUE mLWC = Qnil;
 
-static VALUE rbil_init(VALUE mod) {
+static VALUE rbil_init(VALUE) {
   lwc::Registry::Initialize("ruby", NULL);
   rb::Tracker::Init();
   return rb_funcall2(cLWCRegistry, rb_intern("new"), 0, NULL);
 }
 
-static VALUE rbil_getreg(VALUE mod) {
+static VALUE rbil_getreg(VALUE) {
   if (lwc::Registry::Instance()) {
     return rb_funcall2(cLWCRegistry, rb_intern("new"), 0, NULL);
   } else {
@@ -42,7 +42,7 @@ static VALUE rbil_getreg(VALUE mod) {
   }
 }
 
-static VALUE rbil_deinit(VALUE mod) {
+static VALUE rbil_deinit(VALUE) {
   lwc::Registry::DeInitialize();
   rb::Tracker::Cleanup();
   return Qnil;

@@ -76,7 +76,7 @@ static int lwclua_getreg(lua_State *L) {
   return LuaRegistry::Wrap(L, lwc::Registry::Instance());
 }
 
-static int lwclua_deinit(lua_State *L) {
+static int lwclua_deinit(lua_State *) {
   lwc::Registry::DeInitialize();
   return 0;
 }

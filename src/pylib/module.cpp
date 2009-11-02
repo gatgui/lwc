@@ -25,12 +25,12 @@ USA.
 
 namespace py {
 
-static PyObject* lwc_init(PyObject *m, PyObject *args) {
+static PyObject* lwc_init(PyObject *, PyObject *) {
   lwc::Registry::Initialize("python", NULL);
   return PyObject_CallObject((PyObject*)&PyLWCRegistryType, NULL);
 }
 
-static PyObject* lwc_getreg(PyObject *m, PyObject *args) {
+static PyObject* lwc_getreg(PyObject *, PyObject *) {
   if (lwc::Registry::Instance()) {
     return PyObject_CallObject((PyObject*)&PyLWCRegistryType, NULL);
   } else {
@@ -39,7 +39,7 @@ static PyObject* lwc_getreg(PyObject *m, PyObject *args) {
   }
 }
 
-static PyObject* lwc_deinit(PyObject *m, PyObject *args) {
+static PyObject* lwc_deinit(PyObject *, PyObject *) {
   lwc::Registry::DeInitialize();
   Py_INCREF(Py_None);
   return Py_None;

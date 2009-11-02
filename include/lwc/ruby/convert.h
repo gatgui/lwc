@@ -95,7 +95,7 @@ namespace rb {
     }
   };
   template <> struct CType<lwc::Integer> {
-    static void ToRuby(const lwc::Integer &val, VALUE &obj) {obj = LONG2NUM(val);} // review this one
+    static void ToRuby(const lwc::Integer &val, VALUE &obj) {obj = LONG2NUM(long(val));} // review this one
   };
   template <> struct CType<lwc::Real> {
     static void ToRuby(const lwc::Real &val, VALUE &obj) {obj = rb_float_new(val);}
@@ -115,7 +115,7 @@ namespace rb {
         obj = Qnil;
       } else {
         if (!strcmp(val->getLoaderName(), "rbloader")) {
-          obj = ((rb::Object*)obj)->self();
+          obj = ((rb::Object*)val)->self();
         } else {
           obj = rb_funcall2(cLWCObject, rb_intern("new"), 0, NULL);
           SetObjectPointer(obj, (lwc::Object*)val);
@@ -218,11 +218,13 @@ namespace rb {
     typedef typename lwc::Enum2Type<T>::Type Type;
     typedef typename lwc::Enum2Type<T>::Type* Array;
     
-    static void PreCall(const lwc::Argument &desc, size_t idesc, VALUE *args, size_t nargs, size_t &iarg, std::map<size_t,size_t> &arraySizes, Type &val) {
+    static void PreCall(const lwc::Argument &desc, size_t, VALUE *args, size_t nargs, size_t &iarg, std::map<size_t,size_t> &arraySizes, Type &val) {
       if (desc.getDir() == lwc::AD_IN || desc.getDir() == lwc::AD_INOUT) {
-        if (desc.arrayArg() != -1) {
+        if (desc.arrayArg() >= 0) {
           // this should only be executed for integer types
-          val = (Type) arraySizes[desc.arrayArg()];
+          //val = (Type) arraySizes[desc.arrayArg()];
+          unsigned long idx = (unsigned long) arraySizes[size_t(desc.arrayArg())];
+          lwc::Convertion<unsigned long, Type>::Do(idx, val);
         } else {
           if (iarg >= nargs) {
             rb_raise(rb_eRuntimeError, "Not enough argument");
@@ -234,13 +236,13 @@ namespace rb {
       }
     }
     
-    static void PostCall(const lwc::Argument &desc, size_t idesc, VALUE *args, size_t nargs, size_t &iarg, std::map<size_t,size_t> &arraySizes, Type &val, VALUE &rv) {
+    static void PostCall(const lwc::Argument &desc, size_t, VALUE *, size_t, size_t &iarg, std::map<size_t,size_t> &arraySizes, Type &val, VALUE &rv) {
       if (desc.getDir() == lwc::AD_IN) {
         Ruby2C<T>::DisposeValue(val);
         ++iarg;
       } else {
-        if (desc.arrayArg() != -1) {
-          arraySizes[desc.arrayArg()] = size_t(val);
+        if (desc.arrayArg() >= 0) {
+          arraySizes[size_t(desc.arrayArg())] = size_t(val);
           Ruby2C<T>::DisposeValue(val);
           
         } else {
@@ -265,7 +267,7 @@ namespace rb {
       }
     }
     
-    static void PostCallArray(const lwc::Argument &desc, size_t idesc, VALUE *args, size_t nargs, size_t &iarg, std::map<size_t,size_t> &arraySizes, Array &ary, VALUE &rv) {
+    static void PostCallArray(const lwc::Argument &desc, size_t idesc, VALUE *args, size_t, size_t &iarg, std::map<size_t,size_t> &arraySizes, Array &ary, VALUE &rv) {
       if (desc.getDir() == lwc::AD_IN) {
         Ruby2C<T>::DisposeArray(ary, arraySizes[idesc]);
       } else {

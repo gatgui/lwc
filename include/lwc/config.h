@@ -34,6 +34,12 @@ USA.
 # define LWC_API
 #endif
 
+#ifdef _MSC_VER
+// 4290: warning for exception specification (not supported by msvc)
+// 4251: warning for un-exported template typess
+# pragma warning(disable: 4251 4290)
+#endif
+
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>

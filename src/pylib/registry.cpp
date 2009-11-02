@@ -35,11 +35,11 @@ PyTypeObject PyLWCRegistryType = {
 
 // ---
 
-static PyObject* lwcreg_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
+static PyObject* lwcreg_new(PyTypeObject *type, PyObject *, PyObject *) {
   return type->tp_alloc(type, 0);
 }
 
-static int lwcreg_init(PyObject *self, PyObject *args, PyObject *kwargs) {
+static int lwcreg_init(PyObject *, PyObject *, PyObject *) {
   return 0;
 }
 
@@ -47,7 +47,7 @@ static void lwcreg_free(PyObject *pself) {
   pself->ob_type->tp_free(pself);
 }
 
-static PyObject* lwcreg_addLoaderPath(PyObject *self, PyObject *args) {
+static PyObject* lwcreg_addLoaderPath(PyObject *, PyObject *args) {
   lwc::Registry *reg = lwc::Registry::Instance();
   if (!reg) {
     PyErr_SetString(PyExc_RuntimeError, "lwcpy.Registry has not yet been initialized");
@@ -62,7 +62,7 @@ static PyObject* lwcreg_addLoaderPath(PyObject *self, PyObject *args) {
   return Py_None;
 }
 
-static PyObject* lwcreg_addModulePath(PyObject *self, PyObject *args) {
+static PyObject* lwcreg_addModulePath(PyObject *, PyObject *args) {
   lwc::Registry *reg = lwc::Registry::Instance();
   if (!reg) {
     PyErr_SetString(PyExc_RuntimeError, "lwcpy.Registry has not yet been initialized");
@@ -77,7 +77,7 @@ static PyObject* lwcreg_addModulePath(PyObject *self, PyObject *args) {
   return Py_None;
 }
 
-static PyObject* lwcreg_create(PyObject *self, PyObject *args) {
+static PyObject* lwcreg_create(PyObject *, PyObject *args) {
   lwc::Registry *reg = lwc::Registry::Instance();
   if (!reg) {
     PyErr_SetString(PyExc_RuntimeError, "lwcpy.Registry has not yet been initialized");
@@ -105,7 +105,7 @@ static PyObject* lwcreg_create(PyObject *self, PyObject *args) {
   }
 }
 
-static PyObject* lwcreg_destroy(PyObject *self, PyObject *args) {
+static PyObject* lwcreg_destroy(PyObject *, PyObject *args) {
   lwc::Registry *reg = lwc::Registry::Instance();
   if (!reg) {
     PyErr_SetString(PyExc_RuntimeError, "lwcpy.Registry has not yet been initialized");
@@ -128,7 +128,7 @@ static PyObject* lwcreg_destroy(PyObject *self, PyObject *args) {
   return Py_None;
 }
 
-static PyObject* lwcreg_numTypes(PyObject *self, PyObject *args) {
+static PyObject* lwcreg_numTypes(PyObject *, PyObject *) {
   lwc::Registry *reg = lwc::Registry::Instance();
   if (!reg) {
     PyErr_SetString(PyExc_RuntimeError, "lwcpy.Registry has not yet been initialized");
@@ -137,7 +137,7 @@ static PyObject* lwcreg_numTypes(PyObject *self, PyObject *args) {
   return PyInt_FromLong(reg->numTypes());
 }
 
-static PyObject* lwcreg_getTypeName(PyObject *self, PyObject *args) {
+static PyObject* lwcreg_getTypeName(PyObject *, PyObject *args) {
   lwc::Registry *reg = lwc::Registry::Instance();
   if (!reg) {
     PyErr_SetString(PyExc_RuntimeError, "lwcpy.Registry has not yet been initialized");
@@ -156,7 +156,7 @@ static PyObject* lwcreg_getTypeName(PyObject *self, PyObject *args) {
   }
 }
 
-static PyObject* lwcreg_hasType(PyObject *self, PyObject *args) {
+static PyObject* lwcreg_hasType(PyObject *, PyObject *args) {
   lwc::Registry *reg = lwc::Registry::Instance();
   if (!reg) {
     PyErr_SetString(PyExc_RuntimeError, "lwcpy.Registry has not yet been initialized");
@@ -175,7 +175,7 @@ static PyObject* lwcreg_hasType(PyObject *self, PyObject *args) {
   }
 }
 
-static PyObject* lwcreg_getMethods(PyObject *self, PyObject *args) {
+static PyObject* lwcreg_getMethods(PyObject *, PyObject *args) {
   lwc::Registry *reg = lwc::Registry::Instance();
   if (!reg) {
     PyErr_SetString(PyExc_RuntimeError, "lwcpy.Registry has not yet been initialized");

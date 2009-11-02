@@ -28,7 +28,7 @@ namespace rb {
 
 VALUE cLWCMethod = Qnil;
 
-void rbmeth_mark(void *data) {
+void rbmeth_mark(void *) {
 }
 
 void rbmeth_sweep(void *data) {

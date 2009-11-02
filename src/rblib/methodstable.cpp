@@ -28,10 +28,10 @@ namespace rb {
 
 VALUE cLWCMethodsTable = Qnil;
 
-void rbmtbl_mark(void *data) {
+void rbmtbl_mark(void *) {
 }
 
-void rbmtbl_sweep(void *data) {
+void rbmtbl_sweep(void *) {
 }
 
 static VALUE rbmtbl_alloc(VALUE klass) {

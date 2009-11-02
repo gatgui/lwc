@@ -122,7 +122,6 @@ namespace lwc {
             err = "Invalid argument type";
             return false;
         }
-        return true;
       }
       static bool Set(const Argument &arg, T &src, ArgumentValue &dst, std::string &err) {
         err = "";
@@ -179,7 +178,6 @@ namespace lwc {
             err = "Invalid argument type";
             return false;
         }
-        return true;
       }
     };
     template <typename T> struct GetSet<T*> {

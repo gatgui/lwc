@@ -35,14 +35,14 @@ PyTypeObject PyLWCMethodCallType = {
 
 // ---
 
-static PyObject* methcall_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
+static PyObject* methcall_new(PyTypeObject *type, PyObject *, PyObject *) {
   PyLWCMethodCall *self = (PyLWCMethodCall*) type->tp_alloc(type, 0);
   self->obj = 0;
   self->method = 0;
   return (PyObject*)self;
 }
 
-static int methcall_init(PyObject *self, PyObject *args, PyObject *kwargs) {
+static int methcall_init(PyObject *, PyObject *, PyObject *) {
   return 0;
 }
 
@@ -61,8 +61,8 @@ PyObject* CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, i
   
   const lwc::Method &m = params.getMethod();
   
-  if (m.numArgs() == cArg) {
-    if (pyArg != PyTuple_Size(args)) {
+  if (m.numArgs() == size_t(cArg)) {
+    if (pyArg != size_t(PyTuple_Size(args))) {
       PyErr_SetString(PyExc_RuntimeError, "Invalid arguments. None expected");
       return NULL;
     }
@@ -252,7 +252,7 @@ PyObject* CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, i
   }
 }
 
-static PyObject *methcall_doit(PyObject *pself, PyObject *args, PyObject *kwargs) {
+static PyObject *methcall_doit(PyObject *pself, PyObject *args, PyObject *) {
   PyLWCMethodCall *self = (PyLWCMethodCall*) pself;
   try {
     const lwc::Method &m = self->obj->getMethod(self->method);

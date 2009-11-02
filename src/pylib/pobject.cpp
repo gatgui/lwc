@@ -54,7 +54,7 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
     if (arg.getDir() == lwc::AD_INOUT && !arg.isArray()) {
       throw std::runtime_error("Python does not support non-array inout arguments");
     }
-    if ((arg.getDir() == lwc::AD_IN || arg.getDir() == lwc::AD_INOUT) && arg.arrayArg() == -1) {
+    if ((arg.getDir() == lwc::AD_IN || arg.getDir() == lwc::AD_INOUT) && arg.arrayArg() < 0) {
       ++ninputs;
     }
   }
@@ -71,7 +71,7 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
     
     PyObject *parg = 0;
     
-    if (arg.arrayArg() != -1) {
+    if (arg.arrayArg() >= 0) {
       continue;
     }
     
@@ -88,17 +88,17 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       
       size_t len = 0;
       
-      const lwc::Argument &lenarg = meth[arg.arraySizeArg()];
+      const lwc::Argument &lenarg = meth[size_t(arg.arraySizeArg())];
       
       switch(lenarg.getType()) {
         case lwc::AT_INT: {
           if (!out) {
             lwc::Integer sz;
-            params.get(arg.arraySizeArg(), sz);
+            params.get(size_t(arg.arraySizeArg()), sz);
             len = size_t(sz);
           } else {
             lwc::Integer *sz;
-            params.get(arg.arraySizeArg(), sz);
+            params.get(size_t(arg.arraySizeArg()), sz);
             len = size_t(*sz);
           }
           break;
@@ -310,7 +310,7 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       continue;
     }
     
-    if (arg.arrayArg() != -1) {
+    if (arg.arrayArg() >= 0) {
       // array sizes handled when dealing with the array arg
       continue;
     }
@@ -394,12 +394,12 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       }
       
       // set length argument here
-      const lwc::Argument &lenarg = meth[arg.arraySizeArg()];
+      const lwc::Argument &lenarg = meth[size_t(arg.arraySizeArg())];
       
       switch(lenarg.getType()) {
         case lwc::AT_INT: {
           lwc::Integer *sz;
-          params.get(arg.arraySizeArg(), sz);
+          params.get(size_t(arg.arraySizeArg()), sz);
           *sz = (lwc::Integer) len;
           break;
         }

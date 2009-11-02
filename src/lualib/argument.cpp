@@ -115,7 +115,7 @@ static int luaarg_isArray(lua_State *L) {
 static int luaarg_arrayArg(lua_State *L) {
   CheckArgCount(L, 1);
   lwc::Argument &a = LuaArgument::UnWrap(L, 1);
-  lua_pushinteger(L, a.arrayArg());
+  lua_pushinteger(L, lua_Integer(a.arrayArg()));
   return 1;
 }
 
@@ -123,7 +123,7 @@ static int luaarg_arraySizeArg(lua_State *L) {
   CheckArgCount(L, 1);
   lwc::Argument &a = LuaArgument::UnWrap(L, 1);
   lua_pop(L, 1);
-  lua_pushinteger(L, a.arraySizeArg());
+  lua_pushinteger(L, lua_Integer(a.arraySizeArg()));
   return 1;
 }
 

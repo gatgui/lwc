@@ -35,7 +35,7 @@ int CallMethod(lwc::Object *o, const char *n,
   
   const lwc::Method &m = params.getMethod();
   
-  if (m.numArgs() == cArg) {
+  if (m.numArgs() == size_t(cArg)) {
     
     if (luaArg != nargs) {
       lua_pushstring(L, "Invalid arguments. None expected");

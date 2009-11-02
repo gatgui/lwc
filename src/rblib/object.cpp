@@ -36,10 +36,10 @@ void SetObjectPointer(VALUE robj, lwc::Object *obj) {
   RDATA(robj)->data = (void*) obj;
 }
 
-void rbobj_mark(void *data) {
+void rbobj_mark(void *) {
 }
 
-void rbobj_sweep(void *data) {
+void rbobj_sweep(void *) {
 }
 
 static VALUE rbobj_alloc(VALUE klass) {

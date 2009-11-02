@@ -104,7 +104,7 @@ namespace rb {
         Error(std::cerr, error);
         return (error == 0 ? self : Qnil);
       }
-      inline static void Error(std::ostream &out, int error=-1) {
+      inline static void Error(std::ostream &, int error=-1) {
         if (error != 0) {
           
           int st;
@@ -220,7 +220,9 @@ namespace rb {
   template <typename T> inline bool GetPointer(VALUE obj, T *&ptr) {
     ptr = 0;
     if (! NIL_P(obj)) {
-      Data_Get_Struct(obj, T, ptr);
+      //Data_Get_Struct(obj, T, ptr);
+      Check_Type(obj, T_DATA);
+      ptr = (T*) DATA_PTR(obj);
       if (!ptr) {
         return false;
       }
@@ -277,7 +279,9 @@ namespace rb {
     template <typename T> inline void GetPointer(VALUE obj, T *&ptr) {
       ptr = 0;
       if (! NIL_P(obj)) {
-        Data_Get_Struct(obj, T, ptr);
+        //Data_Get_Struct(obj, T, ptr);
+        Check_Type(obj, T_DATA);
+        ptr = (T*) DATA_PTR(obj);
         if (!ptr) {
           rb_raise(rb_eRuntimeError, "Underlying object already released.");
         }

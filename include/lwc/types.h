@@ -89,7 +89,7 @@ namespace lwc {
   
   template <typename T, typename U> struct Convertion {
     static bool Possible() {return false;}
-    static void Do(const T &from, U &to) {}
+    static void Do(const T &, U &) {}
   };
   // same type
   template <typename T> struct Convertion<T, T> {

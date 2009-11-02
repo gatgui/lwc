@@ -29,10 +29,10 @@ namespace rb {
 
 VALUE cLWCRegistry = Qnil;
 
-void rbreg_mark(void *data) {
+void rbreg_mark(void *) {
 }
 
-void rbreg_sweep(void *data) {
+void rbreg_sweep(void *) {
 }
 
 static VALUE rbreg_alloc(VALUE klass) {
@@ -66,7 +66,7 @@ static VALUE rbreg_addModulePath(VALUE self, VALUE rpath) {
   return self;
 }
 
-static VALUE rbreg_numTypes(VALUE self) {
+static VALUE rbreg_numTypes(VALUE) {
   lwc::Registry *reg = lwc::Registry::Instance();
   if (!reg) {
     rb_raise(rb_eRuntimeError, "lwc::Registry has not yet been initialized");
@@ -74,7 +74,7 @@ static VALUE rbreg_numTypes(VALUE self) {
   return ULONG2NUM(reg->numTypes());
 }
 
-static VALUE rbreg_getTypeName(VALUE self, VALUE ridx) {
+static VALUE rbreg_getTypeName(VALUE, VALUE ridx) {
   lwc::Registry *reg = lwc::Registry::Instance();
   if (!reg) {
     rb_raise(rb_eRuntimeError, "lwc::Registry has not yet been initialized");
@@ -88,7 +88,7 @@ static VALUE rbreg_getTypeName(VALUE self, VALUE ridx) {
   }
 }
 
-static VALUE rbreg_hasType(VALUE self, VALUE rname) {
+static VALUE rbreg_hasType(VALUE, VALUE rname) {
   lwc::Registry *reg = lwc::Registry::Instance();
   if (!reg) {
     rb_raise(rb_eRuntimeError, "lwc::Registry has not yet been initialized");
@@ -98,7 +98,7 @@ static VALUE rbreg_hasType(VALUE self, VALUE rname) {
   return (reg->hasType(name) ? Qtrue : Qfalse);
 }
 
-static VALUE rbreg_getMethods(VALUE self, VALUE rname) {
+static VALUE rbreg_getMethods(VALUE, VALUE rname) {
   lwc::Registry *reg = lwc::Registry::Instance();
   if (!reg) {
     rb_raise(rb_eRuntimeError, "lwc::Registry has not yet been initialized");
@@ -115,7 +115,7 @@ static VALUE rbreg_getMethods(VALUE self, VALUE rname) {
   }
 }
 
-static VALUE rbreg_create(VALUE self, VALUE rname) {
+static VALUE rbreg_create(VALUE, VALUE rname) {
   lwc::Registry *reg = lwc::Registry::Instance();
   if (!reg) {
     rb_raise(rb_eRuntimeError, "lwc::Registry has not yet been initialized");

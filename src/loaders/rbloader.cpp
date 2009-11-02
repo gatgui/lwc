@@ -51,7 +51,7 @@ static VALUE GetTypeClass(VALUE args) {
 
 enum st_retval {ST_CONTINUE, ST_STOP, ST_DELETE, ST_CHECK};
 
-static int keys_i(VALUE key, VALUE value, VALUE ary) {
+static int keys_i(VALUE key, VALUE /*value*/, VALUE ary) {
   if (key == Qundef) {
     return ST_CONTINUE;
   }
@@ -123,7 +123,7 @@ class RbFactory : public lwc::Factory {
       lwc::MethodsTable *typeMethods = 0;
       
       VALUE keys = rb_hash_keys(methods);
-      for (size_t i=0; i<RARRAY(keys)->len; ++i) {
+      for (long i=0; i<RARRAY(keys)->len; ++i) {
         
         VALUE key = RARRAY(keys)->ptr[i];
         VALUE val = rb_hash_aref(methods, key);
@@ -143,9 +143,9 @@ class RbFactory : public lwc::Factory {
         lwc::Method meth;
         
         //std::cout << "Add method: " << name << std::endl;
-        for (long i=0; i<n; ++i) {
+        for (long j=0; j<n; ++j) {
           
-          VALUE arg = RARRAY(val)->ptr[i];
+          VALUE arg = RARRAY(val)->ptr[j];
           
           if (TYPE(arg) != T_ARRAY || RARRAY(arg)->len < 2 || RARRAY(arg)->len > 3) {
             std::cout << "rbloader: Arguments must be arrays with 2 to 3 elements" << std::endl;
@@ -173,7 +173,7 @@ class RbFactory : public lwc::Factory {
           }
           try {
             typeMethods->addMethod(mname, meth);
-          } catch (std::runtime_error &e) {
+          } catch (std::runtime_error &) {
             std::cout << "rbloader: Skipped method \"" << mname << "\" for type \"" << name << "\"" << std::endl;
             continue;
           }
@@ -269,7 +269,7 @@ class RbLoader : public lwc::Loader {
       unsigned long n = NUM2ULONG(rn);
       //std::cout << "Module has " << n << " types" << std::endl;
       
-      VALUE arg;
+      //VALUE arg;
       
       for (unsigned long i=0; i<n; ++i) {
         iargs.idx = ULONG2NUM(i);

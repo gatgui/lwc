@@ -41,12 +41,12 @@ class ObjectList(lwcpy.Object):
     self.lst.append(obj)
   
   def at(self, idx):
-    if idx < 0 or idx > len(self.lst):
+    if idx < 0 or idx >= len(self.lst):
       raise Exception("Invalid index %s in list" % idx)
     return self.lst[idx]
   
   def set(self, idx, obj):
-    if idx < 0 or idx > len(self.lst):
+    if idx < 0 or idx >= len(self.lst):
       raise Exception("Invalid index %s in list" % idx)
     self.lst[idx] = obj
   
@@ -63,7 +63,7 @@ class ObjectList(lwcpy.Object):
       return None
   
   def erase(self, idx):
-    if idx < o or idx > len(self.lst):
+    if idx < 0 or idx >= len(self.lst):
       raise Exception("Invalid index %s in list" % idx)
     self.lst.remove(self.lst[idx])
   

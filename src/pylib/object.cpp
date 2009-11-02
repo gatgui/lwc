@@ -35,14 +35,14 @@ PyTypeObject PyLWCObjectType = {
 
 // ---
 
-static PyObject* lwcobj_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
+static PyObject* lwcobj_new(PyTypeObject *type, PyObject *, PyObject *) {
   PyLWCObject *self = (PyLWCObject*) type->tp_alloc(type, 0);
   self->obj = 0;
   new (&(self->methods)) std::map<std::string, PyObject*>();
   return (PyObject*)self;
 }
 
-static int lwcobj_init(PyObject *self, PyObject *args, PyObject *kwargs) {
+static int lwcobj_init(PyObject *, PyObject *, PyObject *) {
   return 0;
 }
 
@@ -76,7 +76,7 @@ static PyObject* lwcobj_respondsTo(PyObject *pself, PyObject *args) {
   }
 }
 
-static PyObject* lwcobj_availableMethods(PyObject *pself, PyObject *args) {
+static PyObject* lwcobj_availableMethods(PyObject *pself, PyObject *) {
   PyLWCObject *self = (PyLWCObject*) pself;
   if (!self->obj) {
     PyErr_SetString(PyExc_RuntimeError, "lwcpy.Object: underlying object does not exists");
@@ -118,7 +118,7 @@ static PyObject* lwcobj_getMethod(PyObject *pself, PyObject *args) {
   }
 }
 
-static PyObject* lwcobj_getMethods(PyObject *pself, PyObject *args) {
+static PyObject* lwcobj_getMethods(PyObject *pself, PyObject *) {
   PyLWCObject *self = (PyLWCObject*) pself;
   if (!self->obj) {
     PyErr_SetString(PyExc_RuntimeError, "lwcpy.Object: underlying object does not exists");
@@ -130,7 +130,7 @@ static PyObject* lwcobj_getMethods(PyObject *pself, PyObject *args) {
   return rv;
 }
 
-static PyObject* lwcobj_getLoaderName(PyObject *pself, PyObject *args) {
+static PyObject* lwcobj_getLoaderName(PyObject *pself, PyObject *) {
   PyLWCObject *self = (PyLWCObject*) pself;
   if (!self->obj) {
     PyErr_SetString(PyExc_RuntimeError, "lwcpy.Object: underlying object does not exists");
@@ -139,7 +139,7 @@ static PyObject* lwcobj_getLoaderName(PyObject *pself, PyObject *args) {
   return PyString_FromString(self->obj->getLoaderName());
 }
 
-static PyObject* lwcobj_getTypeName(PyObject *pself, PyObject *args) {
+static PyObject* lwcobj_getTypeName(PyObject *pself, PyObject *) {
   PyLWCObject *self = (PyLWCObject*) pself;
   if (!self->obj) {
     PyErr_SetString(PyExc_RuntimeError, "lwcpy.Object: underlying object does not exists");

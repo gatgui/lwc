@@ -28,7 +28,7 @@ namespace rb {
 
 VALUE cLWCArgument = Qnil;
 
-void rbarg_mark(void *data) {
+void rbarg_mark(void *) {
 }
 
 void rbarg_sweep(void *data) {
@@ -83,7 +83,7 @@ static VALUE rbarg_setType(VALUE self, VALUE val) {
 static VALUE rbarg_getArySzArg(VALUE self) {
   lwc::Argument *arg;
   rb::Exc::GetPointer(self, arg);
-  return INT2NUM(arg->arraySizeArg());
+  return INT2NUM(long(arg->arraySizeArg()));
 }
 
 static VALUE rbarg_setArySzArg(VALUE self, VALUE val) {
@@ -96,7 +96,7 @@ static VALUE rbarg_setArySzArg(VALUE self, VALUE val) {
 static VALUE rbarg_getAryArg(VALUE self) {
   lwc::Argument *arg;
   rb::Exc::GetPointer(self, arg);
-  return INT2NUM(arg->arrayArg());
+  return INT2NUM(long(arg->arrayArg()));
 }
 
 static VALUE rbarg_setAryArg(VALUE self, VALUE val) {

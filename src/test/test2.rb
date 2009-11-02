@@ -28,24 +28,32 @@ reg = RLWC.Initialize()
 reg.addLoaderPath("./components/loaders")
 reg.addModulePath("./components/modules")
 
+puts "=== Create object list"
 ary = reg.create("pytest.ObjectList")
 #puts ary
 #puts ary.getMethods()
 
 (0..10).each do |i|
+  puts "=== Create new point"
   elt = reg.create("rbtest.Point")
   #puts elt
   #puts elt.getMethods()
+  puts "=== Set point value"
   elt.set(i, i)
+  puts "=== Add to list"
   ary.push(elt)
 end
 
 (0...ary.size()).each do |i|
+  puts "=== Get point at #{i}"
   elt = ary.at(i)
+  puts "=== => #{elt}"
   puts "Point#{i}: (#{elt.getX()}, #{elt.getY()})"
+  puts "=== Destroy point"
   reg.destroy(elt)
 end
 
+puts "=== Destroy object list"
 reg.destroy(ary)
 
 RLWC.DeInitialize()

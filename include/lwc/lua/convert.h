@@ -37,19 +37,19 @@ namespace lua {
   };
   template <> struct LuaType<bool> {
     static const char* Name() {return "boolean";}
-    static bool Check(lua_State *L, int idx) {return lua_isboolean(L, idx);}
-    static void ToC(lua_State *L, int idx, bool &val) {val = lua_toboolean(L, idx);}
+    static bool Check(lua_State *L, int idx) {return (lua_isboolean(L, idx) != 0);}
+    static void ToC(lua_State *L, int idx, bool &val) {val = (lua_toboolean(L, idx) == 1);}
     static void Dispose(bool &) {}
   };
   template <> struct LuaType<lwc::Integer> {
     static const char* Name() {return "integer";}
-    static bool Check(lua_State *L, int idx) {return lua_isnumber(L, idx);}
+    static bool Check(lua_State *L, int idx) {return (lua_isnumber(L, idx) != 0);}
     static void ToC(lua_State *L, int idx, lwc::Integer &val) {val = (lwc::Integer) lua_tointeger(L, idx);}
     static void Dispose(lwc::Integer &) {}
   };
   template <> struct LuaType<lwc::Real> {
     static const char* Name() {return "real";}
-    static bool Check(lua_State *L, int idx) {return lua_isnumber(L, idx);}
+    static bool Check(lua_State *L, int idx) {return (lua_isnumber(L, idx) != 0);}
     static void ToC(lua_State *L, int idx, lwc::Real &val) {val = (lwc::Real) lua_tonumber(L, idx);}
     static void Dispose(lwc::Real &) {}
   };
@@ -89,7 +89,7 @@ namespace lua {
         lua_pop(L, 1);
         return false;
       }
-      bool ret = lua_rawequal(L, -1, -2);
+      bool ret = (lua_rawequal(L, -1, -2) == 1);
       lua_pop(L, 2);
       return ret;
     }
@@ -112,7 +112,7 @@ namespace lua {
     }
   };
   template <> struct CType<lwc::Integer> {
-    static void ToLua(const lwc::Integer &val, lua_State *L) {lua_pushinteger(L, val);}
+    static void ToLua(const lwc::Integer &val, lua_State *L) {lua_pushinteger(L, lua_Integer(val));}
   };
   template <> struct CType<lwc::Real> {
     static void ToLua(const lwc::Real &val, lua_State *L) {lua_pushnumber(L, val);}
@@ -250,14 +250,16 @@ namespace lua {
     // after the PostCall, the stack should be unchanged
     // rv is the stack index of the return value(s) array
     
-    static void PreCall(const lwc::Argument &desc, size_t idesc,
+    static void PreCall(const lwc::Argument &desc, size_t /*idesc*/,
                         lua_State *L, int firstArg, size_t nargs, size_t &iarg,
                         std::map<size_t,size_t> &arraySizes, Type &val) {
       
       if (desc.getDir() == lwc::AD_IN || desc.getDir() == lwc::AD_INOUT) {
-        if (desc.arrayArg() != -1) {
+        if (desc.arrayArg() >= 0) {
           // this should only be executed for integer types
-          val = (Type) arraySizes[desc.arrayArg()];
+          //val = (Type) arraySizes[desc.arrayArg()];
+          unsigned long idx = (unsigned long) arraySizes[size_t(desc.arrayArg())];
+          lwc::Convertion<unsigned long, Type>::Do(idx, val);
         } else {
           if (iarg >= nargs) {
             lua_pushstring(L, "Not enough arguments");
@@ -270,8 +272,8 @@ namespace lua {
       }
     }
     
-    static void PostCall(const lwc::Argument &desc, size_t idesc,
-                         lua_State *L, int firstArg, size_t nargs, size_t &iarg,
+    static void PostCall(const lwc::Argument &desc, size_t /*idesc*/,
+                         lua_State *L, int /*firstArg*/, size_t /*nargs*/, size_t &iarg,
                          std::map<size_t,size_t> &arraySizes, Type &val, int rv) {
       
       if (desc.getDir() == lwc::AD_IN) {
@@ -279,8 +281,8 @@ namespace lua {
         ++iarg;
         
       } else {
-        if (desc.arrayArg() != -1) {
-          arraySizes[desc.arrayArg()] = size_t(val);
+        if (desc.arrayArg() >= 0) {
+          arraySizes[size_t(desc.arrayArg())] = size_t(val);
           Lua2C<T>::DisposeValue(val);
           
         } else {
@@ -309,7 +311,7 @@ namespace lua {
     }
     
     static void PostCallArray(const lwc::Argument &desc, size_t idesc,
-                              lua_State *L, int firstArg, size_t nargs, size_t &iarg,
+                              lua_State *L, int firstArg, size_t /*nargs*/, size_t &iarg,
                               std::map<size_t,size_t> &arraySizes, Array &ary, int rv) {
       if (desc.getDir() == lwc::AD_IN) {
         Lua2C<T>::DisposeArray(ary, arraySizes[idesc]);

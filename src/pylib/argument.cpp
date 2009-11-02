@@ -34,7 +34,7 @@ PyTypeObject PyLWCArgumentType = {
 
 // ---
 
-static PyObject* lwcarg_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
+static PyObject* lwcarg_new(PyTypeObject *type, PyObject *, PyObject *) {
   PyLWCArgument *self = (PyLWCArgument*) type->tp_alloc(type, 0);
   new (&(self->arg)) lwc::Argument();
   return (PyObject*)self;
@@ -103,12 +103,12 @@ static PyObject* lwcarg_getDir(PyObject *pself, void *) {
 
 static PyObject* lwcarg_getArraySizeArg(PyObject *pself, void *) {
   PyLWCArgument *self = (PyLWCArgument*)pself;
-  return PyInt_FromLong(self->arg.arraySizeArg());
+  return PyInt_FromLong(long(self->arg.arraySizeArg()));
 }
 
 static PyObject* lwcarg_getArrayArg(PyObject *pself, void *) {
   PyLWCArgument *self = (PyLWCArgument*)pself;
-  return PyInt_FromLong(self->arg.arrayArg());
+  return PyInt_FromLong(long(self->arg.arrayArg()));
 }
 
 static int lwcarg_setType(PyObject *pself, PyObject *val, void *) {
@@ -123,7 +123,7 @@ static int lwcarg_setDir(PyObject *pself, PyObject *val, void *) {
   return 0;
 }
 
-static int lwcarg_setArray(PyObject *pself, PyObject *val, void *) {
+static int lwcarg_setArray(PyObject *, PyObject *, void *) {
   PyErr_SetString(PyExc_RuntimeError, "\"array\" attribute is not setable");
   return -1;
 }

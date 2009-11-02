@@ -36,13 +36,13 @@ PyTypeObject PyLWCMethodType = {
 
 // lwcpy.Method takes copies of the method... not good
 
-static PyObject* lwcmeth_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
+static PyObject* lwcmeth_new(PyTypeObject *type, PyObject *, PyObject *) {
   PyLWCMethod *self = (PyLWCMethod*) type->tp_alloc(type, 0);
   new (&(self->meth)) lwc::Method();
   return (PyObject*)self;
 }
 
-static int lwcmeth_init(PyObject *self, PyObject *args, PyObject *kwargs) {
+static int lwcmeth_init(PyObject *, PyObject *, PyObject *) {
   return 0;
 }
 
@@ -52,7 +52,7 @@ static void lwcmeth_free(PyObject *pself) {
   pself->ob_type->tp_free(pself);
 }
 
-static PyObject* lwcmeth_numArgs(PyObject *pself, PyObject *args) {
+static PyObject* lwcmeth_numArgs(PyObject *pself, PyObject *) {
   PyLWCMethod *self = (PyLWCMethod*) pself;
   return PyInt_FromLong(self->meth.numArgs());
 }
