@@ -26,7 +26,9 @@ USA.
 #include <lwc/loader.h>
 #include <lwc/factory.h>
 #include <lwc/file.h>
-
+#if !defined(_WIN32) && !defined(__APPLE__)
+# include <dlfcn.h>
+#endif
 
 class PFactory : public lwc::Factory {
   public:
@@ -328,6 +330,16 @@ __declspec(dllexport)
     if (Py_IsInitialized()) {
       WasInitialized = true;
     } else {
+      #if !defined(_WIN32) && !defined(__APPLE__)
+      // On Ubunty (9.04 at least), without this hack, python binary modules fail to load
+      // After a little search on the web, it seems that Ubuntu's python is compiled a weird way
+      char ver[32];
+      sprintf(ver, "%.1f", LWC_PYVER);
+      std::string pyso = "libpython";
+      pyso += ver;
+      pyso += ".so";
+      dlopen((char*) pyso.c_str(), RTLD_LAZY|RTLD_GLOBAL);
+      #endif
       WasInitialized = false;
       Py_SetProgramName("lwc_python");
       //PyEval_InitThreads();
