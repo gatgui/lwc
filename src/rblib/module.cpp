@@ -29,9 +29,10 @@ namespace rb {
 VALUE mLWC = Qnil;
 
 static VALUE rbil_init(VALUE) {
-  lwc::Registry::Initialize("ruby", NULL);
   rb::Tracker::Init();
-  return rb_funcall2(cLWCRegistry, rb_intern("new"), 0, NULL);
+  VALUE reg = rb_funcall2(cLWCRegistry, rb_intern("new"), 0, NULL);
+  lwc::Registry::Initialize("ruby", NULL);
+  return reg;
 }
 
 static VALUE rbil_getreg(VALUE) {

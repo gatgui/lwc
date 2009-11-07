@@ -58,6 +58,18 @@ bool enummodules(const std::string &d, const std::string &f, file::Type type, vo
   return true;
 }
 
+bool enumloaderpath(const std::string &path, void *ud) {
+  Registry *reg = (Registry*) ud;
+  reg->addLoaderPath(path);
+  return true;
+}
+
+bool enummodulepath(const std::string &path, void *ud) {
+  Registry *reg = (Registry*) ud;
+  reg->addModulePath(path);
+  return true;
+}
+
 // ---
 
 Registry* Registry::msInstance = 0;
@@ -96,6 +108,8 @@ void Registry::DeInitialize() {
 Registry::Registry(const char *hostLang, void *userData)
   : mHostLang(hostLang), mUserData(userData) {
   msInstance = this;
+  file::ForEachInEnv("LWC_LOADER_PATH", &enumloaderpath, (void*)this);
+  file::ForEachInEnv("LWC_MODULE_PATH", &enummodulepath, (void*)this);
 }
 
 Registry::~Registry() {
@@ -119,6 +133,13 @@ Loader* Registry::findLoader(const std::string &path) {
 }
 
 void Registry::addLoader(const std::string &path) {
+  
+  for (size_t i=0; i<mLoaders.size(); ++i) {
+    if (file::IsSamePath(mLoaders[i].path, path)) {
+      return;
+    }
+  }
+  
   LoaderEntry le;
   
   le.path = path;

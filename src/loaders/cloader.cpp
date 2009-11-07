@@ -108,7 +108,7 @@ class CLoader : public lwc::Loader {
         if (registerType(tn, getTypeFactory(i), reg)) {
           loadedTypes += 1;
         } else {
-          std::cout << "cloader: Could not register type \"" << tn << "\"" << std::endl;
+          std::cout << "cloader: Type \"" << tn << "\" already registered" << std::endl;
         }
       }
       

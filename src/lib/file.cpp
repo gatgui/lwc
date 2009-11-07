@@ -326,7 +326,6 @@ void ForEachInEnv(const std::string &e, EnumEnvCallback callback, void *ud) {
   char *envVal = getenv(e.c_str());
   if (envVal) {
     std::string v = envVal;
-    std::cout << e << " = \"" << v << "\"" << std::endl;
     size_t p0 = 0, p1 = v.find(PATH_SEP, p0);
     while (p1 != std::string::npos) {
       std::string tmp = v.substr(p0, p1 - p0);
