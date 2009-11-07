@@ -83,7 +83,7 @@ void Method::validateArgs() throw(std::runtime_error) {
         oss << "argument " << i << " missing array size argument";
         throw std::runtime_error(oss.str());
       }
-      size_t idx = mArgs[i].arraySizeArg();
+      size_t idx = (size_t) mArgs[i].arraySizeArg();
       if (idx >= mArgs.size()) {
         std::ostringstream oss;
         oss << "argument " << i << " has an invalid array size argument";
