@@ -159,7 +159,7 @@ namespace lwc {
               err = "Invalid argument type";
               return false;
             }
-            char *val;
+            char *val = 0;
             Convertion<typename NoRefOrConst<T>::Type, char*>::Do(src, val);
             dst.ptr = (void*) val;
             return true;
@@ -169,7 +169,7 @@ namespace lwc {
               err = "Invalid argument type";
               return false;
             }
-            lwc::Object *val;
+            lwc::Object *val = 0;
             Convertion<typename NoRefOrConst<T>::Type, Object*>::Do(src, val);
             dst.ptr = (void*) val;
             return true;

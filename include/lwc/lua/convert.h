@@ -298,7 +298,7 @@ namespace lua {
                              lua_State *L, int firstArg, size_t nargs, size_t &iarg,
                              std::map<size_t,size_t> &arraySizes, Array &ary) {
       if (desc.getDir() == lwc::AD_IN || desc.getDir() == lwc::AD_INOUT) {
-        size_t length;
+        size_t length = 0;
         if (iarg >= nargs) {
           lua_pushstring(L, "Not enough arguments");
           lua_error(L);
