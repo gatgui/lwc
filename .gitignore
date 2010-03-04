@@ -1,12 +1,4 @@
-test*
-*.dblite
-lua
-ruby
-python
-*.pyc
-*.so
-*.dll
-*.pyd
-*.bundle
-*.dylib
-*.exe
+debug
+release
+.build
+.sconsign.dblite
