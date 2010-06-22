@@ -55,11 +55,11 @@ if reg.hasType("pytest.ObjectList"):
 else:
   print("false")
 
-print("### Methods of test.DoubleBox")
-table = reg.getMethods("test.DoubleBox")
+#print("### Methods of test.DoubleBox")
+#table = reg.getMethods("test.DoubleBox")
 # DOING THAT, there were a strange behavior in python:
 #  it was complaining 'lwcpy.Object' had no attribute 'size' [this is the last function
-#                                                          called on an object]
+#                                                             called on an object]
 #print(table.availableMethods)
 #methods = table.availableMethods()
 #print(type(methods))

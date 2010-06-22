@@ -32,16 +32,17 @@ namespace lwc {
   class LWC_API Object {
     public:
       
-      template <typename T0=Empty, typename T1=Empty, typename T2=Empty, typename T3=Empty,
-            typename T4=Empty, typename T5=Empty, typename T6=Empty, typename T7=Empty,
-            typename T8=Empty, typename T9=Empty, typename T10=Empty, typename T11=Empty,
-            typename T12=Empty, typename T13=Empty, typename T14=Empty, typename T15=Empty>
+      template <typename T0=Empty,  typename T1=Empty,  typename T2=Empty,  typename T3=Empty,
+                typename T4=Empty,  typename T5=Empty,  typename T6=Empty,  typename T7=Empty,
+                typename T8=Empty,  typename T9=Empty,  typename T10=Empty, typename T11=Empty,
+                typename T12=Empty, typename T13=Empty, typename T14=Empty, typename T15=Empty>
       struct MethodCall {
         static void Call(Object *self, const char *name,
                          T0 arg0=T0(), T1 arg1=T1(), T2 arg2=T2(), T3 arg3=T3(),
                          T4 arg4=T4(), T5 arg5=T5(), T6 arg6=T6(), T7 arg7=T7(),
                          T8 arg8=T8(), T9 arg9=T9(), T10 arg10=T10(), T11 arg11=T11(),
                          T12 arg12=T12(), T13 arg13=T13(), T14 arg14=T14(), T15 arg15=T15()) throw(std::runtime_error) {
+          
           if (!self->respondsTo(name)) {
             std::ostringstream oss;
             oss << "Object has not method \"" << name << "\"";

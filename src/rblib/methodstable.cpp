@@ -60,7 +60,7 @@ static VALUE rbmtbl_find(VALUE self, VALUE rname) {
   rb::Exc::GetPointer(self, mt);
   VALUE sname = rb_check_string_type(rname);
   char *mn = RSTRING(sname)->ptr;
-  lwc::Method *m = mt->findMethod(mn);
+  const lwc::Method *m = mt->findMethod(mn);
   if (!m) {
     return Qnil;
   } else {

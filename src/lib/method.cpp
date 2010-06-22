@@ -24,6 +24,7 @@ USA.
 #include <lwc/method.h>
 #include <lwc/object.h>
 #include <sstream>
+#include <algorithm>
 
 namespace lwc {
 
@@ -106,19 +107,52 @@ void Method::validateArgs() throw(std::runtime_error) {
 
 // ---
 
-MethodsTable::MethodsTable() {
+MethodsTable::MethodsTable(const MethodsTable *parent)
+  : mParent(parent) {
 }
 
 MethodsTable::~MethodsTable() {
   mTable.clear();
 }
 
+size_t MethodsTable::numMethods() const {
+  // not of overridden methods
+  
+  if (mParent) {
+    size_t n = mParent->numMethods();
+    std::map<std::string, Method>::const_iterator it = mTable.begin();
+    while (it != mTable.end()) {
+      if (mParent->findMethod(it->first.c_str()) == 0) {
+        ++n;
+      }
+      ++it;
+    }
+    return n;
+    
+  } else {
+    return mTable.size();
+  }
+}
+
 size_t MethodsTable::availableMethods(std::vector<std::string> &methodNames) const {
-  methodNames.clear();
+  
   std::map<std::string, Method>::const_iterator it = mTable.begin();
-  while (it != mTable.end()) {
-    methodNames.push_back(it->first);
-    ++it;
+  
+  if (mParent) {
+    mParent->availableMethods(methodNames);
+    while (it != mTable.end()) {
+      if (mParent->findMethod(it->first.c_str()) == 0) {
+        methodNames.push_back(it->first);
+      }
+      ++it;
+    }
+    
+  } else {
+    methodNames.clear();
+    while (it != mTable.end()) {
+      methodNames.push_back(it->first);
+      ++it;
+    }
   }
   return methodNames.size();
 }
@@ -168,6 +202,10 @@ std::string MethodsTable::toString() const {
   while (it != mTable.end()) {
     oss << it->first << it->second.toString() << std::endl;
     ++it;
+  }
+  if (mParent) {
+    oss << "Inherited:" << std::endl;
+    oss << mParent->toString();
   }
   return oss.str();
 }

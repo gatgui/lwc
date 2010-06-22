@@ -40,6 +40,9 @@ namespace lwc {
     MethodPointer *ptr;
   };
   
+#define LWC_NUMMETHODS(Ary) (sizeof(Ary) / sizeof(lwc::MethodDecl))
+#define LWC_METHOD(Class, Name) new lwc::TMethodPointer<Class>(&Class::Name)
+  
   // Ugly work around to have things work on windows
   //   if pointer type is (void (Object::*)()) we cannot assign (void (Box::*)()) to it
   // Need a better scheme, this makes each objects do allocation for each of its method
@@ -245,7 +248,7 @@ namespace lwc {
       }
     };
     
-    // string specual case
+    // string special case
     template <> struct GetSet<char*> {
       static bool Get(const Argument &arg, ArgumentValue &src, char* &dst, std::string &err) {
         err = "";
@@ -490,22 +493,15 @@ namespace lwc {
   class LWC_API MethodsTable {
     public:
       
-      MethodsTable();
+      MethodsTable(const MethodsTable *parent=0);
       ~MethodsTable();
       
       inline const Method* findMethod(const char *name) const {
         std::map<std::string, Method>::const_iterator it = mTable.find(name);
-        return (it == mTable.end() ? 0 : &(it->second));
+        return (it == mTable.end() ? (mParent ? mParent->findMethod(name) : 0) : &(it->second));
       }
       
-      inline Method* findMethod(const char *name) {
-        std::map<std::string, Method>::iterator it = mTable.find(name);
-        return (it == mTable.end() ? 0 : &(it->second));
-      }
-      
-      inline size_t numMethods() const {
-        return mTable.size();
-      }
+      size_t numMethods() const;
       
       std::string toString() const;
       
@@ -518,6 +514,7 @@ namespace lwc {
     protected:
       
       std::map<std::string, Method> mTable;
+      const MethodsTable *mParent;
   };
   
   class LWC_API MethodParams {

@@ -24,7 +24,7 @@ USA.
 #include <lwc/object.h>
 #include <lwc/factory.h>
 #include <lwc/registry.h>
-
+#include <lwc/moduleutils.h>
 
 class Box : public lwc::Object {
   public:
@@ -97,147 +97,26 @@ class DoubleBox : public Box {
     }
 };
 
-#define NUMMETHODS(Ary) (sizeof(Ary)/sizeof(lwc::MethodDecl))
-#define METHOD(Class,Name) new lwc::TMethodPointer<Class>(&Class::Name)
-
 static lwc::MethodDecl BoxMethods[] = {
-  {"setX", 1,      {{lwc::AD_IN, lwc::AT_INT, -1}},     METHOD(Box, setX)},
-  {"setY", 1,      {{lwc::AD_IN, lwc::AT_INT, -1}},     METHOD(Box, setY)},
-  {"setWidth", 1,  {{lwc::AD_IN, lwc::AT_INT, -1}},     METHOD(Box, setWidth)},
-  {"setHeight", 1, {{lwc::AD_IN, lwc::AT_INT, -1}},     METHOD(Box, setHeight)},
-  {"getX", 1,      {{lwc::AD_OUT, lwc::AT_INT, -1}}, METHOD(Box, getX)},
-  {"getY", 1,      {{lwc::AD_OUT, lwc::AT_INT, -1}}, METHOD(Box, getY)},
-  {"getWidth", 1,  {{lwc::AD_OUT, lwc::AT_INT, -1}}, METHOD(Box, getWidth)},
-  {"getHeight", 1, {{lwc::AD_OUT, lwc::AT_INT, -1}}, METHOD(Box, getHeight)},
-};
-
-class BoxFactory : public lwc::Factory {
-  public:
-    BoxFactory() {
-      mMethods = new lwc::MethodsTable();
-      mMethods->fromDeclaration(BoxMethods, NUMMETHODS(BoxMethods), false);
-    }
-    
-    virtual ~BoxFactory() {
-      size_t nm = NUMMETHODS(BoxMethods);
-      for (size_t i=0; i<nm; ++i) {
-        delete BoxMethods[i].ptr;
-      }
-      delete mMethods;
-    }
-    
-    virtual const lwc::MethodsTable* getMethods(const char *) {
-      return mMethods;
-    }
-    
-    virtual lwc::Object* create(const char *) {
-      return new Box();
-    }
-    
-    virtual void destroy(lwc::Object *o) {
-      if (o) {
-        delete o;
-      }
-    }
-  
-  protected:
-    
-    lwc::MethodsTable *mMethods;
+  {"setX", 1,      {{lwc::AD_IN,  lwc::AT_INT, -1}}, LWC_METHOD(Box, setX)},
+  {"setY", 1,      {{lwc::AD_IN,  lwc::AT_INT, -1}}, LWC_METHOD(Box, setY)},
+  {"setWidth", 1,  {{lwc::AD_IN,  lwc::AT_INT, -1}}, LWC_METHOD(Box, setWidth)},
+  {"setHeight", 1, {{lwc::AD_IN,  lwc::AT_INT, -1}}, LWC_METHOD(Box, setHeight)},
+  {"getX", 1,      {{lwc::AD_OUT, lwc::AT_INT, -1}}, LWC_METHOD(Box, getX)},
+  {"getY", 1,      {{lwc::AD_OUT, lwc::AT_INT, -1}}, LWC_METHOD(Box, getY)},
+  {"getWidth", 1,  {{lwc::AD_OUT, lwc::AT_INT, -1}}, LWC_METHOD(Box, getWidth)},
+  {"getHeight", 1, {{lwc::AD_OUT, lwc::AT_INT, -1}}, LWC_METHOD(Box, getHeight)},
 };
 
 static lwc::MethodDecl DoubleBoxMethods[] = {
-  {"setX", 1,      {{lwc::AD_IN, lwc::AT_INT, -1}},        METHOD(DoubleBox, setX)},
-  {"setY", 1,      {{lwc::AD_IN, lwc::AT_INT, -1}},        METHOD(DoubleBox, setY)},
-  {"setWidth", 1,  {{lwc::AD_IN, lwc::AT_INT, -1}},        METHOD(DoubleBox, setWidth)},
-  {"setHeight", 1, {{lwc::AD_IN, lwc::AT_INT, -1}},        METHOD(DoubleBox, setHeight)},
-  {"getX", 1,      {{lwc::AD_OUT, lwc::AT_INT, -1}},    METHOD(Box, getX)},
-  {"getY", 1,      {{lwc::AD_OUT, lwc::AT_INT, -1}},    METHOD(Box, getY)},
-  {"getWidth", 1,  {{lwc::AD_OUT, lwc::AT_INT, -1}},    METHOD(Box, getWidth)},
-  {"getHeight", 1, {{lwc::AD_OUT, lwc::AT_INT, -1}},    METHOD(Box, getHeight)},
-  {"toBox", 1,     {{lwc::AD_OUT, lwc::AT_OBJECT, -1}}, METHOD(DoubleBox, toBox)},
+  {"setX", 1,      {{lwc::AD_IN,  lwc::AT_INT,    -1}}, LWC_METHOD(DoubleBox, setX)},
+  {"setY", 1,      {{lwc::AD_IN,  lwc::AT_INT,    -1}}, LWC_METHOD(DoubleBox, setY)},
+  {"setWidth", 1,  {{lwc::AD_IN,  lwc::AT_INT,    -1}}, LWC_METHOD(DoubleBox, setWidth)},
+  {"setHeight", 1, {{lwc::AD_IN,  lwc::AT_INT,    -1}}, LWC_METHOD(DoubleBox, setHeight)},
+  {"toBox", 1,     {{lwc::AD_OUT, lwc::AT_OBJECT, -1}}, LWC_METHOD(DoubleBox, toBox)},
 };
 
-class DoubleBoxFactory : public lwc::Factory {
-  public:
-    DoubleBoxFactory() {
-      mMethods = new lwc::MethodsTable();
-      mMethods->fromDeclaration(DoubleBoxMethods, NUMMETHODS(DoubleBoxMethods));
-    }
-    
-    virtual ~DoubleBoxFactory() {
-      size_t nm = NUMMETHODS(DoubleBoxMethods);
-      for (size_t i=0; i<nm; ++i) {
-        delete DoubleBoxMethods[i].ptr;
-      }
-      delete mMethods;
-    }
-    
-    virtual const lwc::MethodsTable* getMethods(const char *) {
-      return mMethods;
-    }
-    
-    virtual lwc::Object* create(const char *) {
-      return new DoubleBox();
-    }
-    
-    virtual void destroy(lwc::Object *o) {
-      if (o) {
-        delete o;
-      }
-    }
-    
-  protected:
-    
-    lwc::MethodsTable *mMethods;
-};
-
-static const size_t NumTypes = 2;
-
-static const char* Types[] = {
-  "test.Box",
-  "test.DoubleBox"
-};
-
-static lwc::Factory* Factories[] = {0, 0};
-
-
-extern "C" {
-
-#ifdef _WIN32
-# define EXPORT __declspec(dllexport)
-#else
-# define EXPORT
-#endif
-
-EXPORT void LWC_ModuleInit() {
-  Factories[0] = new BoxFactory();
-  Factories[1] = new DoubleBoxFactory();
-}
-
-EXPORT size_t LWC_ModuleGetTypeCount() {
-  return NumTypes;
-}
-
-EXPORT const char* LWC_ModuleGetTypeName(size_t i) {
-  if (i < NumTypes) {
-    return Types[i];
-  } else {
-    return 0;
-  }
-}
-
-EXPORT lwc::Factory* LWC_ModuleGetTypeFactory(size_t i) {
-  if (i < NumTypes) {
-    return Factories[i];
-  } else {
-    return 0;
-  }
-}
-
-EXPORT void LWC_ModuleExit() {
-  delete Factories[0];
-  delete Factories[1];
-} 
-
-}
-
+LWC_BEGIN_MODULE(2)
+LWC_MODULE_TYPE(0, "test.Box", Box, BoxMethods)
+LWC_MODULE_DERIVED_TYPE(1, "test.DoubleBox", DoubleBox, DoubleBoxMethods, 0)
+LWC_END_MODULE()
