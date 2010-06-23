@@ -62,18 +62,49 @@ module Point
     
   end
   
+  class Point2 < Point
+    
+    Methods = {:dot => [[RLWC::AD_IN, RLWC::AT_OBJECT], [RLWC::AD_OUT, RLWC::AT_REAL]]}
+    
+    def initialize()
+      super()
+    end
+    
+    def dot(rhs)
+      return (@x*rhs.x + @y*rhs.y)
+    end
+    
+  end
+  
   # IL Module Entry points
   
   def self.LWC_ModuleGetTypeCount()
-    return 1
+    #return 1
+    return 2
   end
   
   def self.LWC_ModuleGetTypeName(idx)
-    return (idx == 0 ? "rbtest.Point" : nil)
+    case idx
+    when 0
+      return "rbtest.Point"
+    when 1
+      return "rbtest.Point2"
+    else
+      return nil
+    end
+    #return (idx == 0 ? "rbtest.Point" : nil)
   end
   
   def self.LWC_ModuleGetTypeClass(idx)
-    return (idx == 0 ? Point : nil)
+    case idx
+    when 0
+      return Point
+    when 1
+      return Point2
+    else
+      return nil
+    end
+    #return (idx == 0 ? Point : nil)
   end
   
 end

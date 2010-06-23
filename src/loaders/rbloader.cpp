@@ -169,7 +169,23 @@ class RbFactory : public lwc::Factory {
         
         } else {
           if (!typeMethods) {
-            typeMethods = new lwc::MethodsTable();
+            VALUE super = RCLASS(klass)->super;
+            if (super != Qnil && super != rb::cLWCObject) {
+              std::map<std::string, TypeEntry>::iterator it = mTypes.begin();
+              while (it != mTypes.end()) {
+                if (it->second.klass == super) {
+                  typeMethods = new lwc::MethodsTable(it->second.methods);
+                  break;
+                }
+                ++it;
+              }
+              if (!typeMethods) {
+                std::cout << "rbloader: Skipped method \"" << mname << "\" for type \"" << name << "\" (Super class not defined)" << std::endl;
+                continue;
+              }
+            } else {
+              typeMethods = new lwc::MethodsTable();
+            }
           }
           try {
             typeMethods->addMethod(mname, meth);
