@@ -24,24 +24,13 @@ module(..., package.seeall)
 -- Dict class
 -- "lwcobj" member of instance is automatically set
 
-local Dict = {}
-
--- for lwc to do automatic type mapping
+local Dict          = {}
 Dict.Methods        = {}
 Dict.Methods.keys   = {{llwc.AD_OUT, llwc.AT_STRING_ARRAY, 1}, {llwc.AD_OUT, llwc.AT_INT}}
 Dict.Methods.values = {{llwc.AD_OUT, llwc.AT_STRING_ARRAY, 1}, {llwc.AD_OUT, llwc.AT_INT}}
 Dict.Methods.size   = {{llwc.AD_OUT, llwc.AT_INT}}
 Dict.Methods.get    = {{llwc.AD_IN, llwc.AT_STRING}, {llwc.AD_OUT, llwc.AT_STRING}}
 Dict.Methods.set    = {{llwc.AD_IN, llwc.AT_STRING}, {llwc.AD_IN, llwc.AT_STRING}}
-
--- could this be automatically generated?
-Dict.__index = function (self, member)
-  val = Dict[member]
-  if val == nil then
-    val = self.lwcobj[member]
-  end
-  return val
-end
 
 Dict.new = function ()
   self = {}
@@ -88,16 +77,34 @@ Dict.size = function (self)
   return n
 end
 
+-- Type inheritance in a single component
+
+local Dict2         = {}
+Dict2.Methods       = {}
+Dict2.Methods.clear = {}
+setmetatable(Dict2, {__index = Dict})
+
+Dict2.new = function ()
+  self = Dict.new()
+  setmetatable(self, Dict2)
+  return self
+end
+
+Dict2.clear = function ()
+  self.dict = {}
+end
 
 -- Module entry point
 
 function LWC_ModuleGetTypeCount()
-  return 1
+  return 2
 end
 
 function LWC_ModuleGetTypeName(idx)
   if idx == 1 then
     return "luatest.Dict"
+  elseif idx == 2 then
+    return "luatest.Dict2"
   else
     return nil
   end
@@ -106,6 +113,8 @@ end
 function LWC_ModuleGetTypeClass(idx)
   if idx == 1 then
     return Dict
+  elseif idx == 2 then
+    return Dict2
   else
     return nil
   end

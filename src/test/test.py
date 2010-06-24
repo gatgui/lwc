@@ -32,22 +32,25 @@ print("### Available types")
 for i in xrange(reg.numTypes()):
   print("  %s" % reg.getTypeName(i))
 
-print("### Has type \"pytest.ObjectList\"?")
-if reg.hasType("pytest.ObjectList"):
+print("### Has type \"pytest.ObjectList2\"?")
+if reg.hasType("pytest.ObjectList2"):
   print("true")
-  ml = reg.getMethods("pytest.ObjectList")
+  ml = reg.getMethods("pytest.ObjectList2")
   print(ml)
   # This seems to do weird things
   #for n in ml.availableMethods():
   #  print(n)
-  print("### Create a pytest.ObjectList")
-  lst = reg.create("pytest.ObjectList")
+  print("### Create a pytest.ObjectList2")
+  lst = reg.create("pytest.ObjectList2")
   print(lst)
   print("### Create a test.Box")
   box = reg.create("test.Box")
   print(box)
   print("### Add box to list")
   lst.push(box)
+  print(lst.size())
+  print("### Clear list")
+  lst.clear()
   print(lst.size())
   print("### Destroy box & list")
   reg.destroy(box)

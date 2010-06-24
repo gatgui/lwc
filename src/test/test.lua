@@ -52,8 +52,8 @@ print(tostring(obj:getWidth()) .. "x" .. tostring(obj:getHeight()) .. " @ (" .. 
 print("=== Destroy the \"test.DoubleBox\" object")
 reg:destroy(obj)
 
-print("=== Create a luatest.Dict")
-obj = reg:create("luatest.Dict")
+print("=== Create a luatest.Dict2")
+obj = reg:create("luatest.Dict2")
 if obj == nil then
 	print("is nil")
 else
@@ -77,6 +77,9 @@ else
 	end
 	print(kl)
 	print(vl)
+	print("  clear")
+	obj:clear()
+	print("  numkeys = " .. tostring(obj:size()))
 	reg:destroy(obj)
 end
 

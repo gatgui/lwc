@@ -27,6 +27,49 @@ USA.
 #include <lwc/factory.h>
 #include <lwc/file.h>
 
+/* Automatically defined metatable __index:
+
+Klass.__index == function (self, member)
+  val = Klass[member]
+  if val == nil then
+    if self.lwcobj ~= nil then
+      val = self.lwcobj[member]
+    end
+  end
+  return val
+end
+*/
+
+static int Klass_index(lua_State *L)
+{
+  int key  = lua_gettop(L);
+  int self = key - 1;
+  
+  lua_pushvalue(L, key);
+  lua_gettable(L, lua_upvalueindex(1));
+  
+  if (lua_isnil(L, -1)) {
+    
+    lua_pushstring(L, "lwcobj");
+    lua_gettable(L, self);
+    
+    int lwcobj = lua_gettop(L);
+    
+    if (lua_isnil(L, -1)) {
+      lua_pop(L, 1);
+      
+    } else {
+      lua_pushvalue(L, key);
+      lua_gettable(L, lwcobj);
+    }
+  }
+  
+  // Documentation says lua with do the cleanup, just have to say how
+  // many values we return
+  
+  return 1;
+}
+
 class LuaFactory : public lwc::Factory {
   public:
   
@@ -201,7 +244,30 @@ class LuaFactory : public lwc::Factory {
         
         } else {
           if (!typeMethods) {
-            typeMethods = new lwc::MethodsTable();
+            // if the class is inherited it has a metatable
+            if (lua_getmetatable(mState, klass) != 0) {
+              lua_pushstring(mState, "__index");
+              lua_rawget(mState, -2);
+              std::map<std::string, TypeEntry>::iterator it = mTypes.begin();
+              while (it != mTypes.end()) {
+                lua_getfield(mState, LUA_REGISTRYINDEX, it->first.c_str());
+                if (lua_equal(mState, -1, -2) == 1) {
+                  lua_pop(mState, 1);
+                  typeMethods = new lwc::MethodsTable(it->second.methods);
+                  break;
+                }
+                lua_pop(mState, 1);
+                ++it;
+              }
+              lua_pop(mState, 2); // metatable and its "__index" table
+              if (!typeMethods) {
+                std::cout << "lualoader: Skipped type \"" << name << "\" (Super class not registered yet)" << std::endl;
+                lua_settop(mState, oldtop);
+                return false;
+              }
+            } else {
+              typeMethods = new lwc::MethodsTable();
+            }
           }
           try {
             typeMethods->addMethod(mn, meth);
@@ -231,6 +297,13 @@ class LuaFactory : public lwc::Factory {
           te.methods = typeMethods;
           mTypes[name] = te;
           lua_pushvalue(mState, klass);
+          
+          // set __index function of the class so it can be used as metatable for the instance
+          lua_pushstring(mState, "__index");
+          lua_pushvalue(mState, klass);
+          lua_pushcclosure(mState, Klass_index, 1);
+          lua_settable(mState, klass);
+          
           lua_setfield(mState, LUA_REGISTRYINDEX, name);
           lua_settop(mState, oldtop);
           return true;

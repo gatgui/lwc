@@ -35,7 +35,7 @@ ary = reg.create("pytest.ObjectList")
 
 (0..10).each do |i|
   puts "=== Create new point"
-  elt = reg.create("rbtest.Point")
+  elt = reg.create("rbtest.Point2")
   #puts elt
   #puts elt.getMethods()
   puts "=== Set point value"
@@ -43,6 +43,11 @@ ary = reg.create("pytest.ObjectList")
   puts "=== Add to list"
   ary.push(elt)
 end
+
+pt0 = ary.at(1)
+pt1 = ary.at(2)
+puts "=== Dot product"
+puts pt0.dot(pt1)
 
 (0...ary.size()).each do |i|
   puts "=== Get point at #{i}"

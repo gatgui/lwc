@@ -180,8 +180,8 @@ class RbFactory : public lwc::Factory {
                 ++it;
               }
               if (!typeMethods) {
-                std::cout << "rbloader: Skipped method \"" << mname << "\" for type \"" << name << "\" (Super class not defined)" << std::endl;
-                continue;
+                std::cout << "rbloader: Skipped type \"" << name << "\" (Super class not registered yet)" << std::endl;
+                return false;
               }
             } else {
               typeMethods = new lwc::MethodsTable();

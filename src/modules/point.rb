@@ -71,7 +71,7 @@ module Point
     end
     
     def dot(rhs)
-      return (@x*rhs.x + @y*rhs.y)
+      return (@x*rhs.getX() + @y*rhs.getY())
     end
     
   end

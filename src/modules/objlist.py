@@ -70,16 +70,39 @@ class ObjectList(lwcpy.Object):
   def pop(self):
     if len(self.lst) > 0:
       self.lst = self.lst[:-1]
+  
+
+
+class ObjectList2(ObjectList):
+  Methods = {"clear": []}
+  
+  def __init__(self):
+    ObjectList.__init__(self)
+  
+  def clear(self):
+    self.lst = []
+  
+
 
 # Module init
 
 def LWC_ModuleGetTypeCount():
-  return 1
+  return 2
 
 def LWC_ModuleGetTypeName(idx):
-  return "pytest.ObjectList" if idx == 0 else None
+  if idx == 0:
+    return "pytest.ObjectList"
+  elif idx == 1:
+    return "pytest.ObjectList2"
+  else:
+    return None
 
 def LWC_ModuleGetTypeClass(idx):
-  return ObjectList if idx == 0 else None
+  if idx == 0:
+    return ObjectList
+  elif idx == 1:
+    return ObjectList2
+  else:
+    return None
 
 

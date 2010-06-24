@@ -130,7 +130,29 @@ class PFactory : public lwc::Factory {
         
         } else {
           if (!typeMethods) {
-            typeMethods = new lwc::MethodsTable();
+            PyTypeObject *to = (PyTypeObject*) klass;
+            Py_ssize_t nbases = PyTuple_Size(to->tp_bases);
+            if (nbases > 1) {
+              std::cout << "pyloader: Skipped type \"" << name << "\" (Multiple inheritance not supported)" << std::endl;
+              return false;
+            }
+            if (nbases == 1 && PyTuple_GetItem(to->tp_bases, 0) != (PyObject*)&py::PyLWCObjectType) {
+              PyObject *pto = PyTuple_GetItem(to->tp_bases, 0);
+              std::map<std::string, TypeEntry>::iterator it = mTypes.begin();
+              while (it != mTypes.end()) {
+                if (it->second.klass == pto) {
+                  typeMethods = new lwc::MethodsTable(it->second.methods);
+                  break;
+                }
+                ++it;
+              }
+              if (!typeMethods) {
+                std::cout << "pyloader: Skipped type \"" << name << "\" (Super class not registered yet)" << std::endl;
+                return false;
+              }
+            } else {
+              typeMethods = new lwc::MethodsTable();
+            }
           }
           try {
             typeMethods->addMethod(mname, meth);
