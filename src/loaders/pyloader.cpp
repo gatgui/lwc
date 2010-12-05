@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of lwc.
 
@@ -25,7 +25,6 @@ USA.
 #include <lwc/python/types.h>
 #include <lwc/loader.h>
 #include <lwc/factory.h>
-#include <lwc/file.h>
 #if !defined(_WIN32) && !defined(__APPLE__)
 # include <dlfcn.h>
 #endif
@@ -209,7 +208,7 @@ class PLoader : public lwc::Loader {
       }
     }
     
-    void addToSysPath(const std::string &dirname) {
+    void addToSysPath(const gcore::Path &dirname) {
       PyObject *modname = PyString_FromString("sys");
       PyObject *mod = PyImport_Import(modname);
       Py_DECREF(modname);
@@ -220,29 +219,31 @@ class PLoader : public lwc::Loader {
           for (long i=0; i<sz; ++i) {
             PyObject *item = PyList_GetItem(path, i);
             char *n = PyString_AsString(item);
-            if (lwc::file::IsSamePath(dirname, n)) {
+            if (dirname == n) {
               Py_DECREF(path);
               Py_DECREF(mod);
               return;
             }
           }
-          PyList_Append(path, PyString_FromString(dirname.c_str()));
+          PyList_Append(path, PyString_FromString(dirname.fullname('/').c_str()));
           Py_DECREF(path);
         }
         Py_DECREF(mod);
       }
     }
     
-    virtual bool canLoad(const std::string &path) {
-      return lwc::file::CheckFileExtension(path, ".py");
+    virtual bool canLoad(const gcore::Path &path) {
+      return path.checkExtension("py");
     }
     
-    virtual void load(const std::string &path, lwc::Registry *reg) {
+    virtual void load(const gcore::Path &path, lwc::Registry *reg) {
       
-      std::string modulename = lwc::file::Basename(path);
+      std::string modulename = path.basename();
       modulename = modulename.substr(0, modulename.length()-3);
       
-      std::string dirname = lwc::file::NormalizePath(lwc::file::MakeAbsolutePath(lwc::file::Dirname(path)));
+      gcore::Path dirname = path;
+      dirname.pop();
+      dirname.makeAbsolute().normalize();
       
       addToSysPath(dirname);
       

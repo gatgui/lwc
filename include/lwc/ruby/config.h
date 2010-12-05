@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of lwc.
 
@@ -36,11 +36,12 @@ USA.
 
 #define LWCRB_DATA_API extern LWCRB_API
 
+#include <ruby.h>
+#include <intern.h>
+#undef PATH_SEP
 #include <lwc/memory.h>
 #include <lwc/object.h>
 #include <lwc/registry.h>
-#include <ruby.h>
-#include <intern.h>
 
 #endif
 

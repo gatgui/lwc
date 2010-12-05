@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of lwc.
 
@@ -25,7 +25,7 @@ USA.
 #define __lwc_loader_h__
 
 #include <lwc/factory.h>
-#include <lwc/dynlib.h>
+#include <gcore/path.h>
 
 namespace lwc {
   
@@ -39,8 +39,8 @@ namespace lwc {
       Loader();
       virtual ~Loader();
       
-      virtual bool canLoad(const std::string &path) = 0;
-      virtual void load(const std::string &path, class Registry *reg) = 0;
+      virtual bool canLoad(const gcore::Path &path) = 0;
+      virtual void load(const gcore::Path &path, class Registry *reg) = 0;
       virtual const char* getName() const = 0;
       
       inline size_t numTypes() const {return mFactories.size();}

@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of lwc.
 
@@ -26,7 +26,9 @@ USA.
 
 #include <lwc/object.h>
 #include <lwc/loader.h>
-#include <lwc/dynlib.h>
+#include <gcore/dmodule.h>
+#include <gcore/path.h>
+#include <gcore/env.h>
 #include <deque>
 
 namespace lwc {
@@ -49,11 +51,11 @@ namespace lwc {
       
       ~Registry();
       
-      void addLoaderPath(const std::string &path);
-      void addLoader(const std::string &path);
-      Loader* findLoader(const std::string &path);
+      void addLoaderPath(const gcore::Path &path);
+      void addLoader(const gcore::Path &path);
+      Loader* findLoader(const gcore::Path &path);
       
-      void addModulePath(const std::string &path);
+      void addModulePath(const gcore::Path &path);
       
       bool registerType(const char *name, Loader *l);
       bool hasType(const char *name) const;
@@ -64,6 +66,11 @@ namespace lwc {
       Object* create(const char *n);
       void destroy(Object *o);
       
+      bool enumLoaders(const gcore::Path &p);
+      bool enumModules(const gcore::Path &p);
+      bool enumLoaderPath(const gcore::Path &p);
+      bool enumModulePath(const gcore::Path &p);
+      
     protected:
       
       Registry(const char *hostLang, void *userData);
@@ -73,9 +80,9 @@ namespace lwc {
       static Registry *msInstance;
     
       struct LoaderEntry {
-        std::string path;
+        gcore::Path path;
         Loader *loader;
-        DynLib *lib;
+        gcore::DynamicModule *lib;
       };
       
       std::deque<LoaderEntry> mLoaders;

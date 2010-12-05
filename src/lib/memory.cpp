@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of lwc.
 
@@ -72,7 +72,7 @@ void* Alloc(size_t count, size_t byteSize, void *ptr, const char *info) {
   
   if (ptr) {
     if (it == AllocatedSizeMap.end()) {
-      std::cout << "Memory @" << ptr << " was not allocated by il::memory::Alloc" << std::endl;
+      std::cout << "Memory @" << ptr << " was not allocated by lwc::memory::Alloc" << std::endl;
     } else {
       if (cit != AllocationComments.end()) {
         oldInfo = cit->second;
@@ -107,7 +107,7 @@ void Free(void *ptr) {
       AllocationComments.erase(cit);
     }
   } else {
-    std::cout << "Memory @" << ptr << " was not allocated by il::memory::Alloc" << std::endl;
+    std::cout << "Memory @" << ptr << " was not allocated by lwc::memory::Alloc" << std::endl;
   }
   free(ptr);
 }

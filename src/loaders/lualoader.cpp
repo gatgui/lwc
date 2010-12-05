@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of lwc.
 
@@ -25,7 +25,6 @@ USA.
 #include <lwc/lua/types.h>
 #include <lwc/loader.h>
 #include <lwc/factory.h>
-#include <lwc/file.h>
 
 /* Automatically defined metatable __index:
 
@@ -341,12 +340,13 @@ class LuaLoader : public lwc::Loader {
       delete mFactory;
     }
     
-    virtual bool canLoad(const std::string &path) {
-      return lwc::file::CheckFileExtension(path, ".lua");
+    virtual bool canLoad(const gcore::Path &path) {
+      return path.checkExtension("lua");
     }
     
-    void addSearchPath(const std::string &dirname) {
-      std::string modpath = lwc::file::JoinPath(dirname, "?.lua");
+    void addSearchPath(const gcore::Path &dirname) {
+      gcore::Path modpath = dirname;
+      modpath.push("?.lua");
       lua_getfield(mState, LUA_GLOBALSINDEX, "package"); // 1
       lua_getfield(mState, -1, "path"); // 2
       std::string path = lua_tostring(mState, -1);
@@ -355,32 +355,35 @@ class LuaLoader : public lwc::Loader {
       size_t p0 = 0;
       size_t p1 = path.find(';', p0);
       while (p1 != std::string::npos) {
-        std::string curpath = path.substr(p0, p1-p0);
-        if (lwc::file::IsSamePath(curpath, modpath)) {
+        gcore::Path curpath(path.substr(p0, p1-p0));
+        if (curpath == modpath) {
           return;
         }
         p0 = p1 + 1;
         p1 = path.find(';', p0);
       }
-      std::string lastpath = path.substr(p0);
-      if (lwc::file::IsSamePath(lastpath, modpath)) {
+      gcore::Path lastpath(path.substr(p0));
+      if (lastpath == modpath) {
         return;
       }
-      path = path + ";" + modpath;
+      path += ";";
+      path += modpath;
       //std::cout << "  -> \"" << path << "\"" << std::endl;
       lua_pushstring(mState, path.c_str()); // 3
       lua_setfield(mState, -3, "path"); // 2
       lua_pop(mState, 2); // 0
     }
     
-    virtual void load(const std::string &path, lwc::Registry *reg) {
+    virtual void load(const gcore::Path &path, lwc::Registry *reg) {
       
       int oldtop = lua_gettop(mState);
       
-      std::string modulename = lwc::file::Basename(path);
+      std::string modulename = path.basename();
       modulename = modulename.substr(0, modulename.length()-4);
       
-      std::string dirname = lwc::file::NormalizePath(lwc::file::MakeAbsolutePath(lwc::file::Dirname(path)));
+      gcore::Path dirname = path;
+      dirname.pop();
+      dirname.makeAbsolute().normalize();
       
       // Add to lua CPATH -> pacakage.path !
       addSearchPath(dirname);

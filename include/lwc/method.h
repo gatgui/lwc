@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of lwc.
 
@@ -80,45 +80,45 @@ namespace lwc {
         }
         switch (arg.getType()) {
           case AT_BOOL: {
-            if (!Convertion<bool, typename NoRefOrConst<T>::Type>::Possible()) {
+            if (!Convertion<bool, typename gcore::NoRefOrConst<T>::Type>::Possible()) {
               err = "Invalid argument type";
               return false;
             }
-            Convertion<bool, typename NoRefOrConst<T>::Type>::Do(src.boolean, dst);
+            Convertion<bool, typename gcore::NoRefOrConst<T>::Type>::Do(src.boolean, dst);
             return true;
           }
           case AT_INT: {
-            if (!Convertion<Integer, typename NoRefOrConst<T>::Type>::Possible()) {
+            if (!Convertion<Integer, typename gcore::NoRefOrConst<T>::Type>::Possible()) {
               err = "Invalid argument type";
               return false;
             }
-            Convertion<Integer, typename NoRefOrConst<T>::Type>::Do(src.integer, dst);
+            Convertion<Integer, typename gcore::NoRefOrConst<T>::Type>::Do(src.integer, dst);
             return true;
           }
           case AT_REAL: {
-            if (!Convertion<Real, typename NoRefOrConst<T>::Type>::Possible()) {
+            if (!Convertion<Real, typename gcore::NoRefOrConst<T>::Type>::Possible()) {
               err = "Invalid argument type";
               return false;
             }
-            Convertion<Real, typename NoRefOrConst<T>::Type>::Do(src.real, dst);
+            Convertion<Real, typename gcore::NoRefOrConst<T>::Type>::Do(src.real, dst);
             return true;
           }
           case AT_STRING: {
-            if (!Convertion<char*, typename NoRefOrConst<T>::Type>::Possible()) {
+            if (!Convertion<char*, typename gcore::NoRefOrConst<T>::Type>::Possible()) {
               err = "Invalid argument type";
               return false;
             }
             char *val = (char*) src.ptr;
-            Convertion<char*, typename NoRefOrConst<T>::Type>::Do(val, dst);
+            Convertion<char*, typename gcore::NoRefOrConst<T>::Type>::Do(val, dst);
             return true;
           }
           case AT_OBJECT: {
-            if (!Convertion<Object*, typename NoRefOrConst<T>::Type>::Possible()) {
+            if (!Convertion<Object*, typename gcore::NoRefOrConst<T>::Type>::Possible()) {
               err = "Invalid argument type";
               return false;
             }
             lwc::Object *val = (lwc::Object*) src.ptr;
-            Convertion<Object*, typename NoRefOrConst<T>::Type>::Do(val, dst);
+            Convertion<Object*, typename gcore::NoRefOrConst<T>::Type>::Do(val, dst);
             return true;
           }
           default:
@@ -134,46 +134,46 @@ namespace lwc {
         }
         switch (arg.getType()) {
           case AT_BOOL: {
-            if (!Convertion<typename NoRefOrConst<T>::Type, bool>::Possible()) {
+            if (!Convertion<typename gcore::NoRefOrConst<T>::Type, bool>::Possible()) {
               err = "Invalid argument type";
               return false;
             }
-            Convertion<typename NoRefOrConst<T>::Type, bool>::Do(src, dst.boolean);
+            Convertion<typename gcore::NoRefOrConst<T>::Type, bool>::Do(src, dst.boolean);
             return true;
           }
           case AT_INT: {
-            if (!Convertion<typename NoRefOrConst<T>::Type, Integer>::Possible()) {
+            if (!Convertion<typename gcore::NoRefOrConst<T>::Type, Integer>::Possible()) {
               err = "Invalid argument type";
               return false;
             }
-            Convertion<typename NoRefOrConst<T>::Type, Integer>::Do(src, dst.integer);
+            Convertion<typename gcore::NoRefOrConst<T>::Type, Integer>::Do(src, dst.integer);
             return true;
           }
           case AT_REAL: {
-            if (!Convertion<typename NoRefOrConst<T>::Type, Real>::Possible()) {
+            if (!Convertion<typename gcore::NoRefOrConst<T>::Type, Real>::Possible()) {
               err = "Invalid argument type";
               return false;
             }
-            Convertion<typename NoRefOrConst<T>::Type, Real>::Do(src, dst.real);
+            Convertion<typename gcore::NoRefOrConst<T>::Type, Real>::Do(src, dst.real);
             return true;
           }
           case AT_STRING: {
-            if (!Convertion<typename NoRefOrConst<T>::Type, char*>::Possible()) {
+            if (!Convertion<typename gcore::NoRefOrConst<T>::Type, char*>::Possible()) {
               err = "Invalid argument type";
               return false;
             }
             char *val = 0;
-            Convertion<typename NoRefOrConst<T>::Type, char*>::Do(src, val);
+            Convertion<typename gcore::NoRefOrConst<T>::Type, char*>::Do(src, val);
             dst.ptr = (void*) val;
             return true;
           }
           case AT_OBJECT: {
-            if (!Convertion<typename NoRefOrConst<T>::Type, Object*>::Possible()) {
+            if (!Convertion<typename gcore::NoRefOrConst<T>::Type, Object*>::Possible()) {
               err = "Invalid argument type";
               return false;
             }
             lwc::Object *val = 0;
-            Convertion<typename NoRefOrConst<T>::Type, Object*>::Do(src, val);
+            Convertion<typename gcore::NoRefOrConst<T>::Type, Object*>::Do(src, val);
             dst.ptr = (void*) val;
             return true;
           }

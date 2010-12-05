@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of lwc.
 
@@ -22,55 +22,10 @@ USA.
 */
 
 #include <lwc/registry.h>
-#include <lwc/dynlib.h>
-#include <lwc/file.h>
 #include <lwc/memory.h>
+#include <gcore/path.h>
 
 namespace lwc {
-
-bool enumloaders(const std::string &d, const std::string &f, file::Type type, void *ud) {
-  if (type == file::FT_FILE) {
-#ifdef _WIN32
-    if (file::CheckFileExtension(f, ".dll")) {
-#else
-# ifdef __APPLE__
-    if (file::CheckFileExtension(f, ".bundle")) {
-# else
-    if (file::CheckFileExtension(f, ".so")) {
-# endif
-#endif
-      Registry *reg = (Registry*)ud;
-      
-      reg->addLoader(file::JoinPath(d, f));
-    }
-  }
-  return true;
-}
-
-bool enummodules(const std::string &d, const std::string &f, file::Type type, void *ud) {
-  if (type == file::FT_FILE) {
-    Registry *reg = (Registry*)ud;
-    Loader *loader = reg->findLoader(f);
-    if (loader) {
-      loader->load(file::JoinPath(d, f), reg);
-    }
-  }
-  return true;
-}
-
-bool enumloaderpath(const std::string &path, void *ud) {
-  Registry *reg = (Registry*) ud;
-  reg->addLoaderPath(path);
-  return true;
-}
-
-bool enummodulepath(const std::string &path, void *ud) {
-  Registry *reg = (Registry*) ud;
-  reg->addModulePath(path);
-  return true;
-}
-
-// ---
 
 Registry* Registry::msInstance = 0;
 
@@ -108,21 +63,61 @@ void Registry::DeInitialize() {
 Registry::Registry(const char *hostLang, void *userData)
   : mHostLang(hostLang), mUserData(userData) {
   msInstance = this;
-  file::ForEachInEnv("LWC_LOADER_PATH", &enumloaderpath, (void*)this);
-  file::ForEachInEnv("LWC_MODULE_PATH", &enummodulepath, (void*)this);
+  gcore::Env::EachInPathFunc enumerator;
+  gcore::Bind(this, METHOD(Registry, enumLoaderPath), enumerator);
+  gcore::Env::EachInPath("LWC_LOADER_PATH", enumerator);
+  gcore::Bind(this, METHOD(Registry, enumModulePath), enumerator);
+  gcore::Env::EachInPath("LWC_MODULE_PATH", enumerator);
 }
 
 Registry::~Registry() {
   for (size_t i=0; i<mLoaders.size(); ++i) {
     LoaderEntry &le = mLoaders[i];
-    LWC_DestroyLoader deinit = (LWC_DestroyLoader) le.lib->getSymbol(LWC_DESTROYLOADER_STR);
+    LWC_DestroyLoader deinit = (LWC_DestroyLoader) le.lib->_getSymbol(LWC_DESTROYLOADER_STR);
     deinit(le.loader);
     delete le.lib;
   }
   mLoaders.clear();
 }
 
-Loader* Registry::findLoader(const std::string &path) {
+bool Registry::enumLoaders(const gcore::Path &path) {
+  if (path.isFile()) {
+#ifdef _WIN32
+    if (path.checkExtension("dll")) {
+#else
+# ifdef __APPLE__
+    if (path.checkExtension("bundle")) {
+# else
+    if (path.checkExtension("so")) {
+# endif
+#endif
+      addLoader(path);
+    }
+  }
+  return true;
+}
+
+bool Registry::enumModules(const gcore::Path &path) {
+  if (path.isFile()) {
+    Loader *loader = findLoader(path.basename());
+    if (loader) {
+      loader->load(path, this);
+    }
+  }
+  return true;
+}
+
+bool Registry::enumLoaderPath(const gcore::Path &path) {
+  addLoaderPath(path);
+  return true;
+}
+
+bool Registry::enumModulePath(const gcore::Path &path) {
+  addModulePath(path);
+  return true;
+}
+
+Loader* Registry::findLoader(const gcore::Path &path) {
   for (size_t i=0; i<mLoaders.size(); ++i) {
     LoaderEntry &le = mLoaders[i];
     if (le.loader && le.loader->canLoad(path)) {
@@ -132,10 +127,10 @@ Loader* Registry::findLoader(const std::string &path) {
   return 0;
 }
 
-void Registry::addLoader(const std::string &path) {
+void Registry::addLoader(const gcore::Path &path) {
   
   for (size_t i=0; i<mLoaders.size(); ++i) {
-    if (file::IsSamePath(mLoaders[i].path, path)) {
+    if (mLoaders[i].path == path) {
       return;
     }
   }
@@ -144,15 +139,15 @@ void Registry::addLoader(const std::string &path) {
   
   le.path = path;
   
-  le.lib = new DynLib(path);
-  if (!le.lib->opened()) {
-    std::cout << "Could not load dynamic module: " << le.lib->getError() << std::endl;
+  le.lib = new gcore::DynamicModule(path);
+  if (!le.lib->_opened()) {
+    std::cout << "Could not load dynamic module: " << le.lib->_getError() << std::endl;
     delete le.lib;
     return;
   }
   
-  void *sym_init   = le.lib->getSymbol(LWC_CREATELOADER_STR);
-  void *sym_deinit = le.lib->getSymbol(LWC_DESTROYLOADER_STR);
+  void *sym_init   = le.lib->_getSymbol(LWC_CREATELOADER_STR);
+  void *sym_deinit = le.lib->_getSymbol(LWC_DESTROYLOADER_STR);
 
   if (sym_init && sym_deinit) {
     
@@ -168,8 +163,10 @@ void Registry::addLoader(const std::string &path) {
   }
 }
 
-void Registry::addLoaderPath(const std::string &path) {
-  ForEachInDir(path, &enumloaders, false, (void*)this);
+void Registry::addLoaderPath(const gcore::Path &path) {
+  gcore::Path::EachFunc enumerator;
+  gcore::Bind(this, METHOD(Registry, enumLoaders), enumerator);
+  path.each(enumerator, false);
 }
 
 bool Registry::hasType(const char *name) const {
@@ -184,8 +181,10 @@ bool Registry::registerType(const char *name, Loader *l) {
   return true;
 }
 
-void Registry::addModulePath(const std::string &path) {
-  ForEachInDir(path, &enummodules, false, (void*)this);
+void Registry::addModulePath(const gcore::Path &path) {
+  gcore::Path::EachFunc enumerator;
+  gcore::Bind(this, METHOD(Registry, enumModules), enumerator);
+  path.each(enumerator, false);
 }
 
 size_t Registry::numTypes() const {

@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of lwc.
 
@@ -22,8 +22,6 @@ USA.
 */
 
 #include <lwc/loader.h>
-#include <lwc/dynlib.h>
-#include <lwc/file.h>
 #include <lwc/registry.h>
 
 // ---
@@ -44,7 +42,7 @@ class CLoader : public lwc::Loader {
     
     virtual ~CLoader() {
       for (size_t i=0; i<mModules.size(); ++i) {
-        ExitFunc mexit = (ExitFunc) mModules[i]->getSymbol("LWC_ModuleExit");
+        ExitFunc mexit = (ExitFunc) mModules[i]->_getSymbol("LWC_ModuleExit");
         if (mexit) {
           mexit();
         }
@@ -53,46 +51,46 @@ class CLoader : public lwc::Loader {
       mModules.clear();
     }
     
-    virtual bool canLoad(const std::string &path) {
+    virtual bool canLoad(const gcore::Path &path) {
 #ifdef _WIN32
-      return lwc::file::CheckFileExtension(path, ".dll");
+      return path.checkExtension("dll");
 #else
 # ifdef __APPLE__
-      return lwc::file::CheckFileExtension(path, ".bundle");
+      return path.checkExtension("bundle");
 # else
-      return lwc::file::CheckFileExtension(path, ".so");
+      return path.checkExtension("so");
 # endif
 #endif
     }
     
-    virtual void load(const std::string &path, lwc::Registry *reg) {
-      lwc::DynLib *lib = new lwc::DynLib(path);
-      if (!lib->opened()) {
+    virtual void load(const gcore::Path &path, lwc::Registry *reg) {
+      gcore::DynamicModule *lib = new gcore::DynamicModule(path);
+      if (!lib->_opened()) {
         delete lib;
         return;
       }
       
-      InitFunc minit = (InitFunc) lib->getSymbol("LWC_ModuleInit");
+      InitFunc minit = (InitFunc) lib->_getSymbol("LWC_ModuleInit");
       if (!minit) {
         delete lib;
         return;
       }
-      GetNumTypesFunc getNumTypes = (GetNumTypesFunc) lib->getSymbol("LWC_ModuleGetTypeCount");
+      GetNumTypesFunc getNumTypes = (GetNumTypesFunc) lib->_getSymbol("LWC_ModuleGetTypeCount");
       if (!getNumTypes) {
         delete lib;
         return;
       }
-      GetTypeNameFunc getTypeName = (GetTypeNameFunc) lib->getSymbol("LWC_ModuleGetTypeName");
+      GetTypeNameFunc getTypeName = (GetTypeNameFunc) lib->_getSymbol("LWC_ModuleGetTypeName");
       if (!getTypeName) {
         delete lib;
         return;
       }
-      GetTypeFactoryFunc getTypeFactory = (GetTypeFactoryFunc) lib->getSymbol("LWC_ModuleGetTypeFactory");
+      GetTypeFactoryFunc getTypeFactory = (GetTypeFactoryFunc) lib->_getSymbol("LWC_ModuleGetTypeFactory");
       if (!getTypeFactory) {
         delete lib;
         return;
       }
-      ExitFunc mexit = (ExitFunc) lib->getSymbol("LWC_ModuleExit");
+      ExitFunc mexit = (ExitFunc) lib->_getSymbol("LWC_ModuleExit");
       if (!mexit) {
         delete lib;
         return;
@@ -123,7 +121,7 @@ class CLoader : public lwc::Loader {
     
   private:
     
-    std::vector<lwc::DynLib*> mModules;
+    std::vector<gcore::DynamicModule*> mModules;
 };
 
 

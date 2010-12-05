@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of lwc.
 
@@ -26,7 +26,6 @@ USA.
 #undef PATH_SEP
 #include <lwc/loader.h>
 #include <lwc/factory.h>
-#include <lwc/file.h>
 
 
 struct IndexArgs {
@@ -237,27 +236,29 @@ class RbLoader : public lwc::Loader {
       delete mFactory;
     }
     
-    virtual bool canLoad(const std::string &path) {
-      return lwc::file::CheckFileExtension(path, ".rb");
+    virtual bool canLoad(const gcore::Path &path) {
+      return path.checkExtension("rb");
     }
     
-    virtual void load(const std::string &path, lwc::Registry *reg) {
+    virtual void load(const gcore::Path &path, lwc::Registry *reg) {
       
-      std::string modulename = lwc::file::Basename(path);
+      std::string modulename = path.basename();
       modulename = modulename.substr(0, modulename.length()-3);
       
-      std::string dirname = lwc::file::NormalizePath(lwc::file::MakeAbsolutePath(lwc::file::Dirname(path)));
+      gcore::Path dirname = path;
+      dirname.pop();
+      dirname.makeAbsolute().normalize();
       
       int st;
       
       //std::cout << "$: << \"" << dirname << "\"" << std::endl;
-      rb::Embed::AppendToPath(dirname);
+      rb::Embed::AppendToPath(dirname.fullname('/'));
       
       //std::cout << "require '" << modulename << "'" << std::endl;
-      st = rb::Embed::Require(lwc::file::Basename(path));
+      st = rb::Embed::Require(path.basename());
       if (st != 0) {
         rb::Lang::Error(std::cout, st);
-        std::cout <<  "rbloader: Failed to load module \"" << lwc::file::Basename(path) << "\"" << std::endl;
+        std::cout <<  "rbloader: Failed to load module \"" << path.basename() << "\"" << std::endl;
         return;
       }
       

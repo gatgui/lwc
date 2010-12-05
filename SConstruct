@@ -7,11 +7,15 @@ from excons.tools import ruby
 from excons.tools import python
 from excons.tools import dl
 
+SConscript("gcore/SConstruct")
+
 prjs = [
   { "name"    : "lwc",
     "type"    : "sharedlib",
     "srcs"    : glob.glob("src/lib/*.cpp"),
+    "incdirs" : ["gcore/include"],
     "defs"    : ["LWC_EXPORTS"],
+    "libs"    : ["gcore"],
     "custom"  : [dl.Require],
     "install" : {"include/lwc": glob.glob("include/lwc/*.h")}
   },
@@ -19,7 +23,8 @@ prjs = [
     "type"    : "sharedlib",
     "srcs"    : glob.glob("src/pylib/*.cpp"),
     "defs"    : ["LWCPY_EXPORTS"],
-    "libs"    : ["lwc"],
+    "incdirs" : ["gcore/include"],
+    "libs"    : ["lwc", "gcore"],
     "custom"  : [python.Require],
     "deps"    : ["lwc"],
     "install" : {"include/lwc/python": glob.glob("include/lwc/python/*.h")}
@@ -28,7 +33,8 @@ prjs = [
     "type"    : "sharedlib",
     "srcs"    : glob.glob("src/rblib/*.cpp"),
     "defs"    : ["LWCRB_EXPORTS"],
-    "libs"    : ["lwc"],
+    "incdirs" : ["gcore/include"],
+    "libs"    : ["lwc", "gcore"],
     "custom"  : [ruby.Require],
     "deps"    : ["lwc"],
     "install" : {"include/lwc/ruby": glob.glob("include/lwc/ruby/*.h")}
@@ -37,7 +43,8 @@ prjs = [
     "type"    : "sharedlib",
     "srcs"    : glob.glob("src/lualib/*.cpp"),
     "defs"    : ["LWCLUA_EXPORTS"],
-    "libs"    : ["lwc"],
+    "incdirs" : ["gcore/include"],
+    "libs"    : ["lwc", "gcore"],
     "custom"  : [lua.Require],
     "deps"    : ["lwc"],
     "install" : {"include/lwc/lua": glob.glob("include/lwc/lua/*.h")}
@@ -47,7 +54,8 @@ prjs = [
     "alias"   : "pymod",
     "type"    : "dynamicmodule",
     "srcs"    : ["src/python/main.cpp"],
-    "libs"    : ["lwc", "lwcpy"],
+    "incdirs" : ["gcore/include"],
+    "libs"    : ["lwc", "lwcpy", "gcore"],
     "custom"  : [python.Require],
     "deps"    : ["lwc", "lwcpy"],
     "ext"     : python.ModuleExtension()
@@ -56,7 +64,8 @@ prjs = [
     "alias"   : "rbmod",
     "type"    : "dynamicmodule",
     "srcs"    : ["src/ruby/main.cpp"],
-    "libs"    : ["lwc", "lwcrb"],
+    "incdirs" : ["gcore/include"],
+    "libs"    : ["lwc", "lwcrb", "gcore"],
     "custom"  : [ruby.Require],
     "deps"    : ["lwc", "lwcrb"],
     "ext"     : ruby.ModuleExtension()
@@ -65,7 +74,8 @@ prjs = [
     "alias"   : "luamod",
     "type"    : "dynamicmodule",
     "srcs"    : ["src/lua/main.cpp"],
-    "libs"    : ["lwc", "lwclua"],
+    "incdirs" : ["gcore/include"],
+    "libs"    : ["lwc", "lwclua", "gcore"],
     "custom"  : [lua.Require],
     "deps"    : ["lwc", "lwclua"],
     "ext"     : lua.ModuleExtension()
@@ -75,14 +85,16 @@ prjs = [
     "alias"   : "cloader",
     "type"    : "dynamicmodule",
     "srcs"    : ["src/loaders/cloader.cpp"],
-    "libs"    : ["lwc"],
+    "incdirs" : ["gcore/include"],
+    "libs"    : ["lwc", "gcore"],
     "deps"    : ["lwc"]
   },
   { "name"    : "components/loaders/pyloader",
     "alias"   : "pyloader",
     "type"    : "dynamicmodule",
     "srcs"    : ["src/loaders/pyloader.cpp"],
-    "libs"    : ["lwc", "lwcpy"],
+    "incdirs" : ["gcore/include"],
+    "libs"    : ["lwc", "lwcpy", "gcore"],
     "deps"    : ["lwc", "lwcpy"],
     "custom"  : [python.Require]
   },
@@ -90,7 +102,8 @@ prjs = [
     "alias"   : "rbloader",
     "type"    : "dynamicmodule",
     "srcs"    : ["src/loaders/rbloader.cpp"],
-    "libs"    : ["lwc", "lwcrb"],
+    "incdirs" : ["gcore/include"],
+    "libs"    : ["lwc", "lwcrb", "gcore"],
     "deps"    : ["lwc", "lwcrb"],
     "custom"  : [ruby.Require]
   },
@@ -98,7 +111,8 @@ prjs = [
     "alias"   : "lualoader",
     "type"    : "dynamicmodule",
     "srcs"    : ["src/loaders/lualoader.cpp"],
-    "libs"    : ["lwc", "lwclua"],
+    "incdirs" : ["gcore/include"],
+    "libs"    : ["lwc", "lwclua", "gcore"],
     "deps"    : ["lwc", "lwclua"],
     "custom"  : [lua.Require]
   },
@@ -107,7 +121,8 @@ prjs = [
     "alias"   : "modules",
     "type"    : "dynamicmodule",
     "srcs"    : ["src/modules/box.cpp"],
-    "libs"    : ["lwc"],
+    "incdirs" : ["gcore/include"],
+    "libs"    : ["lwc", "gcore"],
     "deps"    : ["lwc"],
     "install" : {"components/modules": ["src/modules/dict.lua",
                                         "src/modules/objlist.py",
@@ -116,7 +131,8 @@ prjs = [
   { "name"    : "test",
     "type"    : "program",
     "srcs"    : ["src/test/test.cpp"],
-    "libs"    : ["lwc"],
+    "incdirs" : ["gcore/include"],
+    "libs"    : ["lwc", "gcore"],
     "deps"    : ["lwc", "components/modules/cmod"],
     "install" : {"": ["src/test/test.lua",
                       "src/test/test.py",

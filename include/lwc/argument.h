@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of lwc.
 
@@ -26,7 +26,7 @@ USA.
 
 #include <lwc/config.h>
 #include <lwc/types.h>
-#include <lwc/traits.h>
+#include <gcore/typetraits.h>
 
 namespace lwc {
   
