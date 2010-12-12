@@ -118,13 +118,30 @@ class LuaFactory : public lwc::Factory {
       }
     }
     
+    virtual bool isSingleton(const char *typeName) {
+      std::map<std::string, TypeEntry>::iterator it = mTypes.find(typeName);
+      if (it != mTypes.end()) {
+        return it->second.singleton;
+      } else {
+        return false;
+      }
+    }
+    
     //bool addType(const char *modulename, const char *name, int klass) {
     bool addType(const char *name, int klass) {
       
       int oldtop = lua_gettop(mState);
       //std::cout << "LuaFactory::addType [top = " << oldtop << "]" << std::endl;
       
+      bool singleton = false;
       lwc::MethodsTable *typeMethods = 0;
+      
+      lua_getfield(mState, klass, "Singleton");
+      if (!lua_isnil(mState, -1)) {
+        if (lua_isboolean(mState, -1)) {
+          singleton = (lua_toboolean(mState, -1) == 1);
+        }
+      }
       
       // need to get Methods for the object etcs
       lua_getfield(mState, klass, "Methods");
@@ -294,6 +311,7 @@ class LuaFactory : public lwc::Factory {
           //te.metatable = name;
           //te.module = modulename;
           te.methods = typeMethods;
+          te.singleton = singleton;
           mTypes[name] = te;
           lua_pushvalue(mState, klass);
           
@@ -321,6 +339,7 @@ class LuaFactory : public lwc::Factory {
       //std::string module;
       //std::string metatable;
       lwc::MethodsTable *methods;
+      bool singleton;
     };
     
     lua_State *mState;

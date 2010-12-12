@@ -72,7 +72,28 @@ class PFactory : public lwc::Factory {
       }
     }
     
+    virtual bool isSingleton(const char *typeName) {
+      std::map<std::string, TypeEntry>::iterator it = mTypes.find(typeName);
+      if (it != mTypes.end()) {
+        return it->second.singleton;
+      } else {
+        return false;
+      }
+    }
+    
     bool addType(const char *name, PyObject *klass) {
+      
+      bool singleton = false;
+      
+      PyObject *sg = PyObject_GetAttrString(klass, "Singleton");
+      if (!sg) {
+        PyErr_Clear();
+      } else {
+        if (PyBool_Check(sg)) {
+          singleton = (sg == Py_True);
+        }
+        Py_DECREF(sg);
+      }
       
       PyObject *mt = PyObject_GetAttrString(klass, "Methods");
       
@@ -173,6 +194,7 @@ class PFactory : public lwc::Factory {
           TypeEntry te;
           Py_INCREF(klass);
           te.klass = klass;
+          te.singleton = singleton;
           te.methods = typeMethods;
           mTypes[name] = te;
           return true;
@@ -188,6 +210,7 @@ class PFactory : public lwc::Factory {
     
     struct TypeEntry {
       PyObject *klass;
+      bool singleton;
       lwc::MethodsTable *methods;
     };
     

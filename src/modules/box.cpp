@@ -88,7 +88,7 @@ class DoubleBox : public Box {
     void toBox(lwc::MethodParams &p) {
       lwc::Object **b;
       p.get(0, b);
-      lwc::Object *obj = lwc::Registry::Instance()->create("test.Box");
+      lwc::Object *obj = lwc::Registry::Create("test.Box");
       obj->call("setX", mX);
       obj->call("setY", mY);
       obj->call("setWidth", mW);
@@ -117,6 +117,6 @@ static lwc::MethodDecl DoubleBoxMethods[] = {
 };
 
 LWC_BEGIN_MODULE(2)
-LWC_MODULE_TYPE(0, "test.Box", Box, BoxMethods)
-LWC_MODULE_DERIVED_TYPE(1, "test.DoubleBox", DoubleBox, DoubleBoxMethods, 0)
+LWC_MODULE_TYPE(0, "test.Box", Box, BoxMethods, false)
+LWC_MODULE_DERIVED_TYPE(1, "test.DoubleBox", DoubleBox, DoubleBoxMethods, false, 0)
 LWC_END_MODULE()

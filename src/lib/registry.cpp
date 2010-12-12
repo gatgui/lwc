@@ -50,6 +50,7 @@ Registry* Registry::Instance() {
 
 void Registry::DeInitialize() {
   if (msInstance) {
+    msInstance->destroySingletons();
     delete msInstance;
     msInstance = 0;
 #ifdef LWC_MEMTRACK
@@ -173,11 +174,18 @@ bool Registry::hasType(const char *name) const {
   return (mObjectLoaders.find(name) != mObjectLoaders.end());
 }
 
-bool Registry::registerType(const char *name, Loader *l) {
+bool Registry::isSingletonType(const char *name) const {
+  return (mSingletons.find(name) != mSingletons.end());
+}
+
+bool Registry::registerType(const char *name, Loader *l, bool singleton) {
   if (hasType(name)) {
     return false;
   }
   mObjectLoaders[name] = l;
+  if (singleton) {
+    mSingletons[name] = 0;
+  }
   return true;
 }
 
@@ -211,7 +219,27 @@ const MethodsTable* Registry::getMethods(const char *name) {
 
 Object* Registry::create(const char *name) {
   if (hasType(name)) {
-    return mObjectLoaders[name]->create(name);
+    std::map<std::string, Object*>::iterator it = mSingletons.find(name);
+    if (it != mSingletons.end()) {
+      if (it->second == 0) {
+        it->second = mObjectLoaders[name]->create(name);
+      }
+      return it->second;
+    } else {
+      return mObjectLoaders[name]->create(name);
+    }
+  } else {
+    return 0;
+  }
+}
+
+Object* Registry::get(const char *name) {
+  std::map<std::string, Object*>::iterator it = mSingletons.find(name);
+  if (it != mSingletons.end()) {
+    if (it->second == 0) {
+      it->second = mObjectLoaders[name]->create(name);
+    }
+    return it->second;
   } else {
     return 0;
   }
@@ -226,6 +254,18 @@ void Registry::destroy(Object *o) {
     return;
   }
   mObjectLoaders[tn]->destroy(o);
+  std::map<std::string, Object*>::iterator it = mSingletons.find(tn);
+  if (it != mSingletons.end()) {
+    it->second = 0;
+  }
+}
+
+void Registry::destroySingletons() {
+  std::map<std::string, Object*>::iterator it = mSingletons.begin();
+  while (it != mSingletons.end()) {
+    destroy(it->second);
+    ++it;
+  }
 }
 
 }

@@ -37,6 +37,7 @@ namespace lwc {
       virtual const MethodsTable* getMethods(const char *typeName) = 0;
       virtual Object* create(const char *typeName) = 0;
       virtual void destroy(Object *o) = 0;
+      virtual bool isSingleton(const char *typeName) = 0;
   };
   
 }

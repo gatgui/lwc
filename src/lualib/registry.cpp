@@ -128,6 +128,40 @@ static int luareg_create(lua_State *L) {
   }
 }
 
+static int luareg_get(lua_State *L) {
+  CheckArgCount(L, 2);
+  lwc::Registry *reg = LuaRegistry::UnWrap(L, 1);
+  if (!reg) {
+    reg = lwc::Registry::Instance();
+    if (!reg) {
+      lua_pushstring(L, "llwc.Registry has not been initialized");
+      return lua_error(L);
+    }
+  }
+  if (!lua_isstring(L, 2)) {
+    return luaL_typerror(L, 2, "string");
+  }
+  const char *t = lua_tostring(L, 2);
+  lua_pop(L, 2);
+  lwc::Object *o = reg->get(t);
+  if (!o) {
+    lua_pushnil(L);
+    return 1;
+    
+  } else {
+    if (!strcmp(o->getLoaderName(), "lualoader")) {
+      // lua object has already been created and put in registry so
+      // it doesn't get garbage collected if it goes out of scope in lua
+      lua_pushlightuserdata(L, (void*)o);
+      lua_gettable(L, LUA_REGISTRYINDEX);
+      return 1;
+      
+    } else {
+      return LuaObject::Wrap(L, o);
+    }
+  }
+}
+
 static int luareg_destroy(lua_State *L) {
   CheckArgCount(L, 2);
   lwc::Registry *reg = LuaRegistry::UnWrap(L, 1);
@@ -303,6 +337,8 @@ bool InitRegistry(lua_State *L, int module) {
   lua_setfield(L, klass, "numTypes");
   lua_pushcfunction(L, luareg_create);
   lua_setfield(L, klass, "create");
+  lua_pushcfunction(L, luareg_get);
+  lua_setfield(L, klass, "get");
   lua_pushcfunction(L, luareg_destroy);
   lua_setfield(L, klass, "destroy");
   

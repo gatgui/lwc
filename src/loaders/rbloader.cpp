@@ -111,7 +111,22 @@ class RbFactory : public lwc::Factory {
       }
     }
     
+    virtual bool isSingleton(const char *typeName) {
+      std::map<std::string, TypeEntry>::iterator it = mTypes.find(typeName);
+      if (it != mTypes.end()) {
+        return it->second.singleton;
+      } else {
+        return false;
+      }
+    }
+    
     bool addType(const char *name, VALUE klass) {
+      
+      bool singleton = false;
+      if (rb_const_defined(klass, rb_intern("Singleton"))) {
+        VALUE sg = rb_const_get(klass, rb_intern("Singleton"));
+        singleton = (TYPE(sg) == T_TRUE);
+      }
       
       VALUE methods = rb_const_get(klass, rb_intern("Methods"));
       if (methods == Qnil || TYPE(methods) != T_HASH) {
@@ -203,6 +218,7 @@ class RbFactory : public lwc::Factory {
         } else {
           TypeEntry te;
           te.klass = klass;
+          te.singleton = singleton;
           te.methods = typeMethods;
           mTypes[name] = te;
           rb::Tracker::Add(typeMethods, te.klass);
@@ -218,6 +234,7 @@ class RbFactory : public lwc::Factory {
     
     struct TypeEntry {
       VALUE klass;
+      bool singleton;
       lwc::MethodsTable *methods;
     };
     

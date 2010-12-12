@@ -47,6 +47,18 @@ namespace lwc {
       static Registry* Instance();
       static void DeInitialize();
       
+      inline static Object* Create(const char *n) {
+        return Instance()->create(n);
+      }
+      
+      inline static Object* Get(const char *n) {
+        return Instance()->get(n);
+      }
+      
+      inline void Destroy(Object *o) {
+        Instance()->destroy(o);
+      }
+      
     public:
       
       ~Registry();
@@ -57,14 +69,17 @@ namespace lwc {
       
       void addModulePath(const gcore::Path &path);
       
-      bool registerType(const char *name, Loader *l);
+      bool registerType(const char *name, Loader *l, bool singleton=false);
       bool hasType(const char *name) const;
+      bool isSingletonType(const char *name) const;
       size_t numTypes() const;
       const char* getTypeName(size_t idx) const;
       
       const MethodsTable* getMethods(const char*);
       Object* create(const char *n);
+      Object* get(const char *n);
       void destroy(Object *o);
+      void destroySingletons();
       
       bool enumLoaders(const gcore::Path &p);
       bool enumModules(const gcore::Path &p);
@@ -88,6 +103,8 @@ namespace lwc {
       std::deque<LoaderEntry> mLoaders;
       
       std::map<std::string, Loader*> mObjectLoaders;
+      
+      std::map<std::string, Object*> mSingletons;
       
       std::string mHostLang;
       void *mUserData;

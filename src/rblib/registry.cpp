@@ -138,6 +138,29 @@ static VALUE rbreg_create(VALUE, VALUE rname) {
   }
 }
 
+static VALUE rbreg_get(VALUE, VALUE rname) {
+  lwc::Registry *reg = lwc::Registry::Instance();
+  if (!reg) {
+    rb_raise(rb_eRuntimeError, "lwc::Registry has not yet been initialized");
+  }
+  VALUE sname = rb_check_string_type(rname);
+  char *name = RSTRING(sname)->ptr;
+  lwc::Object *obj = reg->get(name);
+  if (!obj) {
+    return Qnil;
+  } else {
+    VALUE rv = Qnil;
+    if (!strcmp(obj->getLoaderName(), "rbloader")) {
+      rv = ((Object*)obj)->self();
+      
+    } else {
+      rv = rb_funcall2(cLWCObject, rb_intern("new"), 0, NULL);
+      SetObjectPointer(rv, obj);
+    }
+    return rv;
+  }
+}
+
 static VALUE rbreg_destroy(VALUE self, VALUE robj) {
   lwc::Registry *reg = lwc::Registry::Instance();
   if (!reg) {
@@ -162,6 +185,7 @@ bool InitRegistry(VALUE mod) {
   rb_define_method(cLWCRegistry, "hasType", RBM(rbreg_hasType), 1);
   rb_define_method(cLWCRegistry, "getMethods", RBM(rbreg_getMethods), 1);
   rb_define_method(cLWCRegistry, "create", RBM(rbreg_create), 1);
+  rb_define_method(cLWCRegistry, "get", RBM(rbreg_get), 1);
   rb_define_method(cLWCRegistry, "destroy", RBM(rbreg_destroy), 1);
   return true;
 }

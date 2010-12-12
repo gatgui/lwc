@@ -51,4 +51,6 @@ x only BOOL, INTEGER, REAL, STRING, OBJECT for types?
 Add
 - General functions/constants
 - Class constants/methods
+- Singleton types (solves the Class methods/general function problem in some way)
+
 

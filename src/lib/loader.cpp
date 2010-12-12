@@ -33,7 +33,7 @@ Loader::~Loader() {
 }
 
 bool Loader::registerType(const char *name, Factory *f, Registry *reg) {
-  if (reg->registerType(name, this)) {
+  if (reg->registerType(name, this, f->isSingleton(name))) {
     mFactories[name] = f;
     return true;
   } else {

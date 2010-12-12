@@ -100,6 +100,34 @@ static PyObject* lwcreg_create(PyObject *, PyObject *args) {
   }
 }
 
+static PyObject* lwcreg_get(PyObject *, PyObject *args) {
+  lwc::Registry *reg = lwc::Registry::Instance();
+  if (!reg) {
+    PyErr_SetString(PyExc_RuntimeError, "lwcpy.Registry has not yet been initialized");
+    return NULL;
+  }
+  const char *name;
+  if (!PyArg_ParseTuple(args, "s", &name)) {
+    return NULL;
+  }
+  lwc::Object *o = reg->get(name);
+  if (!o) {
+    Py_INCREF(Py_None);
+    return Py_None;
+  } else {
+    PyObject *rv = 0;
+    if (!strcmp(o->getLoaderName(), "pyloader")) {
+      rv = ((Object*)o)->self();
+      Py_INCREF(rv);
+      
+    } else {
+      rv = PyObject_CallObject((PyObject*)&PyLWCObjectType, NULL);
+      SetObjectPointer((PyLWCObject*)rv, o);
+    }
+    return rv;
+  }
+}
+
 static PyObject* lwcreg_destroy(PyObject *, PyObject *args) {
   lwc::Registry *reg = lwc::Registry::Instance();
   if (!reg) {
@@ -199,6 +227,7 @@ static PyMethodDef lwcreg_methods[] = {
   {"hasType", lwcreg_hasType, METH_VARARGS, "Check if a type is registered"},
   {"getMethods", lwcreg_getMethods, METH_VARARGS, "Get method table of a type"},
   {"create", lwcreg_create, METH_VARARGS, "Create a new object"},
+  {"get", lwcreg_get, METH_VARARGS, "Get or create a singleton object"},
   {"destroy", lwcreg_destroy, METH_VARARGS, "Destroy an object"},
   {NULL, NULL, 0, NULL}
 };

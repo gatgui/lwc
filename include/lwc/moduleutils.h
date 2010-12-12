@@ -11,10 +11,11 @@ namespace lwc {
   class SimpleFactory : public Factory {
     public:
       
-      SimpleFactory(MethodDecl *methods, size_t n, Factory *parent=0)
+      SimpleFactory(MethodDecl *methods, size_t n, bool singleton=false, Factory *parent=0)
         : Factory() {
         mMethodsDecl = methods;
         mNumMethods = n;
+        mSingleton = singleton;
         mMethods = new MethodsTable(parent ? parent->getMethods(0) : 0);
         mMethods->fromDeclaration(methods, n);
       }
@@ -40,12 +41,17 @@ namespace lwc {
         }
       }
       
+      virtual bool isSingleton(const char *) {
+        return mSingleton;
+      }
+      
     protected:
       
       MethodsTable *mMethods;
       size_t mNumMethods;
       MethodDecl *mMethodsDecl;
       Factory *mParent;
+      bool mSingleton;
   };
 
 }
@@ -63,13 +69,13 @@ namespace lwc {
   \
   MODULE_EXPORT void LWC_ModuleInit() {
 
-#define LWC_MODULE_TYPE(Index, Name, Type, MethodsDecl) \
+#define LWC_MODULE_TYPE(Index, Name, Type, MethodsDecl, Singleton) \
     gsTypeNames[Index] = Name;\
-    gsFactories[Index] = new lwc::SimpleFactory<Type>(MethodsDecl, LWC_NUMMETHODS(MethodsDecl), 0);
+    gsFactories[Index] = new lwc::SimpleFactory<Type>(MethodsDecl, LWC_NUMMETHODS(MethodsDecl), Singleton, 0);
 
-#define LWC_MODULE_DERIVED_TYPE(Index, Name, Type, MethodsDecl, ParentIndex) \
+#define LWC_MODULE_DERIVED_TYPE(Index, Name, Type, MethodsDecl, Singleton, ParentIndex) \
     gsTypeNames[Index] = Name;\
-    gsFactories[Index] = new lwc::SimpleFactory<Type>(MethodsDecl, LWC_NUMMETHODS(MethodsDecl), gsFactories[ParentIndex]);
+    gsFactories[Index] = new lwc::SimpleFactory<Type>(MethodsDecl, LWC_NUMMETHODS(MethodsDecl), Singleton, gsFactories[ParentIndex]);
 
 #define LWC_END_MODULE() \
   }\
