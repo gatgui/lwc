@@ -5,7 +5,7 @@
 
 namespace lwc {
   
-  // Help class to create a factory for a simple object type
+  // Helper class to create a factory for a simple object type
   // "parent" attribute must also be a SimpleFactory
   template <typename T>
   class SimpleFactory : public Factory {
@@ -59,7 +59,7 @@ namespace lwc {
 #ifdef _WIN32
 # define MODULE_EXPORT extern "C" __declspec(dllexport)
 #else
-# define MODULE_EXPORT extern "C"
+# define MODULE_EXPORT extern "C" __attribute__ ((visibility ("default")))
 #endif
 
 #define LWC_BEGIN_MODULE(ntypes) \

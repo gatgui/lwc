@@ -132,6 +132,8 @@ extern "C" {
 
 #ifdef _WIN32
 __declspec(dllexport)
+#else
+__attribute__ ((visibility ("default")))
 #endif
   lwc::Loader* LWC_CreateLoader(const char*, void*) {
     lwc::Loader *l = new CLoader();
@@ -140,6 +142,8 @@ __declspec(dllexport)
 
 #ifdef _WIN32
 __declspec(dllexport)
+#else
+__attribute__ ((visibility ("default")))
 #endif
   void LWC_DestroyLoader(lwc::Loader *l) {
     if (l) {
