@@ -127,8 +127,7 @@ How to use lwc?
   
   How to create Modules:
     
-    But first, a little work on method description
-      ...
+    But first, some details on methods' description...
     
     in C++:
       This is by far the most annoying language to write components in.
@@ -136,7 +135,7 @@ How to use lwc?
       You need first to create subclass of lwc::Object for each of your types
       
       Then you'all have to create factory objects (either one for each of your types,
-      or a simple one, whichever you prefer)
+      or a single one, whichever you prefer)
       
       Define the module functions required by the C loader
       

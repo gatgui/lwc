@@ -5,7 +5,7 @@
 
 namespace lwc {
   
-  // Help class to create a factory for a simple object type
+  // Helper class to create a factory for a simple object type
   // "parent" attribute must also be a SimpleFactory
   template <typename T>
   class SimpleFactory : public Factory {
