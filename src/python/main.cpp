@@ -24,8 +24,12 @@ USA.
 #include <lwc/python/types.h>
 
 extern "C" {
-  
-  PyMODINIT_FUNC initlwcpy(void) {
+#ifdef _WIN32
+__declspec(dllexport)
+#else
+__attribute__ ((visibility ("default")))
+#endif
+  void initlwcpy(void) {
     py::CreateModule();
   }
   

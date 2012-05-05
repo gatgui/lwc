@@ -57,9 +57,9 @@ namespace lwc {
 }
 
 #ifdef _WIN32
-# define MODULE_EXPORT extern "C" __declspec(dllexport)
+# define LWC_MODULE_EXPORT extern "C" __declspec(dllexport)
 #else
-# define MODULE_EXPORT extern "C"
+# define LWC_MODULE_EXPORT extern "C" __attribute__ ((visibility ("default")))
 #endif
 
 #define LWC_BEGIN_MODULE(ntypes) \
@@ -67,7 +67,7 @@ namespace lwc {
   static const char*  gsTypeNames[ntypes];\
   static lwc::Factory* gsFactories[ntypes];\
   \
-  MODULE_EXPORT void LWC_ModuleInit() {
+  LWC_MODULE_EXPORT void LWC_ModuleInit() {
 
 #define LWC_MODULE_TYPE(Index, Name, Type, MethodsDecl, Singleton) \
     gsTypeNames[Index] = Name;\
@@ -79,16 +79,16 @@ namespace lwc {
 
 #define LWC_END_MODULE() \
   }\
-  MODULE_EXPORT size_t LWC_ModuleGetTypeCount() {\
+  LWC_MODULE_EXPORT size_t LWC_ModuleGetTypeCount() {\
     return gsNumTypes;\
   }\
-  MODULE_EXPORT const char* LWC_ModuleGetTypeName(size_t i) {\
+  LWC_MODULE_EXPORT const char* LWC_ModuleGetTypeName(size_t i) {\
     return (i < gsNumTypes ? gsTypeNames[i] : 0);\
   }\
-  MODULE_EXPORT lwc::Factory* LWC_ModuleGetTypeFactory(size_t i) {\
+  LWC_MODULE_EXPORT lwc::Factory* LWC_ModuleGetTypeFactory(size_t i) {\
     return (i < gsNumTypes ? gsFactories[i] : 0);\
   }\
-  MODULE_EXPORT void LWC_ModuleExit() {\
+  LWC_MODULE_EXPORT void LWC_ModuleExit() {\
     for (size_t i=0; i<gsNumTypes; ++i) {\
       delete gsFactories[gsNumTypes-1-i];\
     }\
