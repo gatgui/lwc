@@ -25,6 +25,8 @@ USA.
 #include <lwc/object.h>
 #include <sstream>
 #include <algorithm>
+#include <set>
+#include <string>
 
 namespace lwc {
 
@@ -70,14 +72,32 @@ std::string Method::toString() const {
 }
 
 void Method::addArg(const Argument &arg) throw(std::runtime_error) {
+  // 16 is the limit for only positional arguments.
+  // now we can have named arguments to go above this limit
   if (mArgs.size() >= 16) {
+    // if argument is named, allow it
+    // it will only be setable by keyword value
+    // what about default values?
     throw std::runtime_error("Methods cannot have more than 16 argument");
   }
   mArgs.push_back(arg);
 }
 
 void Method::validateArgs() throw(std::runtime_error) {
+  std::string name;
+  std::set<std::string> names;
+  std::set<std::string>::iterator nit;
+  
   for (size_t i=0; i<mArgs.size(); ++i) {
+    name = mArgs[i].getName();
+    if (name.length() > 0) {
+      nit = names.find(name);
+      if (nit != names.end()) {
+        std::ostringstream oss;
+        oss << "duplicate named argument " << i << ": \"" << name << "\" already declared";
+        throw std::runtime_error(oss.str());
+      }
+    }
     if (mArgs[i].isArray()) {
       if (mArgs[i].arraySizeArg() <= 0) {
         std::ostringstream oss;

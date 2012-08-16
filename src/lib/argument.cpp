@@ -31,9 +31,10 @@ Argument::Argument()
     mArraySizeArg(-1), mArrayArg(-1), mIndirectionLevel(0) {
 }
 
-Argument::Argument(Direction d, Type t, Integer lenidx)
+Argument::Argument(Direction d, Type t, Integer lenidx, const char *name)
   : mType(AT_UNKNOWN), mDir(AD_IN), mArray(false),
-    mArraySizeArg(-1), mArrayArg(-1), mIndirectionLevel(0) {
+    mArraySizeArg(-1), mArrayArg(-1), mIndirectionLevel(0),
+    mName(name == NULL ? "" : name) {
   setDir(d);
   setType(t);
   setArraySizeArg(lenidx);
@@ -42,7 +43,7 @@ Argument::Argument(Direction d, Type t, Integer lenidx)
 Argument::Argument(const Argument &rhs)
   : mType(rhs.mType), mDir(rhs.mDir), mArray(rhs.mArray),
     mArraySizeArg(rhs.mArraySizeArg), mArrayArg(rhs.mArrayArg),
-    mIndirectionLevel(rhs.mIndirectionLevel) {
+    mIndirectionLevel(rhs.mIndirectionLevel), mName(rhs.mName) {
 }
 
 Argument& Argument::operator=(const Argument &rhs) {
@@ -53,6 +54,7 @@ Argument& Argument::operator=(const Argument &rhs) {
     mArraySizeArg = rhs.mArraySizeArg;
     mArrayArg = rhs.mArrayArg;
     mIndirectionLevel = rhs.mIndirectionLevel;
+    mName = rhs.mName;
   }
   return *this;
 }
@@ -88,6 +90,11 @@ Argument& Argument::setArraySizeArg(Integer idx) {
 
 Argument& Argument::setArrayArg(Integer idx) {
   mArrayArg = idx;
+  return *this;
+}
+
+Argument& Argument::setName(const char *name) {
+  mName = name;
   return *this;
 }
 

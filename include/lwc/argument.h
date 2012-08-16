@@ -60,7 +60,7 @@ namespace lwc {
       friend class Method;
       
       Argument();
-      Argument(Direction d, Type t, Integer lenidx=-1);
+      Argument(Direction d, Type t, Integer lenidx=-1, const char *name=NULL);
       Argument(const Argument &rhs);
       ~Argument();
       
@@ -74,6 +74,7 @@ namespace lwc {
       Argument& setType(Type t);
       Argument& setArraySizeArg(Integer idx);
       Argument& setArrayArg(Integer idx);
+      Argument& setName(const char *name);
       
       inline Direction getDir() const {return mDir;}
       inline Type getType() const {return mType;}
@@ -81,6 +82,10 @@ namespace lwc {
       inline Integer arraySizeArg() const {return mArraySizeArg;}
       inline Integer arrayArg() const {return mArrayArg;}
       inline int indirectionLevel() const {return mIndirectionLevel;}
+      inline const std::string& getName() const {return mName;}
+      inline bool isNamed() const {return (mName.length() == 0);}
+      
+      // default value?
       
     private:
       
@@ -91,6 +96,8 @@ namespace lwc {
       Integer mArrayArg;
       
       int mIndirectionLevel;
+      
+      std::string mName;
   };
 }
 
