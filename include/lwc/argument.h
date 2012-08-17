@@ -43,6 +43,7 @@ namespace lwc {
     Direction dir;
     Type type;
     Integer arylen;
+    const char *name; // NULL by default
   };
   
   typedef union {
@@ -60,7 +61,7 @@ namespace lwc {
       friend class Method;
       
       Argument();
-      Argument(Direction d, Type t, Integer lenidx=-1, const char *name=NULL);
+      Argument(Direction d, Type t, Integer lenidx=-1, const char *name=0);
       Argument(const Argument &rhs);
       ~Argument();
       
@@ -85,7 +86,7 @@ namespace lwc {
       inline Integer arrayArg() const {return mArrayArg;}
       inline int indirectionLevel() const {return mIndirectionLevel;}
       inline const std::string& getName() const {return mName;}
-      inline bool isNamed() const {return (mName.length() == 0);}
+      inline bool isNamed() const {return (mName.length() > 0);}
       inline bool hasDefaultValue() const {return mHasDefault;}
       template <typename T>
       void getDefaultValue(T &def) const throw(std::runtime_error);

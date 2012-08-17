@@ -66,7 +66,7 @@ namespace lwc {
             return;\
           } else {\
             try {\
-              params.set(n, arg##n);\
+              params.set(size_t(n), arg##n);\
             } catch (std::exception &e) {\
               std::ostringstream oss;\
               oss << "In method \"" << name << "\": " << e.what();\

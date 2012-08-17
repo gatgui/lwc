@@ -38,6 +38,7 @@ namespace lwc {
       virtual Object* create(const char *typeName) = 0;
       virtual void destroy(Object *o) = 0;
       virtual bool isSingleton(const char *typeName) = 0;
+      virtual const char* getDescription(const char *typeName) = 0;
   };
   
 }

@@ -11,13 +11,14 @@ namespace lwc {
   class SimpleFactory : public Factory {
     public:
       
-      SimpleFactory(MethodDecl *methods, size_t n, bool singleton=false, Factory *parent=0)
+      SimpleFactory(MethodDecl *methods, size_t n, bool singleton=false, const char *desc=0, Factory *parent=0)
         : Factory() {
         mMethodsDecl = methods;
         mNumMethods = n;
         mSingleton = singleton;
         mMethods = new MethodsTable(parent ? parent->getMethods(0) : 0);
         mMethods->fromDeclaration(methods, n);
+        mDesc = (desc == 0 ? "" : desc);
       }
       
       virtual ~SimpleFactory() {
@@ -45,6 +46,10 @@ namespace lwc {
         return mSingleton;
       }
       
+      virtual const char* getDescription(const char *) {
+        return mDesc.c_str();
+      }
+      
     protected:
       
       MethodsTable *mMethods;
@@ -52,6 +57,7 @@ namespace lwc {
       MethodDecl *mMethodsDecl;
       Factory *mParent;
       bool mSingleton;
+      std::string mDesc;
   };
 
 }
@@ -69,13 +75,13 @@ namespace lwc {
   \
   LWC_MODULE_EXPORT void LWC_ModuleInit() {
 
-#define LWC_MODULE_TYPE(Index, Name, Type, MethodsDecl, Singleton) \
+#define LWC_MODULE_TYPE(Index, Name, Type, MethodsDecl, Singleton, Description) \
     gsTypeNames[Index] = Name;\
-    gsFactories[Index] = new lwc::SimpleFactory<Type>(MethodsDecl, LWC_NUMMETHODS(MethodsDecl), Singleton, 0);
+    gsFactories[Index] = new lwc::SimpleFactory<Type>(MethodsDecl, LWC_NUMMETHODS(MethodsDecl), Singleton, Description, 0);
 
-#define LWC_MODULE_DERIVED_TYPE(Index, Name, Type, MethodsDecl, Singleton, ParentIndex) \
+#define LWC_MODULE_DERIVED_TYPE(Index, Name, Type, MethodsDecl, Singleton, ParentIndex, Description) \
     gsTypeNames[Index] = Name;\
-    gsFactories[Index] = new lwc::SimpleFactory<Type>(MethodsDecl, LWC_NUMMETHODS(MethodsDecl), Singleton, gsFactories[ParentIndex]);
+    gsFactories[Index] = new lwc::SimpleFactory<Type>(MethodsDecl, LWC_NUMMETHODS(MethodsDecl), Singleton, Description, gsFactories[ParentIndex]);
 
 #define LWC_END_MODULE() \
   }\

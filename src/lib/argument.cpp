@@ -35,7 +35,7 @@ Argument::Argument()
 Argument::Argument(Direction d, Type t, Integer lenidx, const char *name)
   : mType(AT_UNKNOWN), mDir(AD_IN), mArray(false),
     mArraySizeArg(-1), mArrayArg(-1), mIndirectionLevel(0),
-    mName(name == NULL ? "" : name),
+    mName((name == 0 ? "" : name)),
     mHasDefault(false) {
   setDir(d);
   setType(t);
@@ -114,6 +114,9 @@ void Argument::fromDeclaration(const ArgumentDecl &decl) {
   setDir(decl.dir);
   setType(decl.type);
   setArraySizeArg(decl.arylen);
+  if (decl.name != 0) {
+    setName(decl.name);
+  }
   mArrayArg = -1;
 }
 

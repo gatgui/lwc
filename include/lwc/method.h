@@ -36,8 +36,9 @@ namespace lwc {
   struct LWC_API MethodDecl {
     const char *name;
     Integer nargs;
-    ArgumentDecl args[16];
+    ArgumentDecl args[64]; // artificial limit to 64 arguments (keyword included)
     MethodPointer *ptr;
+    const char *desc;
   };
   
 #define LWC_NUMMETHODS(Ary) (sizeof(Ary) / sizeof(lwc::MethodDecl))
@@ -85,12 +86,20 @@ namespace lwc {
       
       void addArg(const Argument &arg) throw(std::runtime_error);
       inline size_t numArgs() const {return mArgs.size();}
+      inline size_t numPositionalArgs() const {return mNumPArgs;}
+      size_t namedArgIndex(const char *name) const throw(std::runtime_error);
       
       inline void setPointer(MethodPointer *ptr) {mPtr = ptr;}
       inline MethodPointer* getPointer() const {return mPtr;}
       
+      inline void setDescription(const char *desc) {mDesc = (desc == 0 ? "" : desc);}
+      inline const char* getDescription() const {return mDesc.c_str();}
+      
       inline const Argument& operator[](size_t idx) const {return mArgs[idx];}
       inline Argument& operator[](size_t idx) {return mArgs[idx];}
+      
+      inline const Argument& operator[](const char *name) const {return mArgs[namedArgIndex(name)];}
+      inline Argument& operator[](const char *name) {return mArgs[namedArgIndex(name)];}
       
       void validateArgs() throw(std::runtime_error);
       
@@ -98,6 +107,9 @@ namespace lwc {
       
       std::vector<Argument> mArgs;
       MethodPointer *mPtr;
+      std::string mDesc;
+      size_t mNumPArgs;
+      std::map<std::string, size_t> mNArgIndices;
   };
   
   class LWC_API MethodsTable {
@@ -140,11 +152,55 @@ namespace lwc {
       
       template <typename T>
       void set(size_t i, T value) throw(std::runtime_error) {
-        if (i >= mMethod.numArgs()) {
+        if (i >= mMethod.numPositionalArgs()) {
           std::ostringstream oss;
           oss << "Invalid method argument index " << i;
           throw std::runtime_error(oss.str());
         }
+        _set(i, value);
+      }
+      
+      template <typename T>
+      void get(size_t i, T &value) throw(std::runtime_error)  {
+        if (i >= mMethod.numPositionalArgs()) {
+          std::ostringstream oss;
+          oss << "Invalid method argument index " << i;
+          throw std::runtime_error(oss.str());
+        }
+        _get(i, value);
+      }
+      
+      template <typename T>
+      T get(size_t i) throw(std::runtime_error)  {
+        T value;
+        _get(i, value);
+        return value;
+      }
+      
+      template <typename T>
+      void setn(const char *name, T value) throw(std::runtime_error) {
+        _set(mMethod.namedArgIndex(name), value);
+      }
+      
+      template <typename T>
+      void getn(const char *name, T &value) throw(std::runtime_error) {
+        _get(mMethod.namedArgIndex(name), value);
+      }
+      
+      template <typename T>
+      T getn(const char *name) throw(std::runtime_error) {
+        T value;
+        _get(mMethod.namedArgIndex(name), value);
+        return value;
+      }
+      
+    private:
+      
+      MethodParams();
+      MethodParams& operator=(const MethodParams&);
+      
+      template <typename T>
+      void _set(size_t i, T value) throw(std::runtime_error) {
         std::string err;
         if (!details::GetSet<T>::Set(mMethod[i], value, mParams[i], err)) {
           std::ostringstream oss;
@@ -154,12 +210,7 @@ namespace lwc {
       }
       
       template <typename T>
-      void get(size_t i, T &value) throw(std::runtime_error)  {
-        if (i >= mMethod.numArgs()) {
-          std::ostringstream oss;
-          oss << "Invalid method argument index " << i;
-          throw std::runtime_error(oss.str());
-        }
+      void _get(size_t i, T &value) throw(std::runtime_error)  {
         std::string err;
         if (!details::GetSet<T>::Get(mMethod[i], mParams[i], value, err)) {
           std::ostringstream oss;
@@ -169,26 +220,11 @@ namespace lwc {
       }
       
       template <typename T>
-      T get(size_t i) throw(std::runtime_error)  {
-        if (i >= mMethod.numArgs()) {
-          std::ostringstream oss;
-          oss << "Invalid method argument index " << i;
-          throw std::runtime_error(oss.str());
-        }
+      T _get(size_t i) throw(std::runtime_error)  {
         T value;
-        std::string err;
-        if (!details::GetSet<T>::Get(mMethod[i], mParams[i], value, err)) {
-          std::ostringstream oss;
-          oss << "Method argument " << i << ": " << err;
-          throw std::runtime_error(oss.str());
-        }
+        get(i, value);
         return value;
       }
-      
-    private:
-      
-      MethodParams();
-      MethodParams& operator=(const MethodParams&);
       
     private:
       

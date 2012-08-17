@@ -39,11 +39,12 @@ MethodPointer::~MethodPointer() {
 // ---
 
 Method::Method()
-  : mPtr(0) {
+  : mPtr(0), mNumPArgs(0) {
 }
 
 Method::Method(const Method &rhs)
-  : mArgs(rhs.mArgs), mPtr(rhs.mPtr) {
+  : mArgs(rhs.mArgs), mPtr(rhs.mPtr), mDesc(rhs.mDesc),
+    mNumPArgs(rhs.mNumPArgs), mNArgIndices(rhs.mNArgIndices) {
 }
 
 Method::~Method() {
@@ -53,6 +54,9 @@ Method& Method::operator=(const Method &rhs) {
   if (this != &rhs) {
     mArgs = rhs.mArgs;
     mPtr = rhs.mPtr;
+    mDesc = rhs.mDesc;
+    mNumPArgs = rhs.mNumPArgs;
+    mNArgIndices = rhs.mNArgIndices;
   }
   return *this;
 }
@@ -72,32 +76,65 @@ std::string Method::toString() const {
 }
 
 void Method::addArg(const Argument &arg) throw(std::runtime_error) {
-  // 16 is the limit for only positional arguments.
-  // now we can have named arguments to go above this limit
-  if (mArgs.size() >= 16) {
-    // if argument is named, allow it
-    // it will only be setable by keyword value
-    // what about default values?
-    throw std::runtime_error("Methods cannot have more than 16 argument");
+  //if (mArgs.size() >= 16) {
+  //  throw std::runtime_error("Methods cannot have more than 16 argument");
+  //}
+  if (!arg.isNamed()) {
+    ++mNumPArgs;
+    if (mNumPArgs >= 16) {
+      throw std::runtime_error("Methods cannot have more than 16 positional arguments");
+    }
+  } else {
+    mNArgIndices[arg.getName()] = mArgs.size();
   }
   mArgs.push_back(arg);
 }
 
+size_t Method::namedArgIndex(const char *name) const throw(std::runtime_error) {
+  std::map<std::string, size_t>::const_iterator it = mNArgIndices.find(name);
+  if (it == mNArgIndices.end()) {
+    std::ostringstream oss;
+    oss << "Invalid argument name \"" << name << "\"";
+    throw std::runtime_error(oss.str());
+  }
+  return it->second;
+}
+
 void Method::validateArgs() throw(std::runtime_error) {
+  // argument names must be unique
+  // all positional arguments (unnamed) must precede named ones
+  // once a default value is set, all following args must have one too (positional or named)
   std::string name;
   std::set<std::string> names;
   std::set<std::string>::iterator nit;
+  bool mustHaveName = false;
+  bool mustHaveDefault = false;
   
   for (size_t i=0; i<mArgs.size(); ++i) {
+    
     name = mArgs[i].getName();
     if (name.length() > 0) {
+      mustHaveName = true;
       nit = names.find(name);
       if (nit != names.end()) {
         std::ostringstream oss;
         oss << "duplicate named argument " << i << ": \"" << name << "\" already declared";
         throw std::runtime_error(oss.str());
       }
+    } else if (mustHaveName) {
+      std::ostringstream oss;
+      oss << "positional argument " << i << " must precede any named argument";
+      throw std::runtime_error(oss.str());
     }
+    
+    if (mArgs[i].hasDefaultValue()) {
+      mustHaveDefault = true;
+    } else if (mustHaveDefault) {
+      std::ostringstream oss;
+      oss << "argument " << i << " must have a default value";
+      throw std::runtime_error(oss.str());
+    }
+    
     if (mArgs[i].isArray()) {
       if (mArgs[i].arraySizeArg() <= 0) {
         std::ostringstream oss;
@@ -204,6 +241,7 @@ void MethodsTable::fromDeclaration(const MethodDecl *decls, size_t n, bool overr
     Argument arg;
     
     m.setPointer(decl.ptr);
+    m.setDescription(decl.desc);
     
     for (Integer j=0; j<decl.nargs; ++j) {
       const ArgumentDecl &a = decl.args[j];

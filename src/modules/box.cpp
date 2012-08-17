@@ -54,6 +54,10 @@ class Box : public lwc::Object {
     void getY(lwc::MethodParams &p) {lwc::Integer *y; p.get(0, y); *y = mY;}
     void getWidth(lwc::MethodParams &p) {lwc::Integer *w; p.get(0, w); *w =  mW;}
     void getHeight(lwc::MethodParams &p) {lwc::Integer *h; p.get(0, h); *h = mH;}
+    //void getX(lwc::MethodParams &p) {p.set(0, mX);}
+    //void getY(lwc::MethodParams &p) {p.set(0, mY);}
+    //void getWidth(lwc::MethodParams &p) {p.set(0, mW);}
+    //void getHeight(lwc::MethodParams &p) {p.set(0, mH);}
   
   protected:
     
@@ -98,25 +102,25 @@ class DoubleBox : public Box {
 };
 
 static lwc::MethodDecl BoxMethods[] = {
-  {"setX", 1,      {{lwc::AD_IN,  lwc::AT_INT, -1}}, LWC_METHOD(Box, setX)},
-  {"setY", 1,      {{lwc::AD_IN,  lwc::AT_INT, -1}}, LWC_METHOD(Box, setY)},
-  {"setWidth", 1,  {{lwc::AD_IN,  lwc::AT_INT, -1}}, LWC_METHOD(Box, setWidth)},
-  {"setHeight", 1, {{lwc::AD_IN,  lwc::AT_INT, -1}}, LWC_METHOD(Box, setHeight)},
-  {"getX", 1,      {{lwc::AD_OUT, lwc::AT_INT, -1}}, LWC_METHOD(Box, getX)},
-  {"getY", 1,      {{lwc::AD_OUT, lwc::AT_INT, -1}}, LWC_METHOD(Box, getY)},
-  {"getWidth", 1,  {{lwc::AD_OUT, lwc::AT_INT, -1}}, LWC_METHOD(Box, getWidth)},
-  {"getHeight", 1, {{lwc::AD_OUT, lwc::AT_INT, -1}}, LWC_METHOD(Box, getHeight)},
+  {"setX", 1,      {{lwc::AD_IN,  lwc::AT_INT, -1, NULL}}, LWC_METHOD(Box, setX), NULL},
+  {"setY", 1,      {{lwc::AD_IN,  lwc::AT_INT, -1, NULL}}, LWC_METHOD(Box, setY), NULL},
+  {"setWidth", 1,  {{lwc::AD_IN,  lwc::AT_INT, -1, NULL}}, LWC_METHOD(Box, setWidth), NULL},
+  {"setHeight", 1, {{lwc::AD_IN,  lwc::AT_INT, -1, NULL}}, LWC_METHOD(Box, setHeight), NULL},
+  {"getX", 1,      {{lwc::AD_OUT, lwc::AT_INT, -1, NULL}}, LWC_METHOD(Box, getX), NULL},
+  {"getY", 1,      {{lwc::AD_OUT, lwc::AT_INT, -1, NULL}}, LWC_METHOD(Box, getY), NULL},
+  {"getWidth", 1,  {{lwc::AD_OUT, lwc::AT_INT, -1, NULL}}, LWC_METHOD(Box, getWidth), NULL},
+  {"getHeight", 1, {{lwc::AD_OUT, lwc::AT_INT, -1, NULL}}, LWC_METHOD(Box, getHeight), NULL},
 };
 
 static lwc::MethodDecl DoubleBoxMethods[] = {
-  {"setX", 1,      {{lwc::AD_IN,  lwc::AT_INT,    -1}}, LWC_METHOD(DoubleBox, setX)},
-  {"setY", 1,      {{lwc::AD_IN,  lwc::AT_INT,    -1}}, LWC_METHOD(DoubleBox, setY)},
-  {"setWidth", 1,  {{lwc::AD_IN,  lwc::AT_INT,    -1}}, LWC_METHOD(DoubleBox, setWidth)},
-  {"setHeight", 1, {{lwc::AD_IN,  lwc::AT_INT,    -1}}, LWC_METHOD(DoubleBox, setHeight)},
-  {"toBox", 1,     {{lwc::AD_OUT, lwc::AT_OBJECT, -1}}, LWC_METHOD(DoubleBox, toBox)},
+  {"setX", 1,      {{lwc::AD_IN,  lwc::AT_INT,    -1, NULL}}, LWC_METHOD(DoubleBox, setX), NULL},
+  {"setY", 1,      {{lwc::AD_IN,  lwc::AT_INT,    -1, NULL}}, LWC_METHOD(DoubleBox, setY), NULL},
+  {"setWidth", 1,  {{lwc::AD_IN,  lwc::AT_INT,    -1, NULL}}, LWC_METHOD(DoubleBox, setWidth), NULL},
+  {"setHeight", 1, {{lwc::AD_IN,  lwc::AT_INT,    -1, NULL}}, LWC_METHOD(DoubleBox, setHeight), NULL},
+  {"toBox", 1,     {{lwc::AD_OUT, lwc::AT_OBJECT, -1, NULL}}, LWC_METHOD(DoubleBox, toBox), NULL},
 };
 
 LWC_BEGIN_MODULE(2)
-LWC_MODULE_TYPE(0, "test.Box", Box, BoxMethods, false)
-LWC_MODULE_DERIVED_TYPE(1, "test.DoubleBox", DoubleBox, DoubleBoxMethods, false, 0)
+LWC_MODULE_TYPE(0, "test.Box", Box, BoxMethods, false, "Box primitive")
+LWC_MODULE_DERIVED_TYPE(1, "test.DoubleBox", DoubleBox, DoubleBoxMethods, false, 0, "Double sized box primitive")
 LWC_END_MODULE()
