@@ -28,13 +28,15 @@ namespace lwc {
 
 Argument::Argument()
   : mType(AT_UNKNOWN), mDir(AD_IN), mArray(false),
-    mArraySizeArg(-1), mArrayArg(-1), mIndirectionLevel(0) {
+    mArraySizeArg(-1), mArrayArg(-1), mIndirectionLevel(0),
+    mName(""), mHasDefault(false) {
 }
 
 Argument::Argument(Direction d, Type t, Integer lenidx, const char *name)
   : mType(AT_UNKNOWN), mDir(AD_IN), mArray(false),
     mArraySizeArg(-1), mArrayArg(-1), mIndirectionLevel(0),
-    mName(name == NULL ? "" : name) {
+    mName(name == NULL ? "" : name),
+    mHasDefault(false) {
   setDir(d);
   setType(t);
   setArraySizeArg(lenidx);
@@ -43,7 +45,12 @@ Argument::Argument(Direction d, Type t, Integer lenidx, const char *name)
 Argument::Argument(const Argument &rhs)
   : mType(rhs.mType), mDir(rhs.mDir), mArray(rhs.mArray),
     mArraySizeArg(rhs.mArraySizeArg), mArrayArg(rhs.mArrayArg),
-    mIndirectionLevel(rhs.mIndirectionLevel), mName(rhs.mName) {
+    mIndirectionLevel(rhs.mIndirectionLevel), mName(rhs.mName),
+    mHasDefault(rhs.mHasDefault) {
+  if (mHasDefault) {
+    //rhs.getDefaultValue();
+    //setDefaultValue();
+  }
 }
 
 Argument& Argument::operator=(const Argument &rhs) {
@@ -55,6 +62,11 @@ Argument& Argument::operator=(const Argument &rhs) {
     mArrayArg = rhs.mArrayArg;
     mIndirectionLevel = rhs.mIndirectionLevel;
     mName = rhs.mName;
+    mHasDefault = rhs.mHasDefault;
+    if (mHasDefault) {
+      //rhs.getDefaultValue();
+      //setDefaultValue();
+    }
   }
   return *this;
 }
