@@ -35,9 +35,12 @@ int main(int, char**) {
   
   std::cout << "Num types: " << reg->numTypes() << std::endl;
   
+  std::cout << "doc string for test.DoubleBox" << std::endl << reg->docString("test.DoubleBox") << std::endl;
+  
   // or, if already initialized
   //lwc::ObjectRegistry &reg = lwc::ObjectRegistry::Instance();
   std::cout << "=== test.DoubleBox methods" << std::endl;
+  std::cout << "test.DoubleBox: " << reg->getDescription("test.DoubleBox") << std::endl;
   const lwc::MethodsTable *mt = reg->getMethods("test.DoubleBox");
   std::cout << mt->toString();
   

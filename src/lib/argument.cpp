@@ -144,6 +144,11 @@ std::string Argument::toString() const {
   return oss.str();
 }
 
+std::string Argument::docString(const std::string &indent) const {
+  std::ostringstream oss;
+  oss << indent << toString();
+  return oss.str();
+}
 
 }
 

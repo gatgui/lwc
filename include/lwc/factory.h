@@ -39,6 +39,7 @@ namespace lwc {
       virtual void destroy(Object *o) = 0;
       virtual bool isSingleton(const char *typeName) = 0;
       virtual const char* getDescription(const char *typeName) = 0;
+      virtual std::string docString(const char *n, const std::string &indent="") = 0;
   };
   
 }

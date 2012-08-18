@@ -75,7 +75,9 @@ namespace lwc {
       size_t numTypes() const;
       const char* getTypeName(size_t idx) const;
       
-      const MethodsTable* getMethods(const char*);
+      const MethodsTable* getMethods(const char*n);
+      const char* getDescription(const char *n);
+      std::string docString(const char *n, const std::string &indent="");
       Object* create(const char *n);
       Object* get(const char *n);
       void destroy(Object *o);

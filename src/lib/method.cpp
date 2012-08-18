@@ -75,6 +75,20 @@ std::string Method::toString() const {
   return oss.str();
 }
 
+std::string Method::docString(const std::string &indent) const {
+  std::ostringstream oss;
+  oss << indent << "Description: " << mDesc << std::endl;
+  if (mArgs.size() > 0) {
+    oss << indent << "Arguments:" << std::endl;
+    size_t j = 0;
+    for (j=0; j<mArgs.size() - 1; ++j) {
+      oss << mArgs[j].docString(indent+"  ");
+    }
+    oss << mArgs[j].docString();
+  }
+  return oss.str();
+}
+
 void Method::addArg(const Argument &arg) throw(std::runtime_error) {
   //if (mArgs.size() >= 16) {
   //  throw std::runtime_error("Methods cannot have more than 16 argument");
@@ -264,6 +278,21 @@ std::string MethodsTable::toString() const {
   if (mParent) {
     oss << "Inherited:" << std::endl;
     oss << mParent->toString();
+  }
+  return oss.str();
+}
+
+std::string MethodsTable::docString(const std::string &indent) const {
+  std::ostringstream oss;
+  std::map<std::string, Method>::const_iterator it = mTable.begin();
+  while (it != mTable.end()) {
+    oss << indent << it->first << std::endl;
+    oss << it->second.docString(indent+"  ");
+    ++it;
+  }
+  if (mParent) {
+    oss << indent << "Inherited:" << std::endl;
+    oss << mParent->docString(indent+"  ");
   }
   return oss.str();
 }

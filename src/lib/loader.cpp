@@ -61,6 +61,24 @@ const MethodsTable* Loader::getMethods(const char *name) {
   }
 }
 
+const char* Loader::getDescription(const char *name) {
+  std::map<std::string, Factory*>::iterator it = mFactories.find(name);
+  if (it != mFactories.end()) {
+    return it->second->getDescription(name);
+  } else {
+    return 0;
+  }
+}
+
+std::string Loader::docString(const char *name, const std::string &indent) {
+  std::map<std::string, Factory*>::iterator it = mFactories.find(name);
+  if (it != mFactories.end()) {
+    return it->second->docString(name, indent);
+  } else {
+    return "";
+  }
+}
+
 Object* Loader::create(const char *name) {
   std::map<std::string, Factory*>::iterator it = mFactories.find(name);
   if (it != mFactories.end()) {

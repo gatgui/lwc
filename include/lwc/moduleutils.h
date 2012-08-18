@@ -50,6 +50,14 @@ namespace lwc {
         return mDesc.c_str();
       }
       
+      virtual std::string docString(const char *n, const std::string &indent="") {
+        std::ostringstream oss;
+        oss << indent << n << ":" << std::endl;
+        oss << indent << "  " << getDescription(n) << std::endl;
+        oss << mMethods->docString(indent+"  ");
+        return oss.str();
+      }
+      
     protected:
       
       MethodsTable *mMethods;
@@ -79,7 +87,7 @@ namespace lwc {
     gsTypeNames[Index] = Name;\
     gsFactories[Index] = new lwc::SimpleFactory<Type>(MethodsDecl, LWC_NUMMETHODS(MethodsDecl), Singleton, Description, 0);
 
-#define LWC_MODULE_DERIVED_TYPE(Index, Name, Type, MethodsDecl, Singleton, ParentIndex, Description) \
+#define LWC_MODULE_DERIVED_TYPE(Index, Name, Type, MethodsDecl, Singleton, Description, ParentIndex) \
     gsTypeNames[Index] = Name;\
     gsFactories[Index] = new lwc::SimpleFactory<Type>(MethodsDecl, LWC_NUMMETHODS(MethodsDecl), Singleton, Description, gsFactories[ParentIndex]);
 

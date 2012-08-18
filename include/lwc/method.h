@@ -83,6 +83,7 @@ namespace lwc {
       Method& operator=(const Method &rhs);
       
       std::string toString() const;
+      std::string docString(const std::string &indent="") const;
       
       void addArg(const Argument &arg) throw(std::runtime_error);
       inline size_t numArgs() const {return mArgs.size();}
@@ -126,6 +127,7 @@ namespace lwc {
       size_t numMethods() const;
       
       std::string toString() const;
+      std::string docString(const std::string &indent="") const;
       
       size_t availableMethods(std::vector<std::string> &methodNames) const;
       

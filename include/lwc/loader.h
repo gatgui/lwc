@@ -49,6 +49,8 @@ namespace lwc {
       bool registerType(const char *name, Factory *f, Registry *reg);
       
       const MethodsTable* getMethods(const char *name);
+      const char* getDescription(const char *name);
+      std::string docString(const char *name, const std::string &indent="");
       Object* create(const char *name);
       void destroy(Object *o);
       

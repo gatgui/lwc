@@ -217,6 +217,22 @@ const MethodsTable* Registry::getMethods(const char *name) {
   }
 }
 
+const char* Registry::getDescription(const char *name) {
+  if (hasType(name)) {
+    return mObjectLoaders[name]->getDescription(name);
+  } else {
+    return 0;
+  }
+}
+
+std::string Registry::docString(const char *n, const std::string &indent) {
+  if (hasType(n)) {
+    return mObjectLoaders[n]->docString(n, indent);
+  } else {
+    return "";
+  }
+}
+
 Object* Registry::create(const char *name) {
   if (hasType(name)) {
     std::map<std::string, Object*>::iterator it = mSingletons.find(name);

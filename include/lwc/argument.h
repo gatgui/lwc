@@ -70,6 +70,7 @@ namespace lwc {
       void fromDeclaration(const ArgumentDecl &decl);
       
       std::string toString() const;
+      std::string docString(const std::string &indent="") const;
       
       Argument& setDir(Direction d);
       Argument& setType(Type t);
