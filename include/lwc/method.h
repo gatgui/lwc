@@ -207,7 +207,13 @@ namespace lwc {
       }
       
       template <typename T>
-      T get(size_t i) throw(std::runtime_error)  {
+      T get(size_t i, bool positionalOnly=true) throw(std::runtime_error)  {
+        if (( positionalOnly && i >= mMethod.numPositionalArgs()) ||
+            (!positionalOnly && i >= mMethod.numArgs())) {
+          std::ostringstream oss;
+          oss << "MethodParams::get: Invalid method argument index " << i;
+          throw std::runtime_error(oss.str());
+        }
         T value;
         _get(i, value);
         return value;
