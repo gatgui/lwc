@@ -54,7 +54,8 @@ namespace lwc {
         std::ostringstream oss;
         oss << indent << n << ":" << std::endl;
         oss << indent << "  " << getDescription(n) << std::endl;
-        oss << mMethods->docString(indent+"  ");
+        oss << std::endl;
+        oss << mMethods->docString(indent+"  ") << std::endl;
         return oss.str();
       }
       

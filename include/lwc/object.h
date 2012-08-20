@@ -37,7 +37,7 @@ namespace lwc {
                 typename T8=Empty,  typename T9=Empty,  typename T10=Empty, typename T11=Empty,
                 typename T12=Empty, typename T13=Empty, typename T14=Empty, typename T15=Empty>
       struct MethodCall {
-        static void Call(Object *self, const char *name,
+        static void Call(Object *self, const char *name, const KeywordArgs &kwargs,
                          T0 arg0=T0(), T1 arg1=T1(), T2 arg2=T2(), T3 arg3=T3(),
                          T4 arg4=T4(), T5 arg5=T5(), T6 arg6=T6(), T7 arg7=T7(),
                          T8 arg8=T8(), T9 arg9=T9(), T10 arg10=T10(), T11 arg11=T11(),
@@ -55,24 +55,95 @@ namespace lwc {
           
           MethodParams params(meth);
           
+          // Set keyworkds arguments
+          // -> must be set before as SETPARAMORCALL may return
+          
+          KeywordArgs::const_iterator it = kwargs.begin();
+          while (it != kwargs.end()) {
+            size_t idx = meth.namedArgIndex(it->first.c_str());
+            const Argument &ma = meth[idx];
+            if (!it->second.typeMatches(ma)) {
+              // at the time keyword arguments are set, we don't know yet which
+              // method they will be applied to, so don't know the exact target type
+              // for plain type, we should allow int to real and real to int conversions
+              // as allow in Argument::setValue, MethodParams::set/setn
+              if (ma.indirectionLevel() == 0 && // plain type
+                  it->second.indirectionLevel() == ma.indirectionLevel() &&
+                  ((it->second.getType() == AT_INT && // int -> real
+                    ma.getType() == AT_REAL) ||
+                   (it->second.getType() == AT_REAL && // real -> int
+                    ma.getType() == AT_INT))) {
+                ArgumentValue av;
+                if (ma.getType() == AT_REAL) {
+                  it->second.getValue(av.real);
+                } else {
+                  it->second.getValue(av.integer);
+                }
+                params.rawsetn(it->first.c_str(), av);
+              } else {
+                std::ostringstream oss;
+                oss << "In method \"" << name << "\": Keyword argument type mismatch";
+                throw std::runtime_error(oss.str());
+              }
+            } else {
+              params.rawsetn(it->first.c_str(), it->second.getRawValue());
+            }
+            ++it;
+          }
+          
 #define SETPARAMORCALL(n) \
           if (typeid(T##n) == emptytype) {\
-            if (meth.numArgs() != n) {\
-              std::ostringstream oss;\
-              oss << "Method \"" << name << "\" expects " << meth.numArgs() << " arguments";\
-              throw std::runtime_error(oss.str());\
+            if (n < meth.numArgs()) {\
+              size_t nn = n;\
+              while (nn < meth.numArgs()) {\
+                const Argument &ma = meth[nn];\
+                bool ignoreKwarg = (ma.isNamed() && kwargs.find(ma.getName()) != kwargs.end());\
+                if (ma.hasDefaultValue()) {\
+                  if (!ignoreKwarg) {\
+                    try {\
+                      params.rawset(nn, ma.getRawDefaultValue(), false);\
+                    } catch (std::exception &e) {\
+                      std::ostringstream oss;\
+                      oss << "In method \"" << name << "\": " << e.what();\
+                      throw std::runtime_error(oss.str());\
+                    }\
+                  }\
+                  ++nn;\
+                } else {\
+                  if (ignoreKwarg) {\
+                    ++nn;\
+                    continue;\
+                  } else {\
+                    break;\
+                  }\
+                }\
+              }\
+              if (meth.numArgs() != nn) {\
+                std::ostringstream oss;\
+                oss << "Method \"" << name << "\" expects " << meth.numArgs() << " arguments";\
+                throw std::runtime_error(oss.str());\
+              }\
             }\
             self->call(name, params);\
             return;\
           } else {\
+            if (n >= meth.numPositionalArgs()) {\
+              if (kwargs.find(meth[n].getName()) != kwargs.end()) {\
+                std::ostringstream oss;\
+                oss << "Method \"" << name << "\" keyword argument \"" << meth[n].getName() << "\" is set twice";\
+                throw std::runtime_error(oss.str());\
+              }\
+            }\
             try {\
-              params.set(size_t(n), arg##n);\
+              params.set(size_t(n), arg##n, false);\
             } catch (std::exception &e) {\
               std::ostringstream oss;\
               oss << "In method \"" << name << "\": " << e.what();\
               throw std::runtime_error(oss.str());\
             }\
           }
+          
+          // Set positional arguments
           
           SETPARAMORCALL(0)
           SETPARAMORCALL(1)
@@ -93,7 +164,7 @@ namespace lwc {
           
 #undef SETPARAMORCALL
           
-          if (meth.numArgs() != 16) {
+          if (meth.numPositionalArgs() != LWC_MAX_POSITIONAL_ARGS) {
             std::ostringstream oss;
             oss << "Method \"" << name << "\" expects " << meth.numArgs() << " arguments";
             throw std::runtime_error(oss.str());
@@ -145,46 +216,46 @@ namespace lwc {
       
       virtual void call(const char *name, MethodParams &params) throw(std::runtime_error);
       
-      void call(const char *name) throw(std::runtime_error) {
-        MethodCall<Empty>::Call(this, name);
+      void call(const char *name, const KeywordArgs &kwargs=NoKeywordArgs) throw(std::runtime_error) {
+        MethodCall<Empty>::Call(this, name, kwargs);
       }
       
       template <typename T0>
-      void call(const char *name, T0 arg0) throw(std::runtime_error) {
-        MethodCall<T0>::Call(this, name, arg0);
+      void call(const char *name, T0 arg0, const KeywordArgs &kwargs=NoKeywordArgs) throw(std::runtime_error) {
+        MethodCall<T0>::Call(this, name, kwargs, arg0);
       }
       
       template <typename T0, typename T1>
-      void call(const char *name, T0 arg0, T1 arg1) throw(std::runtime_error) {
-        MethodCall<T0,T1>::Call(this, name, arg0, arg1);
+      void call(const char *name, T0 arg0, T1 arg1, const KeywordArgs &kwargs=NoKeywordArgs) throw(std::runtime_error) {
+        MethodCall<T0,T1>::Call(this, name, kwargs, arg0, arg1);
       }
       
       template <typename T0, typename T1, typename T2>
       void call(const char *name,
-                T0 arg0, T1 arg1, T2 arg2) throw(std::runtime_error) {
-        MethodCall<T0,T1,T2>::Call(this, name, arg0, arg1, arg2);
+                T0 arg0, T1 arg1, T2 arg2, const KeywordArgs &kwargs=NoKeywordArgs) throw(std::runtime_error) {
+        MethodCall<T0,T1,T2>::Call(this, name, kwargs, arg0, arg1, arg2);
       }
       
       template <typename T0, typename T1, typename T2, typename T3>
       void call(const char *name,
-                T0 arg0, T1 arg1, T2 arg2, T3 arg3) throw(std::runtime_error) {
-        MethodCall<T0,T1,T2,T3>::Call(this, name, arg0, arg1, arg2, arg3);
+                T0 arg0, T1 arg1, T2 arg2, T3 arg3, const KeywordArgs &kwargs=NoKeywordArgs) throw(std::runtime_error) {
+        MethodCall<T0,T1,T2,T3>::Call(this, name, kwargs, arg0, arg1, arg2, arg3);
       }
       
       template <typename T0, typename T1, typename T2, typename T3,
                 typename T4>
       void call(const char *name,
                 T0 arg0, T1 arg1, T2 arg2, T3 arg3,
-                T4 arg4) throw(std::runtime_error) {
-        MethodCall<T0,T1,T2,T3,T4>::Call(this, name, arg0, arg1, arg2, arg3, arg4);
+                T4 arg4, const KeywordArgs &kwargs=NoKeywordArgs) throw(std::runtime_error) {
+        MethodCall<T0,T1,T2,T3,T4>::Call(this, name, kwargs, arg0, arg1, arg2, arg3, arg4);
       }
       
       template <typename T0, typename T1, typename T2, typename T3,
                 typename T4, typename T5>
       void call(const char *name,
                 T0 arg0, T1 arg1, T2 arg2, T3 arg3,
-                T4 arg4, T5 arg5) throw(std::runtime_error) {
-        MethodCall<T0,T1,T2,T3,T4,T5>::Call(this, name, arg0, arg1, arg2, arg3,
+                T4 arg4, T5 arg5, const KeywordArgs &kwargs=NoKeywordArgs) throw(std::runtime_error) {
+        MethodCall<T0,T1,T2,T3,T4,T5>::Call(this, name, kwargs, arg0, arg1, arg2, arg3,
                                             arg4, arg5);
       }
       
@@ -192,8 +263,8 @@ namespace lwc {
                 typename T4, typename T5, typename T6>
       void call(const char *name,
                 T0 arg0, T1 arg1, T2 arg2, T3 arg3,
-                T4 arg4, T5 arg5, T6 arg6) throw(std::runtime_error) {
-        MethodCall<T0,T1,T2,T3,T4,T5,T6>::Call(this, name, arg0, arg1, arg2, arg3,
+                T4 arg4, T5 arg5, T6 arg6, const KeywordArgs &kwargs=NoKeywordArgs) throw(std::runtime_error) {
+        MethodCall<T0,T1,T2,T3,T4,T5,T6>::Call(this, name, kwargs, arg0, arg1, arg2, arg3,
                                                arg4, arg5, arg6);
       }
       
@@ -201,8 +272,8 @@ namespace lwc {
                 typename T4, typename T5, typename T6, typename T7>
       void call(const char *name,
                 T0 arg0, T1 arg1, T2 arg2, T3 arg3,
-                T4 arg4, T5 arg5, T6 arg6, T7 arg7) throw(std::runtime_error) {
-        MethodCall<T0,T1,T2,T3,T4,T5,T6,T7>::Call(this, name, arg0, arg1, arg2,
+                T4 arg4, T5 arg5, T6 arg6, T7 arg7, const KeywordArgs &kwargs=NoKeywordArgs) throw(std::runtime_error) {
+        MethodCall<T0,T1,T2,T3,T4,T5,T6,T7>::Call(this, name, kwargs, arg0, arg1, arg2,
                                                   arg3, arg4, arg5, arg6, arg7);
       }
       
@@ -212,8 +283,8 @@ namespace lwc {
       void call(const char *name,
                 T0 arg0, T1 arg1, T2 arg2, T3 arg3,
                 T4 arg4, T5 arg5, T6 arg6, T7 arg7,
-                T8 arg8) throw(std::runtime_error) {
-        MethodCall<T0,T1,T2,T3,T4,T5,T6,T7,T8>::Call(this, name, arg0, arg1, arg2,
+                T8 arg8, const KeywordArgs &kwargs=NoKeywordArgs) throw(std::runtime_error) {
+        MethodCall<T0,T1,T2,T3,T4,T5,T6,T7,T8>::Call(this, name, kwargs, arg0, arg1, arg2,
                                                      arg3, arg4, arg5, arg6, arg7,
                                                      arg8);
       }
@@ -224,8 +295,8 @@ namespace lwc {
       void call(const char *name,
                 T0 arg0, T1 arg1, T2 arg2, T3 arg3,
                 T4 arg4, T5 arg5, T6 arg6, T7 arg7,
-                T8 arg8, T9 arg9) throw(std::runtime_error) {
-        MethodCall<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9>::Call(this, name, arg0, arg1, arg2,
+                T8 arg8, T9 arg9, const KeywordArgs &kwargs=NoKeywordArgs) throw(std::runtime_error) {
+        MethodCall<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9>::Call(this, name, kwargs, arg0, arg1, arg2,
                                                         arg3, arg4, arg5, arg6, arg7,
                                                         arg8, arg9);
       }
@@ -236,8 +307,8 @@ namespace lwc {
       void call(const char *name,
                 T0 arg0, T1 arg1, T2 arg2, T3 arg3,
                 T4 arg4, T5 arg5, T6 arg6, T7 arg7,
-                T8 arg8, T9 arg9, T10 arg10) throw(std::runtime_error) {
-        MethodCall<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>::Call(this, name, arg0, arg1, arg2,
+                T8 arg8, T9 arg9, T10 arg10, const KeywordArgs &kwargs=NoKeywordArgs) throw(std::runtime_error) {
+        MethodCall<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>::Call(this, name, kwargs, arg0, arg1, arg2,
                                                             arg3, arg4, arg5, arg6, arg7,
                                                             arg8, arg9, arg10);
       }
@@ -248,8 +319,8 @@ namespace lwc {
       void call(const char *name,
                 T0 arg0, T1 arg1, T2 arg2, T3 arg3,
                 T4 arg4, T5 arg5, T6 arg6, T7 arg7,
-                T8 arg8, T9 arg9, T10 arg10, T11 arg11) throw(std::runtime_error) {
-        MethodCall<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11>::Call(this, name, arg0, arg1, arg2,
+                T8 arg8, T9 arg9, T10 arg10, T11 arg11, const KeywordArgs &kwargs=NoKeywordArgs) throw(std::runtime_error) {
+        MethodCall<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11>::Call(this, name, kwargs, arg0, arg1, arg2,
                                                                 arg3, arg4, arg5, arg6, arg7,
                                                                 arg8, arg9, arg10, arg11);
       }
@@ -262,8 +333,8 @@ namespace lwc {
                 T0 arg0, T1 arg1, T2 arg2, T3 arg3,
                 T4 arg4, T5 arg5, T6 arg6, T7 arg7,
                 T8 arg8, T9 arg9, T10 arg10, T11 arg11,
-                T12 arg12) throw(std::runtime_error) {
-        MethodCall<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12>::Call(this, name, arg0, arg1, arg2,
+                T12 arg12, const KeywordArgs &kwargs=NoKeywordArgs) throw(std::runtime_error) {
+        MethodCall<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12>::Call(this, name, kwargs, arg0, arg1, arg2,
                                                                     arg3, arg4, arg5, arg6, arg7,
                                                                     arg8, arg9, arg10, arg11, arg12);
       }
@@ -276,8 +347,8 @@ namespace lwc {
                 T0 arg0, T1 arg1, T2 arg2, T3 arg3,
                 T4 arg4, T5 arg5, T6 arg6, T7 arg7,
                 T8 arg8, T9 arg9, T10 arg10, T11 arg11,
-                T12 arg12, T13 arg13) throw(std::runtime_error) {
-        MethodCall<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13>::Call(this, name, arg0, arg1, arg2,
+                T12 arg12, T13 arg13, const KeywordArgs &kwargs=NoKeywordArgs) throw(std::runtime_error) {
+        MethodCall<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13>::Call(this, name, kwargs, arg0, arg1, arg2,
                                                                         arg3, arg4, arg5, arg6, arg7,
                                                                         arg8, arg9, arg10, arg11, arg12,
                                                                         arg13);
@@ -291,8 +362,8 @@ namespace lwc {
                 T0 arg0, T1 arg1, T2 arg2, T3 arg3,
                 T4 arg4, T5 arg5, T6 arg6, T7 arg7,
                 T8 arg8, T9 arg9, T10 arg10, T11 arg11,
-                T12 arg12, T13 arg13, T14 arg14) throw(std::runtime_error) {
-        MethodCall<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14>::Call(this, name, arg0, arg1, arg2,
+                T12 arg12, T13 arg13, T14 arg14, const KeywordArgs &kwargs=NoKeywordArgs) throw(std::runtime_error) {
+        MethodCall<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14>::Call(this, name, kwargs, arg0, arg1, arg2,
                                                                             arg3, arg4, arg5, arg6, arg7,
                                                                             arg8, arg9, arg10, arg11, arg12,
                                                                             arg13, arg14);
@@ -306,8 +377,8 @@ namespace lwc {
                 T0 arg0, T1 arg1, T2 arg2, T3 arg3,
                 T4 arg4, T5 arg5, T6 arg6, T7 arg7,
                 T8 arg8, T9 arg9, T10 arg10, T11 arg11,
-                T12 arg12, T13 arg13, T14 arg14, T15 arg15) throw(std::runtime_error) {
-        MethodCall<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15>::Call(this, name, arg0, arg1, arg2,
+                T12 arg12, T13 arg13, T14 arg14, T15 arg15, const KeywordArgs &kwargs=NoKeywordArgs) throw(std::runtime_error) {
+        MethodCall<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15>::Call(this, name, kwargs, arg0, arg1, arg2,
                                                                                 arg3, arg4, arg5, arg6, arg7,
                                                                                 arg8, arg9, arg10, arg11, arg12,
                                                                                 arg13, arg14, arg15);

@@ -26,7 +26,121 @@ USA.
 
 using lwc::Integer;
 
+// ---
+
+namespace details
+{
+   template <bool Cond1, bool Cond2>
+   struct Or
+   {
+      enum
+      {
+         Value = 1
+      };
+   };
+   
+   template <>
+   struct Or<false, false>
+   {
+      enum
+      {
+         Value = 0
+      };
+   };
+   
+   template <bool Cond1, bool Cond2>
+   struct And
+   {
+      enum
+      {
+         Value = 0
+      };
+   };
+   
+   template <>
+   struct And<true, true>
+   {
+      enum
+      {
+         Value = 1
+      };
+   };
+   
+   template <bool StopCond, typename T>
+   struct _BaseType
+   {
+      typedef typename gcore::TypeTraits<T>::Value BaseType;
+      
+      enum
+      {
+         EnumType = lwc::Type2Enum<BaseType>::Enum
+      };
+      
+      typedef typename _BaseType<Or<EnumType != (int)lwc::AT_UNKNOWN, gcore::TypeTraits<BaseType>::IsPtr == 0>::Value == 1, BaseType>::Value Value;
+   };
+   
+   template <typename T>
+   struct _BaseType<true, T>
+   {
+      typedef T Value;
+   };
+   
+   template <bool StopCond, typename T>
+   struct _IndirectionLevel
+   {
+      typedef typename gcore::TypeTraits<T>::Value BaseType;
+      
+      enum
+      {
+         EnumType = lwc::Type2Enum<BaseType>::Enum,
+         Value = 1 + _IndirectionLevel<Or<EnumType != (int)lwc::AT_UNKNOWN, gcore::TypeTraits<BaseType>::IsPtr == 0>::Value == 1, BaseType>::Value
+      };
+   };
+   
+   template <typename T>
+   struct _IndirectionLevel<true, T>
+   {
+      enum
+      {
+         Value = 0
+      };
+   };
+}
+
+template <typename T>
+struct IndirectionLevel
+{
+   enum
+   {
+      Value = details::_IndirectionLevel<details::Or<lwc::Type2Enum<T>::Enum != (int)lwc::AT_UNKNOWN, gcore::TypeTraits<T>::IsPtr == 0>::Value == 1, T>::Value
+   };
+};
+
+template <typename T>
+struct BaseType
+{
+   typedef typename details::_BaseType<details::Or<lwc::Type2Enum<T>::Enum != (int)lwc::AT_UNKNOWN, gcore::TypeTraits<T>::IsPtr == 0>::Value == 1, T>::Value Value;
+};
+
+/*
+template <typename T>
+void printTypeInfo(T val)
+{
+   std::cout << "Indirection level: " << IndirectionLevel<T>::Count << std::endl;
+}
+*/
+
+// ---
+
 int main(int, char**) {
+  
+  /*
+   * std::cout << IndirectionLevel<lwc::Object***>::Value << std::endl;
+  std::cout << typeid(BaseType<lwc::Object***>::Value).name() << std::endl;
+  int e = lwc::Type2Enum<BaseType<lwc::Object***>::Value>::Enum;
+  std::cout << e << std::endl;
+  return 0;
+  */
   
   lwc::Registry *reg = lwc::Registry::Initialize();
   
@@ -72,8 +186,31 @@ int main(int, char**) {
     b->call("setWidth", val);
     b->call("setHeight", val);
     */
-    b->call("setX", 10);
-    b->call("setY", 10);
+    //b->call("setX", 10);
+    //b->call("setY", 10);
+    
+    //b->call("set");
+    
+    lwc::KeywordArgs kwargs;
+    kwargs.set("normalize", false);
+    kwargs.set("scale", 2.0);
+    
+    lwc::Integer pos[2] = {10, 10};
+    
+    b->call("set", pos, kwargs);
+    b->call("set", pos);
+    
+    // fails
+    //b->call("set", pos, false);
+    //b->call("set", pos, 2, 2.0);
+    
+    kwargs.clear();
+    kwargs.set("normalize", false);
+    b->call("set", pos, kwargs);
+    
+    kwargs.set("scale", 3);
+    b->call("set", pos, kwargs);
+    
     b->call("setWidth", 400);
     b->call("setHeight", 400);
     

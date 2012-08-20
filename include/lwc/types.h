@@ -189,6 +189,7 @@ namespace lwc {
     static bool Possible() {return true;}
     static void Do(const Integer &from, double &to) {to = (double)from;}
   };
+  /*
   // plain type to bool
   template <> struct Convertion<char, bool> {
     static bool Possible() {return true;}
@@ -270,6 +271,7 @@ namespace lwc {
     static bool Possible() {return true;}
     static void Do(const bool &from, double &to) {to = (from ? 1.0 : 0.0);}
   };
+  */
   // plain type to real
   template <> struct Convertion<char, Real> {
     static bool Possible() {return true;}

@@ -45,6 +45,27 @@ class Box : public lwc::Object {
       return *this;
     }
     
+    void set(lwc::MethodParams &p) {
+      std::cout << "Box::set..." << std::endl;
+      
+      lwc::Integer *c;
+      lwc::Integer n;
+      lwc::Real s;
+      bool normalize;
+      
+      p.get(0, c);
+      p.get(1, n);
+      p.getn("normalize", normalize);
+      p.getn("scale", s);
+      
+      if (n != 2) {
+         throw std::runtime_error("Box::set: Only accepts array of size 2");
+      }
+      
+      std::cout << "  => {" << c[0] << ", " << c[1] << "}, " << n << ", normalize=" << normalize << ", scale=" << s << "}" << std::endl;
+      mX = c[0];
+      mY = c[1];
+    }
     void setX(lwc::MethodParams &p) {lwc::Integer x; p.get(0, x); mX = x;}
     void setY(lwc::MethodParams &p) {lwc::Integer y; p.get(0, y); mY = y;}
     void setWidth(lwc::MethodParams &p) {lwc::Integer w; p.get(0, w); mW = w;}
@@ -101,23 +122,29 @@ class DoubleBox : public Box {
     }
 };
 
+static double defscl = 1.0;
+
 static lwc::MethodDecl BoxMethods[] = {
-  {"setX", 1,      {{lwc::AD_IN,  lwc::AT_INT, -1, NULL}}, LWC_METHOD(Box, setX), "Set box origin x coord"},
-  {"setY", 1,      {{lwc::AD_IN,  lwc::AT_INT, -1, NULL}}, LWC_METHOD(Box, setY), "Set box origin y coord"},
-  {"setWidth", 1,  {{lwc::AD_IN,  lwc::AT_INT, -1, NULL}}, LWC_METHOD(Box, setWidth), "Set box width"},
-  {"setHeight", 1, {{lwc::AD_IN,  lwc::AT_INT, -1, NULL}}, LWC_METHOD(Box, setHeight), "Set box height"},
-  {"getX", 1,      {{lwc::AD_OUT, lwc::AT_INT, -1, NULL}}, LWC_METHOD(Box, getX), "Get box origin x coord"},
-  {"getY", 1,      {{lwc::AD_OUT, lwc::AT_INT, -1, NULL}}, LWC_METHOD(Box, getY), "Get box origin y coord"},
-  {"getWidth", 1,  {{lwc::AD_OUT, lwc::AT_INT, -1, NULL}}, LWC_METHOD(Box, getWidth), "Get box width"},
-  {"getHeight", 1, {{lwc::AD_OUT, lwc::AT_INT, -1, NULL}}, LWC_METHOD(Box, getHeight), "Get box height"},
+  {"set", 4, {{lwc::AD_IN, lwc::AT_INT_ARRAY,  1, LWC_NODEF,            NULL},
+              {lwc::AD_IN, lwc::AT_INT,       -1, LWC_DEFVAL(2),        NULL},
+              {lwc::AD_IN, lwc::AT_BOOL,      -1, LWC_DEFVAL(true),     "normalize"},
+              {lwc::AD_IN, lwc::AT_REAL,      -1, LWC_DEFVAL2(defscl),  "scale"}}, LWC_METHOD(Box, set), "Set box origin"},
+  {"setX", 1,      {{lwc::AD_IN,  lwc::AT_INT, -1, LWC_NODEF, NULL}}, LWC_METHOD(Box, setX), "Set box origin x coord"},
+  {"setY", 1,      {{lwc::AD_IN,  lwc::AT_INT, -1, LWC_NODEF, NULL}}, LWC_METHOD(Box, setY), "Set box origin y coord"},
+  {"setWidth", 1,  {{lwc::AD_IN,  lwc::AT_INT, -1, LWC_NODEF, NULL}}, LWC_METHOD(Box, setWidth), "Set box width"},
+  {"setHeight", 1, {{lwc::AD_IN,  lwc::AT_INT, -1, LWC_NODEF, NULL}}, LWC_METHOD(Box, setHeight), "Set box height"},
+  {"getX", 1,      {{lwc::AD_OUT, lwc::AT_INT, -1, LWC_NODEF, NULL}}, LWC_METHOD(Box, getX), "Get box origin x coord"},
+  {"getY", 1,      {{lwc::AD_OUT, lwc::AT_INT, -1, LWC_NODEF, NULL}}, LWC_METHOD(Box, getY), "Get box origin y coord"},
+  {"getWidth", 1,  {{lwc::AD_OUT, lwc::AT_INT, -1, LWC_NODEF, NULL}}, LWC_METHOD(Box, getWidth), "Get box width"},
+  {"getHeight", 1, {{lwc::AD_OUT, lwc::AT_INT, -1, LWC_NODEF, NULL}}, LWC_METHOD(Box, getHeight), "Get box height"},
 };
 
 static lwc::MethodDecl DoubleBoxMethods[] = {
-  {"setX", 1,      {{lwc::AD_IN,  lwc::AT_INT,    -1, NULL}}, LWC_METHOD(DoubleBox, setX), "Set box origin x coord"},
-  {"setY", 1,      {{lwc::AD_IN,  lwc::AT_INT,    -1, NULL}}, LWC_METHOD(DoubleBox, setY), "Set box origin y coord"},
-  {"setWidth", 1,  {{lwc::AD_IN,  lwc::AT_INT,    -1, NULL}}, LWC_METHOD(DoubleBox, setWidth), "Set box width"},
-  {"setHeight", 1, {{lwc::AD_IN,  lwc::AT_INT,    -1, NULL}}, LWC_METHOD(DoubleBox, setHeight), "Set box height"},
-  {"toBox", 1,     {{lwc::AD_OUT, lwc::AT_OBJECT, -1, NULL}}, LWC_METHOD(DoubleBox, toBox), "Convert to standard box"},
+  {"setX", 1,      {{lwc::AD_IN,  lwc::AT_INT,    -1, LWC_NODEF, NULL}}, LWC_METHOD(DoubleBox, setX), "Set box origin x coord"},
+  {"setY", 1,      {{lwc::AD_IN,  lwc::AT_INT,    -1, LWC_NODEF, NULL}}, LWC_METHOD(DoubleBox, setY), "Set box origin y coord"},
+  {"setWidth", 1,  {{lwc::AD_IN,  lwc::AT_INT,    -1, LWC_NODEF, NULL}}, LWC_METHOD(DoubleBox, setWidth), "Set box width"},
+  {"setHeight", 1, {{lwc::AD_IN,  lwc::AT_INT,    -1, LWC_NODEF, NULL}}, LWC_METHOD(DoubleBox, setHeight), "Set box height"},
+  {"toBox", 1,     {{lwc::AD_OUT, lwc::AT_OBJECT, -1, LWC_NODEF, NULL}}, LWC_METHOD(DoubleBox, toBox), "Convert to standard box"},
 };
 
 LWC_BEGIN_MODULE(2)

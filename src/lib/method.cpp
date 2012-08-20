@@ -77,26 +77,30 @@ std::string Method::toString() const {
 
 std::string Method::docString(const std::string &indent) const {
   std::ostringstream oss;
-  oss << indent << "Description: " << mDesc << std::endl;
+  oss << indent << mDesc << std::endl;
   if (mArgs.size() > 0) {
-    oss << indent << "Arguments:" << std::endl;
+    oss << std::endl;
     size_t j = 0;
     for (j=0; j<mArgs.size() - 1; ++j) {
-      oss << mArgs[j].docString(indent+"  ");
+      oss << mArgs[j].docString(indent);
     }
-    oss << mArgs[j].docString();
+    oss << mArgs[j].docString(indent);
   }
   return oss.str();
 }
 
 void Method::addArg(const Argument &arg) throw(std::runtime_error) {
-  //if (mArgs.size() >= 16) {
-  //  throw std::runtime_error("Methods cannot have more than 16 argument");
-  //}
+  if (mArgs.size() >= LWC_MAX_ARGS) {
+    std::ostringstream oss;
+    oss << "Methods cannot have more than " << LWC_MAX_ARGS << " arguments";
+    throw std::runtime_error(oss.str());
+  }
   if (!arg.isNamed()) {
     ++mNumPArgs;
-    if (mNumPArgs >= 16) {
-      throw std::runtime_error("Methods cannot have more than 16 positional arguments");
+    if (mNumPArgs >= LWC_MAX_POSITIONAL_ARGS) {
+      std::ostringstream oss;
+      oss << "Methods cannot have more than " << LWC_MAX_POSITIONAL_ARGS << " positional arguments";
+      throw std::runtime_error(oss.str());
     }
   } else {
     mNArgIndices[arg.getName()] = mArgs.size();
@@ -118,6 +122,8 @@ void Method::validateArgs() throw(std::runtime_error) {
   // argument names must be unique
   // all positional arguments (unnamed) must precede named ones
   // once a default value is set, all following args must have one too (positional or named)
+  // only in arguments can have default
+  // out arguments cannot be named
   std::string name;
   std::set<std::string> names;
   std::set<std::string>::iterator nit;
@@ -129,13 +135,18 @@ void Method::validateArgs() throw(std::runtime_error) {
     name = mArgs[i].getName();
     if (name.length() > 0) {
       mustHaveName = true;
+      if (mArgs[i].getDir() == AD_OUT) {
+        std::ostringstream oss;
+        oss << "output argument " << i << " cannot be named" << std::endl;
+        throw std::runtime_error(oss.str());
+      }
       nit = names.find(name);
       if (nit != names.end()) {
         std::ostringstream oss;
         oss << "duplicate named argument " << i << ": \"" << name << "\" already declared";
         throw std::runtime_error(oss.str());
       }
-    } else if (mustHaveName) {
+    } else if (mArgs[i].getDir() != AD_OUT && mustHaveName) {
       std::ostringstream oss;
       oss << "positional argument " << i << " must precede any named argument";
       throw std::runtime_error(oss.str());
@@ -143,7 +154,12 @@ void Method::validateArgs() throw(std::runtime_error) {
     
     if (mArgs[i].hasDefaultValue()) {
       mustHaveDefault = true;
-    } else if (mustHaveDefault) {
+      if (mArgs[i].getDir() != AD_IN) {
+        std::ostringstream oss;
+        oss << "argument " << i << " cannot have a default value (only input arguments can)";
+        throw std::runtime_error(oss.str());
+      }
+    } else if (mArgs[i].getDir() == AD_IN && mustHaveDefault) {
       std::ostringstream oss;
       oss << "argument " << i << " must have a default value";
       throw std::runtime_error(oss.str());
@@ -287,12 +303,12 @@ std::string MethodsTable::docString(const std::string &indent) const {
   std::map<std::string, Method>::const_iterator it = mTable.begin();
   while (it != mTable.end()) {
     oss << indent << it->first << std::endl;
-    oss << it->second.docString(indent+"  ");
+    oss << it->second.docString(indent+"  ") << std::endl;
     ++it;
   }
   if (mParent) {
-    oss << indent << "Inherited:" << std::endl;
-    oss << mParent->docString(indent+"  ");
+    oss << std::endl << indent << "Inherited" << std::endl;
+    oss << mParent->docString(indent+"  ") << std::endl;
   }
   return oss.str();
 }
@@ -305,7 +321,7 @@ MethodParams::MethodParams(const Method &m)
 
 MethodParams::MethodParams(const MethodParams &rhs)
   : mMethod(rhs.mMethod) {
-  memcpy(mParams, rhs.mParams, 16*sizeof(void*));
+  memcpy(mParams, rhs.mParams, LWC_MAX_ARGS*sizeof(void*));
 }
 
 MethodParams::~MethodParams() {
