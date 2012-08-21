@@ -211,7 +211,7 @@ namespace py {
   template <lwc::Type T> struct ParamConverter {
     typedef typename lwc::Enum2Type<T>::Type Type;
     typedef typename lwc::Enum2Type<T>::Type* Array;
-    static void PreCall(const lwc::Argument &desc, size_t, PyObject *args, size_t &iarg, std::map<size_t,size_t> &arraySizes, Type &val) {
+    static bool PreCall(const lwc::Argument &desc, size_t, PyObject *args, size_t &iarg, std::map<size_t,size_t> &arraySizes, Type &val) {
       if (desc.getDir() == lwc::AD_IN || desc.getDir() == lwc::AD_INOUT) {
         if (desc.arrayArg() >= 0) {
           // this should only be executed for integer types
@@ -220,14 +220,16 @@ namespace py {
           lwc::Convertion<unsigned long, Type>::Do(idx, val);
         } else {
           if (iarg >= size_t(PyTuple_Size(args))) {
+            std::cout << "PreCall: not enough argument, expected " << desc.toString() << std::endl;
             PyErr_SetString(PyExc_RuntimeError, "Not enough argument");
-            return;
+            return false;
           }
           PyObject *pa = PyTuple_GetItem(args, iarg);
           Python2C<T>::ToValue(pa, val);
           ++iarg;
-        }     
+        }
       }
+      return true;
     }
     static void PostCall(const lwc::Argument &desc, size_t, PyObject *, size_t &iarg, std::map<size_t,size_t> &arraySizes, Type &val, PyObject *&rv) {
       if (desc.getDir() == lwc::AD_IN) {
@@ -252,18 +254,20 @@ namespace py {
         }
       }
     }
-    static void PreCallArray(const lwc::Argument &desc, size_t idesc, PyObject *args, size_t &iarg, std::map<size_t,size_t> &arraySizes, Array &ary) {
+    static bool PreCallArray(const lwc::Argument &desc, size_t idesc, PyObject *args, size_t &iarg, std::map<size_t,size_t> &arraySizes, Array &ary) {
       if (desc.getDir() == lwc::AD_IN || desc.getDir() == lwc::AD_INOUT) {
         size_t length;
         if (iarg >= size_t(PyTuple_Size(args))) {
+          std::cout << "PreCallArray: not enough argument, expected " << desc.toString() << std::endl;
           PyErr_SetString(PyExc_RuntimeError, "Not enough argument");
-          return;
+          return false;
         }
         PyObject *pa = PyTuple_GetItem(args, iarg);
         Python2C<T>::ToArray(pa, ary, length);
         arraySizes[idesc] = length;
         ++iarg;
       }
+      return true;
     }
     static void PostCallArray(const lwc::Argument &desc, size_t idesc, PyObject *args, size_t &iarg, std::map<size_t,size_t> &arraySizes, Array &ary, PyObject *&rv) {
       if (desc.getDir() == lwc::AD_IN) {
