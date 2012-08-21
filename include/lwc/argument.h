@@ -246,7 +246,7 @@ namespace lwc {
             return false;
         }
       }
-      static bool Set(const BaseArgument &arg, T &src, ArgumentValue &dst, std::string &err) {
+      static bool Set(const BaseArgument &arg, T src, ArgumentValue &dst, std::string &err) {
         err = "";
         if (arg.indirectionLevel() != 0) {
           err ="Expected 0 level of indirection";
@@ -339,7 +339,7 @@ namespace lwc {
         dst = (T*) src.ptr;
         return true;
       }
-      static bool Set(const BaseArgument &arg, T* &src, ArgumentValue &dst, std::string &err) {
+      static bool Set(const BaseArgument &arg, const T* src, ArgumentValue &dst, std::string &err) {
         err = "";
         // use typetraits?
         if (arg.indirectionLevel() != 1) {
@@ -353,6 +353,9 @@ namespace lwc {
         // check constness ?
         dst.ptr = (void*) src;
         return true;
+      }
+      static bool Set(const BaseArgument &arg, T* src, ArgumentValue &dst, std::string &err) {
+        return Set(arg, (const T*)src, dst, err);
       }
     };
     template <typename T> struct GetSet<T**> {
@@ -371,7 +374,7 @@ namespace lwc {
         dst = (T**) src.ptr;
         return true;
       }
-      static bool Set(const BaseArgument &arg, T** &src, ArgumentValue &dst, std::string &err) {
+      static bool Set(const BaseArgument &arg, const T** src, ArgumentValue &dst, std::string &err) {
         err = "";
         // use typetraits?
         if (arg.indirectionLevel() != 2) {
@@ -386,6 +389,9 @@ namespace lwc {
         dst.ptr = (void*) src;
         return true;
       }
+      static bool Set(const BaseArgument &arg, T** src, ArgumentValue &dst, std::string &err) {
+        return Set(arg, (const T**)src, dst, err);
+      }
     };
     
     // string special case
@@ -394,7 +400,7 @@ namespace lwc {
         err = "";
         // use typetraits?
         if (arg.indirectionLevel() != 0) {
-          err = "Expected 2 level of indirection";
+          err = "Expected 0 level of indirection";
           return false;
         }
         if (arg.getType () != AT_STRING) {
@@ -405,11 +411,11 @@ namespace lwc {
         dst = (char*) src.ptr;
         return true;
       }
-      static bool Set(const BaseArgument &arg, char* &src, ArgumentValue &dst, std::string &err) {
+      static bool Set(const BaseArgument &arg, const char* src, ArgumentValue &dst, std::string &err) {
         err = "";
         // use typetraits?
         if (arg.indirectionLevel() != 0) {
-          err = "Expected 2 level of indirection";
+          err = "Expected 0 level of indirection";
           return false;
         }
         if (arg.getType() != AT_STRING) {
@@ -420,13 +426,16 @@ namespace lwc {
         dst.ptr = (void*) src;
         return true;
       }
+      static bool Set(const BaseArgument &arg, char* src, ArgumentValue &dst, std::string &err) {
+        return Set(arg, (const char*)src, dst, err);
+      }
     };
     template <> struct GetSet<char**> {
       static bool Get(const BaseArgument &arg, const ArgumentValue &src, char** &dst, std::string &err) {
         err = "";
         // use typetraits?
         if (arg.indirectionLevel() != 1) {
-          err = "Expected 2 level of indirection";
+          err = "Expected 1 level of indirection";
           return false;
         }
         if (arg.getType () != AT_STRING) {
@@ -437,11 +446,11 @@ namespace lwc {
         dst = (char**) src.ptr;
         return true;
       }
-      static bool Set(const BaseArgument &arg, char** &src, ArgumentValue &dst, std::string &err) {
+      static bool Set(const BaseArgument &arg, const char** src, ArgumentValue &dst, std::string &err) {
         err = "";
         // use typetraits?
         if (arg.indirectionLevel() != 1) {
-          err = "Expected 2 level of indirection";
+          err = "Expected 1 level of indirection";
           return false;
         }
         if (arg.getType() != AT_STRING) {
@@ -451,6 +460,9 @@ namespace lwc {
         // check constness?
         dst.ptr = (void*) src;
         return true;
+      }
+      static bool Set(const BaseArgument &arg, char** src, ArgumentValue &dst, std::string &err) {
+        return Set(arg, (const char**)src, dst, err);
       }
     };
     template <> struct GetSet<char***> {
@@ -469,7 +481,7 @@ namespace lwc {
         dst = (char***) src.ptr;
         return true;
       }
-      static bool Set(const BaseArgument &arg, char*** &src, ArgumentValue &dst, std::string &err) {
+      static bool Set(const BaseArgument &arg, const char*** src, ArgumentValue &dst, std::string &err) {
         err = "";
         // use typetraits?
         if (arg.indirectionLevel() != 2) {
@@ -484,6 +496,9 @@ namespace lwc {
         dst.ptr = (void*) src;
         return true;
       }
+      static bool Set(const BaseArgument &arg, char*** src, ArgumentValue &dst, std::string &err) {
+        return Set(arg, (const char***)src, dst, err);
+      }
     };
     
     // object special case
@@ -492,7 +507,7 @@ namespace lwc {
         err = "";
         // use typetraits?
         if (arg.indirectionLevel() != 0) {
-          err = "Expected 1 level of indirection";
+          err = "Expected 0 level of indirection";
           return false;
         }
         if (arg.getType() != AT_OBJECT) {
@@ -503,11 +518,11 @@ namespace lwc {
         dst = (Object*) src.ptr;
         return true;
       }
-      static bool Set(const BaseArgument &arg, Object* &src, ArgumentValue &dst, std::string &err) {
+      static bool Set(const BaseArgument &arg, const Object* src, ArgumentValue &dst, std::string &err) {
         err = "";
         // use typetraits?
         if (arg.indirectionLevel() != 0) {
-          err = "Expected 1 level of indirection";
+          err = "Expected 0 level of indirection";
           return false;
         }
         if (arg.getType() != AT_OBJECT) {
@@ -517,6 +532,9 @@ namespace lwc {
         // check constness?
         dst.ptr = (void*) src;
         return true;
+      }
+      static bool Set(const BaseArgument &arg, Object* src, ArgumentValue &dst, std::string &err) {
+        return Set(arg, (const Object*)src, dst, err);
       }
     };
     template <> struct GetSet<Object**> {
@@ -535,7 +553,7 @@ namespace lwc {
         dst = (Object**) src.ptr;
         return true;
       }
-      static bool Set(const BaseArgument &arg, Object** &src, ArgumentValue &dst, std::string &err) {
+      static bool Set(const BaseArgument &arg, const Object** src, ArgumentValue &dst, std::string &err) {
         err = "";
         // use typetraits?
         if (arg.indirectionLevel() != 1) {
@@ -549,6 +567,9 @@ namespace lwc {
         // check constness?
         dst.ptr = (void*) src;
         return true;
+      }
+      static bool Set(const BaseArgument &arg, Object** src, ArgumentValue &dst, std::string &err) {
+        return Set(arg, (const Object**)src, dst, err);
       }
     };
     template <> struct GetSet<Object***> {
@@ -567,7 +588,7 @@ namespace lwc {
         dst = (Object***) src.ptr;
         return true;
       }
-      static bool Set(const BaseArgument &arg, Object*** &src, ArgumentValue &dst, std::string &err) {
+      static bool Set(const BaseArgument &arg, const Object*** src, ArgumentValue &dst, std::string &err) {
         err = "";
         // use typetraits?
         if (arg.indirectionLevel() != 2) {
@@ -582,11 +603,18 @@ namespace lwc {
         dst.ptr = (void*) src;
         return true;
       }
+      static bool Set(const BaseArgument &arg, Object*** src, ArgumentValue &dst, std::string &err) {
+        return Set(arg, (const Object***)src, dst, err);
+      }
     };
     
     // empty special case
     template <> struct GetSet<Empty> {
       static bool Get(const BaseArgument &, const ArgumentValue &, Empty &, std::string &err) {
+        err = "Empty is not a valid argument type";
+        return false;
+      }
+      static bool Set(const BaseArgument &, const Empty &, ArgumentValue &, std::string &err) {
         err = "Empty is not a valid argument type";
         return false;
       }
@@ -700,6 +728,17 @@ namespace lwc {
               t = AT_OBJECT;
               doConvert = true;
             }
+          } else if (il == 1) {
+            // could be a pointer to char or object, as the 
+            if (Convertion<typename gcore::NoRefOrConst<typename details::BaseType<T>::Value*>::Type, char*>::Possible()) {
+              il -= 1;
+              t = AT_STRING;
+              doConvert = true;
+            } else if (Convertion<typename gcore::NoRefOrConst<typename details::BaseType<T>::Value*>::Type, Object*>::Possible()) {
+              il -= 1;
+              t = AT_OBJECT;
+              doConvert = true;
+            }
           }
           if (!doConvert) {
             std::ostringstream oss;
@@ -739,7 +778,7 @@ namespace lwc {
   template <typename T>
   BaseArgument& BaseArgument::setValue(T val) throw(std::runtime_error) {
     std::string err;
-    if (!details::GetSet<T>::Set(*this, val, mValue, err)) {
+    if (!details::GetSet<typename gcore::NoRefOrConst<T>::Type>::Set(*this, val, mValue, err)) {
       std::ostringstream oss;
       oss << "BaseArgument::setValue: " << err;
       throw std::runtime_error(oss.str());
@@ -750,7 +789,7 @@ namespace lwc {
   template <typename T>
   void BaseArgument::getValue(T &val) const throw(std::runtime_error)  {
     std::string err;
-    if (!details::GetSet<T>::Get(*this, mValue, val, err)) {
+    if (!details::GetSet<typename gcore::NoRefOrConst<T>::Type>::Get(*this, mValue, val, err)) {
       std::ostringstream oss;
       oss << "BaseArgument::getValue: " << err;
       throw std::runtime_error(oss.str());

@@ -52,6 +52,8 @@ if reg.hasType("pytest.ObjectList2"):
   print("### Clear list")
   lst.clear()
   print(lst.size())
+  print("### Keyword arg test")
+  lst.printInt(10, indent="=> ")
   print("### Destroy box & list")
   reg.destroy(box)
   reg.destroy(lst)
@@ -104,10 +106,18 @@ print(obj2.getY())
 print(obj2.getWidth())
 print(obj2.getHeight())
 
+print("### call Box.set")
+try:
+  obj2.set([2, 2], scale=3, normalize=True)
+  print("%s, %s" % (obj2.getX(), obj2.getY()))
+except Exception, e:
+  print("*** FAILED: %s" % e)
+
 print("### Destroy objects")
 reg.destroy(obj)
 reg.destroy(obj2)
 
+"""
 print("### test lua object")
 obj = reg.create("luatest.Dict")
 print("  size = %d" % obj.size())
@@ -120,7 +130,7 @@ print(obj.get("grrr"))
 print(obj.keys())
 print(obj.values())
 reg.destroy(obj)
-
+"""
 
 print("### DeInitialize")
 lwcpy.DeInitialize()

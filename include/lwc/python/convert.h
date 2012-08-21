@@ -239,12 +239,16 @@ namespace py {
           Python2C<T>::DisposeValue(val);
           
         } else {
-          PyObject *obj = 0;
-          C2Python<T>::ToValue(val, obj);
-          Python2C<T>::DisposeValue(val);
-          Py_ssize_t ti = PyTuple_Size(rv);
-          _PyTuple_Resize(&rv, ti+1);
-          PyTuple_SetItem(rv, ti, obj);
+          if (rv == 0) {
+            Python2C<T>::DisposeValue(val);
+          } else {
+            PyObject *obj = 0;
+            C2Python<T>::ToValue(val, obj);
+            Python2C<T>::DisposeValue(val);
+            Py_ssize_t ti = PyTuple_Size(rv);
+            _PyTuple_Resize(&rv, ti+1);
+            PyTuple_SetItem(rv, ti, obj);
+          }
         }
       }
     }
@@ -274,9 +278,11 @@ namespace py {
           //if (desc.isAllocated()) {
           Python2C<T>::DisposeArray(ary, arraySizes[idesc]);
           //}
-          Py_ssize_t ti = PyTuple_Size(rv);
-          _PyTuple_Resize(&rv, ti+1);
-          PyTuple_SetItem(rv, ti, obj);
+          if (rv != 0) {
+            Py_ssize_t ti = PyTuple_Size(rv);
+            _PyTuple_Resize(&rv, ti+1);
+            PyTuple_SetItem(rv, ti, obj);
+          }
         } else {
           Python2C<T>::DisposeArray(ary, arraySizes[idesc]);
         }

@@ -219,6 +219,34 @@ static PyObject* lwcreg_getMethods(PyObject *, PyObject *args) {
   }
 }
 
+static PyObject* lwcreg_getDesc(PyObject *, PyObject *args) {
+  lwc::Registry *reg = lwc::Registry::Instance();
+  char *name;
+  if (!PyArg_ParseTuple(args, "s", &name)) {
+    return NULL;
+  }
+  const char *desc = reg->getDescription(name);
+  return PyString_FromString((desc ? desc : ""));
+}
+
+static PyObject* lwcreg_docString(PyObject *, PyObject *args, PyObject *kwargs) {
+  lwc::Registry *reg = lwc::Registry::Instance();
+  char *name;
+  if (!PyArg_ParseTuple(args, "s", &name)) {
+    return NULL;
+  }
+  std::string indent = "";
+  PyObject *pIndent = PyDict_GetItemString(kwargs, "indent");
+  if (pIndent) {
+    if (!PyString_Check(pIndent)) {
+      PyErr_SetString(PyExc_RuntimeError, "string value expected fror \"indent\" keyword");
+      return NULL;
+    }
+    indent = PyString_AsString(pIndent);
+  }
+  return PyString_FromString(reg->docString(name, indent).c_str());
+}
+
 static PyMethodDef lwcreg_methods[] = {
   {"addLoaderPath", lwcreg_addLoaderPath, METH_VARARGS, "Add path to look loaders for"},
   {"addModulePath", lwcreg_addModulePath, METH_VARARGS, "Add path to look modules for"},
@@ -229,6 +257,8 @@ static PyMethodDef lwcreg_methods[] = {
   {"create", lwcreg_create, METH_VARARGS, "Create a new object"},
   {"get", lwcreg_get, METH_VARARGS, "Get or create a singleton object"},
   {"destroy", lwcreg_destroy, METH_VARARGS, "Destroy an object"},
+  {"getDescription", lwcreg_getDesc, METH_VARARGS, "Get type description"},
+  {"docString", (PyCFunction) lwcreg_docString, METH_VARARGS|METH_KEYWORDS, "Get type documentation string"},
   {NULL, NULL, 0, NULL}
 };
 

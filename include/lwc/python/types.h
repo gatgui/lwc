@@ -76,7 +76,9 @@ namespace py {
   LWCPY_API bool InitObject(PyObject *);
   LWCPY_API bool InitRegistry(PyObject *);
   LWCPY_API PyObject* CreateModule();
-
+  LWCPY_API void CleanupModule();
+  
+  LWCPY_API bool SetArgDefault(lwc::Argument &a, PyObject *obj);
 }
 
 #endif

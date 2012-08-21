@@ -100,10 +100,25 @@ static PyObject* lwcmtbl_nummeth(PyObject *pself, PyObject *) {
   return PyInt_FromLong(self->table->numMethods());
 }
 
+static PyObject* lwcmtbl_docString(PyObject *pself, PyObject*, PyObject *kwargs) {
+  PyLWCMethodsTable *self = (PyLWCMethodsTable*) pself;
+  std::string indent = "";
+  PyObject *pIndent = PyDict_GetItemString(kwargs, "indent");
+  if (pIndent) {
+    if (!PyString_Check(pIndent)) {
+      PyErr_SetString(PyExc_RuntimeError, "string value expected fror \"indent\" keyword");
+      return NULL;
+    }
+    indent = PyString_AsString(pIndent);
+  }
+  return PyString_FromString(self->table->docString(indent).c_str());
+}
+
 static PyMethodDef lwcmtbl_methods[] = {
   {"availableMethods", lwcmtbl_availableMethods, METH_VARARGS, "Get names of available methods"},
   {"findMethod", lwcmtbl_find, METH_VARARGS, "Find method in table"},
   {"numMethods", lwcmtbl_nummeth, METH_VARARGS, "Get methods count"},
+  {"docString", (PyCFunction) lwcmtbl_docString, METH_VARARGS|METH_KEYWORDS, "Get methods documentation string"},
   {NULL, NULL, 0, NULL}
 };
 

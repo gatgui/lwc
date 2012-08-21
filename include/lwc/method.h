@@ -246,7 +246,7 @@ namespace lwc {
       template <typename T>
       void _set(size_t i, T value) throw(std::runtime_error) {
         std::string err;
-        if (!details::GetSet<T>::Set(mMethod[i], value, mParams[i], err)) {
+        if (!details::GetSet<typename gcore::NoRefOrConst<T>::Type>::Set(mMethod[i], value, mParams[i], err)) {
           std::ostringstream oss;
           oss << "MethodParams::_set: Method argument " << i << ": " << err;
           throw std::runtime_error(oss.str());
@@ -256,7 +256,7 @@ namespace lwc {
       template <typename T>
       void _get(size_t i, T &value) throw(std::runtime_error)  {
         std::string err;
-        if (!details::GetSet<T>::Get(mMethod[i], mParams[i], value, err)) {
+        if (!details::GetSet<typename gcore::NoRefOrConst<T>::Type>::Get(mMethod[i], mParams[i], value, err)) {
           std::ostringstream oss;
           oss << "MethodParams::_get: Method argument " << i << ": " << err;
           throw std::runtime_error(oss.str());

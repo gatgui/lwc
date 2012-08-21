@@ -40,6 +40,9 @@ class PFactory : public lwc::Factory {
       while (it != mTypes.end()) {
         Py_DECREF(it->second.klass);
         delete it->second.methods;
+        if (it->second.desc) {
+          delete[] it->second.desc;
+        }
         ++it;
       }
     }
@@ -66,6 +69,29 @@ class PFactory : public lwc::Factory {
       }
     }
     
+    virtual const char* getDescription(const char *typeName) {
+      std::map<std::string, TypeEntry>::iterator it = mTypes.find(typeName);
+      if (it != mTypes.end()) {
+        return it->second.desc;
+      } else {
+        return 0;
+      }
+    }
+    
+    virtual std::string docString(const char *typeName, const std::string &indent="") {
+      std::map<std::string, TypeEntry>::iterator it = mTypes.find(typeName);
+      if (it != mTypes.end()) {
+        std::ostringstream oss;
+        oss << indent << typeName << ":" << std::endl;
+        oss << indent << "  " << getDescription(typeName) << std::endl;
+        oss << std::endl;
+        oss << it->second.methods->docString(indent+"  ") << std::endl;
+        return oss.str();
+      } else {
+        return "";
+      }
+    }
+    
     virtual void destroy(lwc::Object *o) {
       if (o) {
         delete o;
@@ -84,6 +110,7 @@ class PFactory : public lwc::Factory {
     bool addType(const char *name, PyObject *klass) {
       
       bool singleton = false;
+      char *desc = NULL;
       
       PyObject *sg = PyObject_GetAttrString(klass, "Singleton");
       if (!sg) {
@@ -93,6 +120,18 @@ class PFactory : public lwc::Factory {
           singleton = (sg == Py_True);
         }
         Py_DECREF(sg);
+      }
+      
+      PyObject *de = PyObject_GetAttrString(klass, "Description");
+      if (!de) {
+        PyErr_Clear();
+      } else {
+        if (PyString_Check(de)) {
+          char *tmp = PyString_AsString(de);
+          desc = new char[strlen(tmp)+1];
+          strcpy(desc, tmp);
+        }
+        Py_DECREF(de);
       }
       
       PyObject *mt = PyObject_GetAttrString(klass, "Methods");
@@ -117,21 +156,49 @@ class PFactory : public lwc::Factory {
       
       while (PyDict_Next(mt, &pos, &key, &value)) {
         
-        if (!PyString_Check(key) || !PyList_Check(value)) {
-          std::cout << "pyloader: \"Methods\" must be a dict if lists" << std::endl;
+        if (!PyString_Check(key) || !PyTuple_Check(value)) {
+          std::cout << "pyloader: \"Methods\" must be a dict of tuples" << std::endl;
           continue;
         }
         
-        char *mname = PyString_AsString(key);
-        long n = PyList_Size(value);
         bool add = true;
+        char *mname = PyString_AsString(key);
+        char *mdesc = NULL;
+        
+        long n = PyTuple_Size(value);
+        if (n < 1 || n > 2) {
+          std::cout << "pyloader: \"Methods\" dict values must be tuples with 1 to 2 elements" << std::endl;
+          continue;
+        }
+        
+        PyObject *args = PyTuple_GetItem(value, 0);
+        if (!PyList_Check(args)) {
+          std::cout << "pyloader: \"Methods\" dict values' tuple first element must be a list" << std::endl;
+          continue;
+        }
+        
+        if (n == 2) {
+          PyObject *pdesc = PyTuple_GetItem(value, 1);
+          if (!PyString_Check(pdesc)) {
+            std::cout << "pyloader: \"Methods\" dict values' tuple second element must be a string" << std::endl;
+            continue;
+          }
+          mdesc = PyString_AsString(pdesc);
+        }
+        
         lwc::Method meth;
         
+        if (mdesc) {
+          meth.setDescription(mdesc);
+        }
+        
+        n = PyList_Size(args);
+        
         for (long i=0; i<n; ++i) {
-          PyObject *arg = PyList_GetItem(value, i);
+          PyObject *arg = PyList_GetItem(args, i);
           Py_ssize_t ts = PyTuple_Size(arg);
-          if (!PyTuple_Check(arg) || ts < 2 || ts > 3) {
-            std::cout << "pyloader: Arguments must be tuples with 2 to 3 elements" << std::endl;
+          if (!PyTuple_Check(arg) || ts < 2 || ts > 6) {
+            std::cout << "pyloader: Arguments must be tuples with 2 to 6 elements" << std::endl;
             add = false;
             break;
           }
@@ -141,7 +208,42 @@ class PFactory : public lwc::Factory {
           if (ts >= 3) {
             a.setArraySizeArg(PyInt_AsLong(PyTuple_GetItem(arg, 2)));
           }
-          meth.addArg(a);
+          if (ts >= 4) {
+            PyObject *ahd = PyTuple_GetItem(arg, 3);
+            if (!PyBool_Check(ahd)) {
+              std::cout << "pyloader: Argument's tuple 4th element must be a boolean" << std::endl;
+              add = false;
+              break;
+            }
+            if (ahd == Py_True) {
+              if (ts < 5) {
+                std::cout << "pyloader: Argument is missing default value" << std::endl;
+                add = false;
+                break;
+              } else {
+                PyObject *pdv = PyTuple_GetItem(arg, 4);
+                py::SetArgDefault(a, pdv);
+              }
+            }
+            // hasDefault (yes, no)
+            // if yes -> must have at least 5
+          }
+          if (ts >= 6) {
+            PyObject *aname = PyTuple_GetItem(arg, 5);
+            if (!PyString_Check(aname)) {
+              std::cout << "pyloader: Arguments name must be a string" << std::endl;
+              add = false;
+              break;
+            }
+            a.setName(PyString_AsString(aname));
+          }
+          try {
+            meth.addArg(a);
+          } catch (std::exception &e) {
+            std::cout << "pyloader: " << e.what() << std::endl;
+            add = false;
+            break;
+          }
         }
         
         if (!add) {
@@ -196,6 +298,7 @@ class PFactory : public lwc::Factory {
           te.klass = klass;
           te.singleton = singleton;
           te.methods = typeMethods;
+          te.desc = desc;
           mTypes[name] = te;
           return true;
         }
@@ -211,6 +314,7 @@ class PFactory : public lwc::Factory {
     struct TypeEntry {
       PyObject *klass;
       bool singleton;
+      const char *desc;
       lwc::MethodsTable *methods;
     };
     
@@ -382,7 +486,7 @@ __attribute__ ((visibility ("default")))
       // On Ubunty (9.04 at least), without this hack, python binary modules fail to load
       // After a little search on the web, it seems that Ubuntu's python is compiled a weird way
       char ver[32];
-      sprintf(ver, "%.1f", LWC_PYVER);
+      sprintf(ver, "%.1f", PY_VER);
       std::string pyso = "libpython";
       pyso += ver;
       pyso += ".so";

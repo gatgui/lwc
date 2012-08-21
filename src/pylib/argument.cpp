@@ -22,10 +22,198 @@ USA.
 */
 
 #include <lwc/python/types.h>
+#include <lwc/python/convert.h>
 
 namespace py {
 
 PyTypeObject PyLWCArgumentType;
+
+// ---
+
+void FreeDefaultValue(struct DefaultValueEntry &dve);
+
+struct DefaultValueEntry
+{
+   lwc::Type type;
+   bool array;
+   size_t len;
+   void *ptr;
+   
+   DefaultValueEntry()
+     : type(lwc::AT_UNKNOWN)
+     , array(false)
+     , len(0)
+     , ptr(0) {
+   }
+   
+   ~DefaultValueEntry() {
+     FreeDefaultValue(*this);
+   }
+};
+
+static std::deque<DefaultValueEntry> gsDefaultValues;
+
+void AddDefaultValue(void *ptr, lwc::Type t, bool array, size_t len=0) {
+#ifdef _DEBUG
+  std::cout << "Add lwc python module default value " << std::hex << ptr << std::dec << ", " << t << ", " << array << ", " << len << std::endl;
+#endif
+  //DefaultValueEntry &dve = {t, array, len, ptr};
+  //gsDefaultValues.push_back(dve);
+  gsDefaultValues.push_back(DefaultValueEntry());
+  DefaultValueEntry &dve = gsDefaultValues.back();
+  dve.type = t;
+  dve.array = array;
+  dve.len = len;
+  dve.ptr = ptr;
+}
+
+bool SetArgDefault(lwc::Argument &arg, PyObject *obj) {
+  if (arg.getDir() != lwc::AD_IN) {
+    return false;
+  }
+  
+  bool rv = true;
+  
+  switch (arg.getType()) {
+  case lwc::AT_BOOL:
+    if (arg.isArray()) {
+      bool *defVal = 0;
+      size_t len = 0;
+      Python2C<lwc::AT_BOOL>::ToArray(obj, defVal, len);
+      arg.setDefaultValue(defVal);
+      AddDefaultValue((void*)defVal, arg.getType(), true, len);
+    } else {
+      bool defVal = false;
+      Python2C<lwc::AT_BOOL>::ToValue(obj, defVal);
+      arg.setDefaultValue(defVal);
+    }
+    break;
+  case lwc::AT_INT:
+    if (arg.isArray()) {
+      lwc::Integer *defVal = 0;
+      size_t len = 0;
+      Python2C<lwc::AT_INT>::ToArray(obj, defVal, len);
+      arg.setDefaultValue(defVal);
+      AddDefaultValue((void*)defVal, arg.getType(), true, len);
+    } else {
+      lwc::Integer defVal = 0;
+      Python2C<lwc::AT_INT>::ToValue(obj, defVal);
+      arg.setDefaultValue(defVal);
+    }
+    break;
+  case lwc::AT_REAL:
+    if (arg.isArray()) {
+      lwc::Real *defVal = 0;
+      size_t len = 0;
+      Python2C<lwc::AT_REAL>::ToArray(obj, defVal, len);
+      arg.setDefaultValue(defVal);
+      AddDefaultValue((void*)defVal, arg.getType(), true, len);
+    } else {
+      lwc::Real defVal = 0.0;
+      Python2C<lwc::AT_REAL>::ToValue(obj, defVal);
+      arg.setDefaultValue(defVal);
+    }
+    break;
+  case lwc::AT_STRING:
+    if (arg.isArray()) {
+      char **defVal = 0;
+      size_t len = 0;
+      Python2C<lwc::AT_STRING>::ToArray(obj, defVal, len);
+      arg.setDefaultValue(defVal);
+      AddDefaultValue((void*)defVal, arg.getType(), true, len);
+    } else {
+      char *defVal = 0;
+      Python2C<lwc::AT_STRING>::ToValue(obj, defVal);
+      arg.setDefaultValue(defVal);
+      AddDefaultValue((void*)defVal, arg.getType(), false);
+    }
+    break;
+  case lwc::AT_OBJECT:
+    if (arg.isArray()) {
+      lwc::Object **defVal = 0;
+      size_t len = 0;
+      Python2C<lwc::AT_OBJECT>::ToArray(obj, defVal, len);
+      arg.setDefaultValue(defVal);
+      AddDefaultValue((void*)defVal, arg.getType(), true, len);
+    } else {
+      lwc::Object *defVal = 0;
+      Python2C<lwc::AT_OBJECT>::ToValue(obj, defVal);
+      arg.setDefaultValue(defVal);
+      AddDefaultValue((void*)defVal, arg.getType(), false);
+    }
+    break;
+  default:
+    rv = false;
+    break;
+  }
+  
+  return rv;
+}
+
+void FreeDefaultValue(DefaultValueEntry &dve) {
+  if (dve.ptr == 0) {
+    return;
+  }
+#ifdef _DEBUG
+  std::cout << "Free lwc python module default value " << std::hex << dve.ptr << std::dec << ", " << dve.type << ", " << dve.array << ", " << dve.len << std::endl;
+#endif
+  switch (dve.type) {
+  case lwc::AT_BOOL:
+    if (dve.array) {
+      bool *ary = (bool*) dve.ptr;
+      Python2C<lwc::AT_BOOL>::DisposeArray(ary, dve.len);
+    }
+    break;
+  case lwc::AT_INT:
+    if (dve.array) {
+      lwc::Integer *ary = (lwc::Integer*) dve.ptr;
+      Python2C<lwc::AT_INT>::DisposeArray(ary, dve.len);
+    }
+    break;
+  case lwc::AT_REAL:
+    if (dve.array) {
+      lwc::Real *ary = (lwc::Real*) dve.ptr;
+      Python2C<lwc::AT_REAL>::DisposeArray(ary, dve.len);
+    }
+    break;
+  case lwc::AT_STRING:
+    if (dve.array) {
+      char **ary = (char**) dve.ptr;
+      Python2C<lwc::AT_STRING>::DisposeArray(ary, dve.len);
+    } else {
+      char *str = (char*) dve.ptr;
+      Python2C<lwc::AT_STRING>::DisposeValue(str);
+    }
+    break;
+  case lwc::AT_OBJECT:
+    if (dve.array) {
+      lwc::Object **ary = (lwc::Object**) dve.ptr;
+      Python2C<lwc::AT_OBJECT>::DisposeArray(ary, dve.len);
+    } else {
+      lwc::Object *obj = (lwc::Object*) dve.ptr;
+      Python2C<lwc::AT_OBJECT>::DisposeValue(obj);
+    }
+  default:
+    break;
+  }
+}
+
+// ---
+
+void CleanupModule() {
+  // Don't need to care about that anymore, now handled in
+  // DefaultValueEntry destructor
+  //
+  //for (size_t i=0; i<gsDefaultValues.size(); ++i) {
+  //  FreeDefaultValue(gsDefaultValues[i]);
+  //}
+  //gsDefaultValues.clear();
+#ifdef LWC_MEMTRACK
+  std::cout << "=== lwc library: Memory status after python module cleanup" << std::endl;
+  std::cout << lwc::Object::GetInstanceCount() << " remaining object(s)" << std::endl;
+  lwc::memory::PrintAllocationInfo();
+#endif
+}
 
 // ---
 
@@ -60,6 +248,22 @@ static int lwcarg_init(PyObject *pself, PyObject *args, PyObject *kwargs) {
         return -1;
       }
       self->arg.setArraySizeArg(PyInt_AsLong(val));
+    }
+    PyObject *pDefVal = PyDict_GetItemString(kwargs, "default");
+    if (pDefVal) {
+      SetArgDefault(self->arg, pDefVal);
+    }
+    if (dir != lwc::AD_OUT) {
+      // check for name value only on IN/INOUT attributes
+      PyObject *pName = PyDict_GetItemString(kwargs, "name");
+      if (pName) {
+        if (!PyString_Check(pName)) {
+          PyErr_SetString(PyExc_RuntimeError, "lwcpy.Argument.__init__: expected string value for \"name\" keyword");
+          return -1;
+        }
+        const char *name = PyString_AsString(pName);
+        self->arg.setName(name);
+      }
     }
     
   } else if (nargs != 0) {
@@ -96,6 +300,11 @@ static PyObject* lwcarg_getDir(PyObject *pself, void *) {
   return PyInt_FromLong(self->arg.getDir());
 }
 
+static PyObject* lwcarg_getName(PyObject *pself, void *) {
+  PyLWCArgument *self = (PyLWCArgument*)pself;
+  return PyString_FromString(self->arg.getName().c_str());
+}
+
 static PyObject* lwcarg_getArraySizeArg(PyObject *pself, void *) {
   PyLWCArgument *self = (PyLWCArgument*)pself;
   return PyInt_FromLong(long(self->arg.arraySizeArg()));
@@ -115,6 +324,12 @@ static int lwcarg_setType(PyObject *pself, PyObject *val, void *) {
 static int lwcarg_setDir(PyObject *pself, PyObject *val, void *) {
   PyLWCArgument *self = (PyLWCArgument*)pself;
   self->arg.setDir(lwc::Direction(PyInt_AsLong(val)));
+  return 0;
+}
+
+static int lwcarg_setName(PyObject *pself, PyObject *val, void *) {
+  PyLWCArgument *self = (PyLWCArgument*)pself;
+  self->arg.setName(PyString_AsString(val));
   return 0;
 }
 
@@ -140,13 +355,57 @@ static PyObject* lwcarg_str(PyObject *pself) {
   return PyString_FromString(self->arg.toString().c_str());
 }
 
+static PyObject* lwcarg_docString(PyObject *pself, PyObject *, PyObject *kwargs) {
+  PyLWCArgument *self = (PyLWCArgument*) pself;
+  std::string indent = "";
+  PyObject *pIndent = PyDict_GetItemString(kwargs, "indent");
+  if (pIndent) {
+    if (!PyString_Check(pIndent)) {
+      PyErr_SetString(PyExc_RuntimeError, "string value expected fror \"indent\" keyword");
+      return NULL;
+    }
+    indent = PyString_AsString(pIndent);
+  }
+  return PyString_FromString(self->arg.docString(indent).c_str());
+}
+
+static PyObject* lwcarg_isNamed(PyObject *pself) {
+  PyLWCArgument *self = (PyLWCArgument*)pself;
+  if (self->arg.isNamed()) {
+    Py_INCREF(Py_True);
+    return Py_True;
+  } else {
+    Py_INCREF(Py_False);
+    return Py_False;
+  }
+}
+
+static PyObject* lwcarg_hasDefault(PyObject *pself) {
+  PyLWCArgument *self = (PyLWCArgument*)pself;
+  if (self->arg.hasDefaultValue()) {
+    Py_INCREF(Py_True);
+    return Py_True;
+  } else {
+    Py_INCREF(Py_False);
+    return Py_False;
+  }
+}
+
 static PyGetSetDef lwcarg_getset[] = {
   {"array", lwcarg_getArray, lwcarg_setArray, "Is argument array", NULL},
   {"dir", lwcarg_getDir, lwcarg_setDir, "Argument direction", NULL},
   {"type", lwcarg_getType, lwcarg_setType, "Argument type", NULL},
+  {"name", lwcarg_getName, lwcarg_setName, "Argument name", NULL},
   {"arraySizeArg", lwcarg_getArraySizeArg, lwcarg_setArraySizeArg, "Index of argument containing array size", NULL},
-  {"arrayArg", lwcarg_getArrayArg, lwcarg_setArrayArg, "Index or refering array", NULL},
+  {"arrayArg", lwcarg_getArrayArg, lwcarg_setArrayArg, "Index of refering array", NULL},
   {NULL, NULL, NULL, NULL, NULL}
+};
+
+static PyMethodDef lwcarg_methods[] = {
+  {"docString", (PyCFunction) lwcarg_docString, METH_VARARGS|METH_KEYWORDS, "Argument document string"},
+  {"isNamed", (PyCFunction) lwcarg_isNamed, METH_NOARGS, "Is argument named"},
+  {"hasDefault", (PyCFunction) lwcarg_hasDefault, METH_NOARGS, "Does argument have a default value"},
+  {NULL, NULL, 0, NULL}
 };
 
 // ---
@@ -181,6 +440,7 @@ bool InitArgument(PyObject *m) {
   PyLWCArgumentType.tp_dealloc = lwcarg_free;
   PyLWCArgumentType.tp_getset = lwcarg_getset;
   PyLWCArgumentType.tp_str = lwcarg_str;
+  PyLWCArgumentType.tp_methods = lwcarg_methods;
   if (PyType_Ready(&PyLWCArgumentType) < 0) {
     return false;
   }

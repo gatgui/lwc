@@ -249,6 +249,44 @@ int main(int, char**) {
   if (c) reg->destroy(c);
   if (b) reg->destroy(b);
   
+  if (reg->hasType("pytest.ObjectList")) {
+    lwc::Object *ol = reg->create("pytest.ObjectList");
+    
+    try {
+      std::cout << "call pytest.ObjectList.printInt" << std::endl;
+      ol->call("printInt", 10, "=> ");
+    } catch (std::exception &e) {
+      std::cout << "*** FAILED: " << e.what() << std::endl;
+    }
+    
+    try {
+      std::cout << "call pytest.ObjectList.printInt (with keyword arg)" << std::endl;
+      lwc::KeywordArgs kwargs;
+      kwargs.set("indent", "=> ");
+      ol->call("printInt", 10, kwargs);
+    } catch (std::exception &e) {
+      std::cout << "*** FAILED: " << e.what() << std::endl;
+    }
+    
+    try {
+      std::cout << "call pytest.ObjectList.printInt (with keyword arg, voluntary missing positional arg)" << std::endl;
+      lwc::KeywordArgs kwargs;
+      kwargs.set("indent", "=> ");
+      ol->call("printInt", kwargs);
+    } catch (std::exception &e) {
+      std::cout << "*** FAILED: " << e.what() << std::endl;
+    }
+    
+    try {
+      std::cout << "call pytest.ObjectList.printInt (no args)" << std::endl;
+      ol->call("printInt");
+    } catch (std::exception &e) {
+      std::cout << "*** FAILED: " << e.what() << std::endl;
+    }
+    
+    reg->destroy(ol);
+  }
+  
   lwc::Registry::DeInitialize();
   
   return 0;

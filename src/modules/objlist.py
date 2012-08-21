@@ -21,14 +21,29 @@ import lwcpy
 
 class ObjectList(lwcpy.Object):
   
-  Methods = {"push"  : [(lwcpy.AD_IN, lwcpy.AT_OBJECT)],
-             "at"    : [(lwcpy.AD_IN, lwcpy.AT_INT), (lwcpy.AD_OUT, lwcpy.AT_OBJECT)],
-             "set"   : [(lwcpy.AD_IN, lwcpy.AT_INT), (lwcpy.AD_IN, lwcpy.AT_OBJECT)],
-             "first" : [(lwcpy.AD_OUT, lwcpy.AT_OBJECT)],
-             "last"  : [(lwcpy.AD_OUT, lwcpy.AT_OBJECT)],
-             "erase" : [(lwcpy.AD_IN, lwcpy.AT_INT)],
-             "size"  : [(lwcpy.AD_OUT, lwcpy.AT_INT)],
-             "pop"   : []}
+  Methods = {"push"  : ([(lwcpy.AD_IN, lwcpy.AT_OBJECT)],
+                        "Append object to list"),
+             "at"    : ([(lwcpy.AD_IN, lwcpy.AT_INT),
+                         (lwcpy.AD_OUT, lwcpy.AT_OBJECT)],
+                        "Get object at given index"),
+             "set"   : ([(lwcpy.AD_IN, lwcpy.AT_INT),
+                         (lwcpy.AD_IN, lwcpy.AT_OBJECT)],
+                        "Replace object at given index"),
+             "first" : ([(lwcpy.AD_OUT, lwcpy.AT_OBJECT)],
+                        "Get first object in list"),
+             "last"  : ([(lwcpy.AD_OUT, lwcpy.AT_OBJECT)],
+                        "Get last object in list"),
+             "erase" : ([(lwcpy.AD_IN, lwcpy.AT_INT)],
+                        "Remove object at given index"),
+             "size"  : ([(lwcpy.AD_OUT, lwcpy.AT_INT)],
+                        "Get number of object(s) in list"),
+             "pop"   : ([],
+                        "Remove last object in list"),
+             "printInt": ([(lwcpy.AD_IN, lwcpy.AT_INT),
+                           (lwcpy.AD_IN, lwcpy.AT_STRING, -1, True, "", "indent")],
+                          "Print an integer number with optional indent")}
+  
+  Description = "List of lwc::Object instances."
   
   def __init__(self):
     lwcpy.Object.__init__(self)
@@ -71,10 +86,16 @@ class ObjectList(lwcpy.Object):
     if len(self.lst) > 0:
       self.lst = self.lst[:-1]
   
-
+  def printInt(self, val, indent=""):
+    print("%s%s" % (indent, val))
+  
 
 class ObjectList2(ObjectList):
-  Methods = {"clear": []}
+  
+  Methods = {"clear": ([],
+                       "Remove all object(s) from list")}
+  
+  Description = "Clearable list of lwc::Object instances."
   
   def __init__(self):
     ObjectList.__init__(self)

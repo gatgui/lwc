@@ -61,6 +61,47 @@ void Registry::DeInitialize() {
   }
 }
 
+/*
+Don't do this, as we want to set host when lwc is initialized from a different language
+
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID)
+{
+   switch (fdwReason)
+   {
+   case DLL_PROCESS_ATTACH:
+      Registry::Initialize();
+      break;
+   case DLL_PROCESS_DETACH:
+      Registry::DeInitialize();
+   default:
+      break;
+   }
+   return TRUE;
+}
+#else
+#ifdef __GNUC__
+__attribute__((constructor)) int _lwcinit()
+#else
+int init()
+#endif
+{
+   Initialize();
+   return 0;
+}
+#ifdef __GNUC__
+__attribute__((destructor)) void _lwcexit()
+#else
+void fini()
+#endif
+{
+   Registry::DeInitialize();
+}
+#endif
+*/
+
 Registry::Registry(const char *hostLang, void *userData)
   : mHostLang(hostLang), mUserData(userData) {
   msInstance = this;

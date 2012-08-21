@@ -60,6 +60,7 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
   }
   
   PyObject *args = PyTuple_New(ninputs);
+  // no need to actually use keyword arguments
   
   std::map<size_t, size_t> inoutArgs;
   std::map<size_t, size_t> inoutInSizes;
@@ -94,11 +95,11 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
         case lwc::AT_INT: {
           if (!out) {
             lwc::Integer sz;
-            params.get(size_t(arg.arraySizeArg()), sz);
+            params.get(size_t(arg.arraySizeArg()), sz, false);
             len = size_t(sz);
           } else {
             lwc::Integer *sz;
-            params.get(size_t(arg.arraySizeArg()), sz);
+            params.get(size_t(arg.arraySizeArg()), sz, false);
             len = size_t(*sz);
           }
           break;
@@ -115,11 +116,11 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
         case lwc::AT_BOOL: {
           if (!out) {
             bool *ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Python<lwc::AT_BOOL>::ToArray(ary, len, parg);
           } else {
             bool **ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Python<lwc::AT_BOOL>::ToArray(*ary, len, parg);
           }
           break;
@@ -127,11 +128,11 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
         case lwc::AT_INT: {
           if (!out) {
             lwc::Integer *ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Python<lwc::AT_INT>::ToArray(ary, len, parg);
           } else {
             lwc::Integer **ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Python<lwc::AT_INT>::ToArray(*ary, len, parg);
           }
           break;
@@ -139,11 +140,11 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
         case lwc::AT_REAL: {
           if (!out) {
             lwc::Real *ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Python<lwc::AT_REAL>::ToArray(ary, len, parg);
           } else {
             lwc::Real **ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Python<lwc::AT_REAL>::ToArray(*ary, len, parg);
           }
           break;
@@ -151,11 +152,11 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
         case lwc::AT_STRING: {
           if (!out) {
             char **ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Python<lwc::AT_STRING>::ToArray(ary, len, parg);
           } else {
             char ***ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Python<lwc::AT_STRING>::ToArray(*ary, len, parg);
           }
           break;
@@ -163,11 +164,11 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
         case lwc::AT_OBJECT: {
           if (!out) {
             lwc::Object **ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Python<lwc::AT_OBJECT>::ToArray(ary, len, parg);
           } else {
             lwc::Object ***ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Python<lwc::AT_OBJECT>::ToArray(*ary, len, parg);
           }
           break;
@@ -184,31 +185,31 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       switch(arg.getType()) {
         case lwc::AT_BOOL: {
           bool val;
-          params.get(i, val);
+          params.get(i, val, false);
           C2Python<lwc::AT_BOOL>::ToValue(val, parg);
           break;
         }
         case lwc::AT_INT: {
           lwc::Integer val;
-          params.get(i, val);
+          params.get(i, val, false);
           C2Python<lwc::AT_INT>::ToValue(val, parg);
           break;
         }
         case lwc::AT_REAL: {
           lwc::Real val;
-          params.get(i, val);
+          params.get(i, val, false);
           C2Python<lwc::AT_REAL>::ToValue(val, parg);
           break;
         }
         case lwc::AT_STRING: {
           char *val;
-          params.get(i, val);
+          params.get(i, val, false);
           C2Python<lwc::AT_STRING>::ToValue(val, parg);
           break;
         }
         case lwc::AT_OBJECT: {
           lwc::Object *val;
-          params.get(i, val);
+          params.get(i, val, false);
           C2Python<lwc::AT_OBJECT>::ToValue(val, parg);
           break;
         }
@@ -358,25 +359,25 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       switch(arg.getType()) {
         case lwc::AT_BOOL: {
           bool **ary;
-          params.get(i, ary);
+          params.get(i, ary, false);
           Python2C<lwc::AT_BOOL>::ToArray(crv, *ary, len);
           break;
         }
         case lwc::AT_INT: {
           lwc::Integer **ary;
-          params.get(i, ary);
+          params.get(i, ary, false);
           Python2C<lwc::AT_INT>::ToArray(crv, *ary, len);
           break;
         }
         case lwc::AT_REAL: {
           lwc::Real **ary;
-          params.get(i, ary);
+          params.get(i, ary, false);
           Python2C<lwc::AT_REAL>::ToArray(crv, *ary, len);
           break;
         }
         case lwc::AT_STRING: {
           char ***ary;
-          params.get(i, ary);
+          params.get(i, ary, false);
           // if inout ... might need to free stuffs
           // as ToArray will re-alloc but not necessarily free elements
           // len is in/out -> could use it to free the required number
@@ -385,7 +386,7 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
         }
         case lwc::AT_OBJECT: {
           lwc::Object ***ary;
-          params.get(i, ary);
+          params.get(i, ary, false);
           Python2C<lwc::AT_OBJECT>::ToArray(crv, *ary, len);
           break;
         }
@@ -399,7 +400,7 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       switch(lenarg.getType()) {
         case lwc::AT_INT: {
           lwc::Integer *sz;
-          params.get(size_t(arg.arraySizeArg()), sz);
+          params.get(size_t(arg.arraySizeArg()), sz, false);
           *sz = (lwc::Integer) len;
           break;
         }
@@ -427,31 +428,31 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       switch(arg.getType()) {
         case lwc::AT_BOOL: {
           bool *val;
-          params.get(i, val);
+          params.get(i, val, false);
           Python2C<lwc::AT_BOOL>::ToValue(crv, *val);
           break;
         }
         case lwc::AT_INT: {
           lwc::Integer *val;
-          params.get(i, val);
+          params.get(i, val, false);
           Python2C<lwc::AT_INT>::ToValue(crv, *val);
           break;
         }
         case lwc::AT_REAL: {
           lwc::Real *val;
-          params.get(i, val);
+          params.get(i, val, false);
           Python2C<lwc::AT_REAL>::ToValue(crv, *val);
           break;
         }
         case lwc::AT_STRING: {
           char **val;
-          params.get(i, val);
+          params.get(i, val, false);
           Python2C<lwc::AT_STRING>::ToValue(crv, *val);
           break;
         }
         case lwc::AT_OBJECT: {
           lwc::Object **val;
-          params.get(i, val);
+          params.get(i, val, false);
           Python2C<lwc::AT_OBJECT>::ToValue(crv, *val);
           break;
         }

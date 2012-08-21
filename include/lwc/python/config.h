@@ -39,6 +39,12 @@ USA.
 #include <lwc/memory.h>
 #include <lwc/object.h>
 #include <lwc/registry.h>
+
+#if !defined(_WIN32) || !defined(__APPLE__)
+#  undef _POSIX_C_SOURCE
+#  undef _XOPEN_SOURCE
+#endif
+
 #include <Python.h>
 
 #endif

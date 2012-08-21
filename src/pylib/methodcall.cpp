@@ -52,7 +52,7 @@ static void methcall_free(PyObject *pself) {
 // This needs to be a recursive call rather than a for loop inside
 // because real parameters are created on the stack [important for return value]
 PyObject* CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, int cArg,
-                     PyObject *args, size_t pyArg, std::map<size_t,size_t> &arraySizes) throw(std::runtime_error) {
+                     PyObject *args, PyObject *kwargs, size_t pyArg, std::map<size_t,size_t> &arraySizes) throw(std::runtime_error) {
   
   const lwc::Method &m = params.getMethod();
   
@@ -84,29 +84,44 @@ PyObject* CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, i
     
     // PreCallArray will increment pyArg if necessarys
     size_t oldPyArg = pyArg;
+    bool failed = false;
     
     switch (ad.getType()) {
       case lwc::AT_BOOL: {
         if (ad.isArray()) {
           bool *ary=0;
           ParamConverter<lwc::AT_BOOL>::PreCallArray(ad, cArg, args, pyArg, arraySizes, ary);
-          if (ad.getDir() == lwc::AD_IN) {
-            params.set(cArg, ary);
-          } else {
-            params.set(cArg, &ary);
+          try {
+            if (ad.getDir() == lwc::AD_IN) {
+              params.set(cArg, ary, false);
+            } else {
+              params.set(cArg, &ary, false);
+            }
+          } catch (std::exception &e) {
+            PyErr_SetString(PyExc_RuntimeError, e.what());
+            failed = true;
           }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
+          if (!failed) {
+            rv = CallMethod(o, n, params, cArg+1, args, kwargs, pyArg, arraySizes);
+          }
           ParamConverter<lwc::AT_BOOL>::PostCallArray(ad, cArg, args, oldPyArg, arraySizes, ary, rv);
           
         } else {
           bool val;
           ParamConverter<lwc::AT_BOOL>::PreCall(ad, cArg, args, pyArg, arraySizes, val);
-          if (ad.getDir() == lwc::AD_IN) {
-            params.set(cArg, val);
-          } else {
-            params.set(cArg, &val);
+          try {
+            if (ad.getDir() == lwc::AD_IN) {
+              params.set(cArg, val, false);
+            } else {
+              params.set(cArg, &val, false);
+            }
+          } catch (std::exception &e) {
+            PyErr_SetString(PyExc_RuntimeError, e.what());
+            failed = true;
           }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
+          if (!failed) {
+            rv = CallMethod(o, n, params, cArg+1, args, kwargs, pyArg, arraySizes);
+          }
           ParamConverter<lwc::AT_BOOL>::PostCall(ad, cArg, args, oldPyArg, arraySizes, val, rv);
         }
         break;
@@ -115,23 +130,37 @@ PyObject* CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, i
         if (ad.isArray()) {
           lwc::Integer *ary=0;
           ParamConverter<lwc::AT_INT>::PreCallArray(ad, cArg, args, pyArg, arraySizes, ary);
-          if (ad.getDir() == lwc::AD_IN) {
-            params.set(cArg, ary);
-          } else {
-            params.set(cArg, &ary);
+          try {
+            if (ad.getDir() == lwc::AD_IN) {
+              params.set(cArg, ary, false);
+            } else {
+              params.set(cArg, &ary, false);
+            }
+          } catch (std::exception &e) {
+            PyErr_SetString(PyExc_RuntimeError, e.what());
+            failed = true;
           }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
+          if (!failed) {
+            rv = CallMethod(o, n, params, cArg+1, args, kwargs, pyArg, arraySizes);
+          }
           ParamConverter<lwc::AT_INT>::PostCallArray(ad, cArg, args, oldPyArg, arraySizes, ary, rv);
           
         } else {
           lwc::Integer val;
           ParamConverter<lwc::AT_INT>::PreCall(ad, cArg, args, pyArg, arraySizes, val);
-          if (ad.getDir() == lwc::AD_IN) {
-            params.set(cArg, val);
-          } else {
-            params.set(cArg, &val);
+          try {
+            if (ad.getDir() == lwc::AD_IN) {
+              params.set(cArg, val, false);
+            } else {
+              params.set(cArg, &val, false);
+            }
+          } catch (std::exception &e) {
+            PyErr_SetString(PyExc_RuntimeError, e.what());
+            failed = true;
           }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
+          if (!failed) {
+            rv = CallMethod(o, n, params, cArg+1, args, kwargs, pyArg, arraySizes);
+          }
           ParamConverter<lwc::AT_INT>::PostCall(ad, cArg, args, oldPyArg, arraySizes, val, rv);
         }
         break;
@@ -140,23 +169,37 @@ PyObject* CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, i
         if (ad.isArray()) {
           lwc::Real *ary=0;
           ParamConverter<lwc::AT_REAL>::PreCallArray(ad, cArg, args, pyArg, arraySizes, ary);
-          if (ad.getDir() == lwc::AD_IN) {
-            params.set(cArg, ary);
-          } else {
-            params.set(cArg, &ary);
+          try {
+            if (ad.getDir() == lwc::AD_IN) {
+              params.set(cArg, ary, false);
+            } else {
+              params.set(cArg, &ary, false);
+            }
+          } catch (std::exception &e) {
+            PyErr_SetString(PyExc_RuntimeError, e.what());
+            failed = true;
           }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
+          if (!failed) {
+            rv = CallMethod(o, n, params, cArg+1, args, kwargs, pyArg, arraySizes);
+          }
           ParamConverter<lwc::AT_REAL>::PostCallArray(ad, cArg, args, oldPyArg, arraySizes, ary, rv);
           
         } else {
           lwc::Real val;
           ParamConverter<lwc::AT_REAL>::PreCall(ad, cArg, args, pyArg, arraySizes, val);
-          if (ad.getDir() == lwc::AD_IN) {
-            params.set(cArg, val);
-          } else {
-            params.set(cArg, &val);
+          try {
+            if (ad.getDir() == lwc::AD_IN) {
+              params.set(cArg, val, false);
+            } else {
+              params.set(cArg, &val, false);
+            }
+          } catch (std::exception &e) {
+            PyErr_SetString(PyExc_RuntimeError, e.what());
+            failed = true;
           }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
+          if (!failed) {
+            rv = CallMethod(o, n, params, cArg+1, args, kwargs, pyArg, arraySizes);
+          }
           ParamConverter<lwc::AT_REAL>::PostCall(ad, cArg, args, oldPyArg, arraySizes, val, rv);
         }
         break;
@@ -165,23 +208,37 @@ PyObject* CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, i
         if (ad.isArray()) {
           char **ary=0;
           ParamConverter<lwc::AT_STRING>::PreCallArray(ad, cArg, args, pyArg, arraySizes, ary);
-          if (ad.getDir() == lwc::AD_IN) {
-            params.set(cArg, ary);
-          } else {
-            params.set(cArg, &ary);
+          try {
+            if (ad.getDir() == lwc::AD_IN) {
+              params.set(cArg, ary, false);
+            } else {
+              params.set(cArg, &ary, false);
+            }
+          } catch (std::exception &e) {
+            PyErr_SetString(PyExc_RuntimeError, e.what());
+            failed = true;
           }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
+          if (!failed) {
+            rv = CallMethod(o, n, params, cArg+1, args, kwargs, pyArg, arraySizes);
+          }
           ParamConverter<lwc::AT_STRING>::PostCallArray(ad, cArg, args, oldPyArg, arraySizes, ary, rv);
           
         } else {
           char *val;
           ParamConverter<lwc::AT_STRING>::PreCall(ad, cArg, args, pyArg, arraySizes, val);
-          if (ad.getDir() == lwc::AD_IN) {
-            params.set(cArg, val);
-          } else {
-            params.set(cArg, &val);
+          try {
+            if (ad.getDir() == lwc::AD_IN) {
+              params.set(cArg, val, false);
+            } else {
+              params.set(cArg, &val, false);
+            }
+          } catch (std::exception &e) {
+            PyErr_SetString(PyExc_RuntimeError, e.what());
+            failed = true;
           }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
+          if (!failed) {
+            rv = CallMethod(o, n, params, cArg+1, args, kwargs, pyArg, arraySizes);
+          }
           ParamConverter<lwc::AT_STRING>::PostCall(ad, cArg, args, oldPyArg, arraySizes, val, rv);
         }
         break;
@@ -190,23 +247,37 @@ PyObject* CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, i
         if (ad.isArray()) {
           lwc::Object **ary=0;
           ParamConverter<lwc::AT_OBJECT>::PreCallArray(ad, cArg, args, pyArg, arraySizes, ary);
-          if (ad.getDir() == lwc::AD_IN) {
-            params.set(cArg, ary);
-          } else {
-            params.set(cArg, &ary);
+          try {
+            if (ad.getDir() == lwc::AD_IN) {
+              params.set(cArg, ary, false);
+            } else {
+              params.set(cArg, &ary, false);
+            }
+          } catch (std::exception &e) {
+            PyErr_SetString(PyExc_RuntimeError, e.what());
+            failed = true;
           }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
+          if (!failed) {
+            rv = CallMethod(o, n, params, cArg+1, args, kwargs, pyArg, arraySizes);
+          }
           ParamConverter<lwc::AT_OBJECT>::PostCallArray(ad, cArg, args, oldPyArg, arraySizes, ary, rv);
           
         } else {
           lwc::Object *val;
           ParamConverter<lwc::AT_OBJECT>::PreCall(ad, cArg, args, pyArg, arraySizes, val);
-          if (ad.getDir() == lwc::AD_IN) {
-            params.set(cArg, val);
-          } else {
-            params.set(cArg, &val);
+          try {
+            if (ad.getDir() == lwc::AD_IN) {
+              params.set(cArg, val, false);
+            } else {
+              params.set(cArg, &val, false);
+            }
+          } catch (std::exception &e) {
+            PyErr_SetString(PyExc_RuntimeError, e.what());
+            failed = true;
           }
-          rv = CallMethod(o, n, params, cArg+1, args, pyArg, arraySizes);
+          if (!failed) {
+            rv = CallMethod(o, n, params, cArg+1, args, kwargs, pyArg, arraySizes);
+          }
           ParamConverter<lwc::AT_OBJECT>::PostCall(ad, cArg, args, oldPyArg, arraySizes, val, rv);
         }
         break;
@@ -214,6 +285,10 @@ PyObject* CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, i
       default:
         PyErr_SetString(PyExc_RuntimeError, "Invalid argument type");
         return NULL;
+    }
+    
+    if (failed) {
+      return NULL;
     }
     
     if (cArg == 0) {
@@ -247,13 +322,16 @@ PyObject* CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, i
   }
 }
 
-static PyObject *methcall_doit(PyObject *pself, PyObject *args, PyObject *) {
+static PyObject *methcall_doit(PyObject *pself, PyObject *args, PyObject *kwargs) {
   PyLWCMethodCall *self = (PyLWCMethodCall*) pself;
+//#ifdef _DEBUG
+//  std::cout << "MethodCall: " << PyDict_Size(kwargs) << " keyword arguments (kwargs=" << std::hex << kwargs << std::dec << ")" << std::endl;
+//#endif
   try {
     const lwc::Method &m = self->obj->getMethod(self->method);
     std::map<size_t, size_t> arraySizes;
     lwc::MethodParams params = lwc::MethodParams(m);
-    return CallMethod(self->obj, self->method, params, 0, args, 0, arraySizes);
+    return CallMethod(self->obj, self->method, params, 0, args, kwargs, 0, arraySizes);
   } catch (std::runtime_error &e) {
     PyErr_SetString(PyExc_RuntimeError, e.what());
     return 0;
