@@ -120,6 +120,29 @@ class RbFactory : public lwc::Factory {
       }
     }
     
+    virtual const char* getDescription(const char *typeName) {
+      std::map<std::string, TypeEntry>::iterator it = mTypes.find(typeName);
+      if (it != mTypes.end()) {
+        return it->second.desc;
+      } else {
+        return 0;
+      }
+    }
+    
+    virtual std::string docString(const char *typeName, const std::string &indent="") {
+      std::map<std::string, TypeEntry>::iterator it = mTypes.find(typeName);
+      if (it != mTypes.end()) {
+        std::ostringstream oss;
+        oss << indent << typeName << ":" << std::endl;
+        oss << indent << "  " << getDescription(typeName) << std::endl;
+        oss << std::endl;
+        oss << it->second.methods->docString(indent+"  ") << std::endl;
+        return oss.str();
+      } else {
+        return "";
+      }
+    }
+    
     bool addType(const char *name, VALUE klass) {
       
       bool singleton = false;
@@ -235,6 +258,7 @@ class RbFactory : public lwc::Factory {
     struct TypeEntry {
       VALUE klass;
       bool singleton;
+      const char *desc;
       lwc::MethodsTable *methods;
     };
     

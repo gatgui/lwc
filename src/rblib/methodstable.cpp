@@ -59,6 +59,9 @@ static VALUE rbmtbl_find(VALUE self, VALUE rname) {
   lwc::MethodsTable *mt = 0;
   rb::Exc::GetPointer(self, mt);
   VALUE sname = rb_check_string_type(rname);
+  if (NIL_P(sname)) {
+    rb_raise(rb_eTypeError, "RLWC::MethodsTable.find expects a string as argument");
+  }
   char *mn = RSTRING(sname)->ptr;
   const lwc::Method *m = mt->findMethod(mn);
   if (!m) {
@@ -85,6 +88,24 @@ static VALUE rbmtbl_tos(VALUE self) {
   return rb_str_new2(s.c_str());
 }
 
+static VALUE rbmtbl_docString(int argc, VALUE *argv, VALUE self) {
+  if (argc > 1) {
+    rb_raise(rb_eArgError, "RLWC::MethodsTable.docString accepts at most 1 argument");
+  }
+  lwc::MethodsTable *mt;
+  rb::Exc::GetPointer(self, mt);
+  std::string indent = "";
+  if (argc == 1) {
+    VALUE sval = rb_check_string_type(argv[0]);
+    if (NIL_P(sval)) {
+      rb_raise(rb_eTypeError, "RLWC::MethodsTable.docString expects a string as argument");
+    }
+    indent = RSTRING(sval)->ptr;
+  }
+  std::string s = mt->docString(indent);
+  return rb_str_new2(s.c_str());
+}
+
 bool InitMethodsTable(VALUE mod) {
   cLWCMethodsTable = rb_define_class_under(mod, "MethodsTable", rb_cObject);
   rb_define_alloc_func(cLWCMethodsTable, rbmtbl_alloc);
@@ -93,6 +114,7 @@ bool InitMethodsTable(VALUE mod) {
   rb_define_method(cLWCMethodsTable, "availableMethods", RBM(rbmtbl_availables), 0);
   rb_define_method(cLWCMethodsTable, "numMethods", RBM(rbmtbl_count), 0);
   rb_define_method(cLWCMethodsTable, "to_s", RBM(rbmtbl_tos), 0);
+  rb_define_method(cLWCMethodsTable, "docString", RBM(rbmtbl_docString), -1);
   return true;
 }
 

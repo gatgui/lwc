@@ -55,6 +55,9 @@ static VALUE rbobj_getMethod(VALUE self, VALUE rname) {
   lwc::Object *obj = 0;
   rb::Exc::GetPointer(self, obj);
   VALUE sname = rb_check_string_type(rname);
+  if (NIL_P(sname)) {
+    rb_raise(rb_eTypeError, "RLWC::Object.getMethod expects a string as argument");
+  }
   char *mn = RSTRING(sname)->ptr;
   VALUE rv = Qnil;
   try {
@@ -85,6 +88,9 @@ static VALUE rbobj_respondsTo(VALUE self, VALUE rname) {
   lwc::Object *obj = 0;
   rb::Exc::GetPointer(self, obj);
   VALUE sname = rb_check_string_type(rname);
+  if (NIL_P(sname)) {
+    rb_raise(rb_eTypeError, "RLWC::Object.respondsTo expects a string as argument");
+  }
   char *mn = RSTRING(sname)->ptr;
   return (obj->respondsTo(mn) ? Qtrue : Qfalse);
 }

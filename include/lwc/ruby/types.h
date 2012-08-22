@@ -43,7 +43,9 @@ namespace rb {
   LWCRB_API bool InitObject(VALUE mod);
   LWCRB_API bool InitRegistry(VALUE mod);
   LWCRB_API void CreateModule();
-
+  LWCRB_API void CleanupModule();
+  
+  LWCRB_API bool SetArgDefault(lwc::Argument &a, VALUE obj);
 }
 
 #endif

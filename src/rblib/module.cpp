@@ -81,3 +81,23 @@ void CreateModule() {
 
 }
 
+
+#ifdef _WIN32
+BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
+  switch (fdwReason) {
+  case DLL_PROCESS_DETACH:
+    rb::CleanupModule();
+  default:
+    break;
+  }
+  return TRUE;
+}
+#else
+#ifdef __GNUC__
+__attribute__((destructor)) void _pylwcexit() {
+#else
+void fini() {
+#endif
+  rb::CleanupModule();
+}
+#endif

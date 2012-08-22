@@ -50,6 +50,9 @@ static VALUE rbreg_addLoaderPath(VALUE self, VALUE rpath) {
     rb_raise(rb_eRuntimeError, "lwc::Registry has not yet been initialized");
   }
   VALUE spath = rb_check_string_type(rpath);
+  if (NIL_P(spath)) {
+    rb_raise(rb_eTypeError, "RLWC::Registry.addLoaderPath expects a string as argument");
+  }
   char *path = RSTRING(spath)->ptr;
   reg->addLoaderPath(path);
   return self;
@@ -61,6 +64,9 @@ static VALUE rbreg_addModulePath(VALUE self, VALUE rpath) {
     rb_raise(rb_eRuntimeError, "lwc::Registry has not yet been initialized");
   }
   VALUE spath = rb_check_string_type(rpath);
+  if (NIL_P(spath)) {
+    rb_raise(rb_eTypeError, "RLWC::Registry.addModulePath expects a string as argument");
+  }
   char *path = RSTRING(spath)->ptr;
   reg->addModulePath(path);
   return self;
@@ -94,8 +100,49 @@ static VALUE rbreg_hasType(VALUE, VALUE rname) {
     rb_raise(rb_eRuntimeError, "lwc::Registry has not yet been initialized");
   }
   VALUE sname = rb_check_string_type(rname);
+  if (NIL_P(sname)) {
+    rb_raise(rb_eTypeError, "RLWC::Registry.hasType expects a string as argument");
+  }
   char *name = RSTRING(sname)->ptr;
   return (reg->hasType(name) ? Qtrue : Qfalse);
+}
+
+static VALUE rbreg_getDesc(VALUE, VALUE rname) {
+  lwc::Registry *reg = lwc::Registry::Instance();
+  if (!reg) {
+    rb_raise(rb_eRuntimeError, "lwc::Registry has not yet been initialized");
+  }
+  VALUE sname = rb_check_string_type(rname);
+  if (NIL_P(sname)) {
+    rb_raise(rb_eTypeError, "RLWC::Registry.getDescription expects a string as argument");
+  }
+  char *name = RSTRING(sname)->ptr;
+  const char *desc = reg->getDescription(name);
+  return rb_str_new2(desc ? desc : "");
+}
+
+static VALUE rbreg_docString(int argc, VALUE *argv, VALUE) {
+  if (argc < 1 || argc > 2) {
+    rb_raise(rb_eArgError, "RLWC::Registry.docString accepts 1 or 2 arguments");
+  }
+  lwc::Registry *reg = lwc::Registry::Instance();
+  if (!reg) {
+    rb_raise(rb_eRuntimeError, "lwc::Registry has not yet been initialized");
+  }
+  VALUE sname = rb_check_string_type(argv[0]);
+  if (NIL_P(sname)) {
+    rb_raise(rb_eTypeError, "RLWC::Registry.docString expects a string as first argument");
+  }
+  char *name = RSTRING(sname)->ptr;
+  std::string indent = "";
+  if (argc == 2) {
+    VALUE sindent = rb_check_string_type(argv[1]);
+    if (NIL_P(sindent)) {
+      rb_raise(rb_eTypeError, "RLWC::Registry.docString expects a string as second argument");
+    }
+    indent = RSTRING(sindent)->ptr;
+  }
+  return rb_str_new2(reg->docString(name, indent).c_str());
 }
 
 static VALUE rbreg_getMethods(VALUE, VALUE rname) {
@@ -104,6 +151,9 @@ static VALUE rbreg_getMethods(VALUE, VALUE rname) {
     rb_raise(rb_eRuntimeError, "lwc::Registry has not yet been initialized");
   }
   VALUE sname = rb_check_string_type(rname);
+  if (NIL_P(sname)) {
+    rb_raise(rb_eTypeError, "RLWC::Registry.getMethods expects a string as argument");
+  }
   char *name = RSTRING(sname)->ptr;
   const lwc::MethodsTable *mt = reg->getMethods(name);
   if (!mt) {
@@ -121,6 +171,9 @@ static VALUE rbreg_create(VALUE, VALUE rname) {
     rb_raise(rb_eRuntimeError, "lwc::Registry has not yet been initialized");
   }
   VALUE sname = rb_check_string_type(rname);
+  if (NIL_P(sname)) {
+    rb_raise(rb_eTypeError, "RLWC::Registry.create expects a string as argument");
+  }
   char *name = RSTRING(sname)->ptr;
   lwc::Object *obj = reg->create(name);
   if (!obj) {
@@ -144,6 +197,9 @@ static VALUE rbreg_get(VALUE, VALUE rname) {
     rb_raise(rb_eRuntimeError, "lwc::Registry has not yet been initialized");
   }
   VALUE sname = rb_check_string_type(rname);
+  if (NIL_P(sname)) {
+    rb_raise(rb_eTypeError, "RLWC::Registry.get expects a string as argument");
+  }
   char *name = RSTRING(sname)->ptr;
   lwc::Object *obj = reg->get(name);
   if (!obj) {
@@ -187,6 +243,8 @@ bool InitRegistry(VALUE mod) {
   rb_define_method(cLWCRegistry, "create", RBM(rbreg_create), 1);
   rb_define_method(cLWCRegistry, "get", RBM(rbreg_get), 1);
   rb_define_method(cLWCRegistry, "destroy", RBM(rbreg_destroy), 1);
+  rb_define_method(cLWCRegistry, "docString", RBM(rbreg_docString), -1);
+  rb_define_method(cLWCRegistry, "getDescription", RBM(rbreg_getDesc), 1);
   return true;
 }
 

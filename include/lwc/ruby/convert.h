@@ -144,8 +144,8 @@ namespace rb {
     }
     
     static void ToArray(VALUE obj, Array &ary, size_t &length) {
-      if (TYPE(obj) == T_ARRAY) {
-        rb_raise(rb_eRuntimeError, "Expected array argument");
+      if (NIL_P(obj) || TYPE(obj) != T_ARRAY) {
+        rb_raise(rb_eTypeError, "Expected array argument");
       }
       struct RArray *rary = RARRAY(obj);
       length = rary->len;

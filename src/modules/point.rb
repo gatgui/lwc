@@ -27,11 +27,18 @@ module Point
   
   class Point < RLWC::Object
     
-    Methods = {:getX => [[RLWC::AD_OUT, RLWC::AT_INT]],
-               :getY => [[RLWC::AD_OUT, RLWC::AT_INT]],
-               :set  => [[RLWC::AD_IN, RLWC::AT_INT], [RLWC::AD_IN, RLWC::AT_INT]],
-               :setX => [[RLWC::AD_IN, RLWC::AT_INT]],
-               :setY => [[RLWC::AD_IN, RLWC::AT_INT]]}
+    Methods = {:getX => [[[RLWC::AD_OUT, RLWC::AT_INT]],
+                         "Get x position"],
+               :getY => [[[RLWC::AD_OUT, RLWC::AT_INT]],
+                         "Get y position"],
+               :set  => [[[RLWC::AD_IN, RLWC::AT_INT], [RLWC::AD_IN, RLWC::AT_INT]],
+                         "Set position"],
+               :setX => [[[RLWC::AD_IN, RLWC::AT_INT]],
+                         "Set x position"],
+               :setY => [[[RLWC::AD_IN, RLWC::AT_INT]],
+                         "Set y position"]}
+    
+    Description = "Basic point class."
     
     def initialize()
       super()
@@ -64,7 +71,10 @@ module Point
   
   class Point2 < Point
     
-    Methods = {:dot => [[RLWC::AD_IN, RLWC::AT_OBJECT], [RLWC::AD_OUT, RLWC::AT_REAL]]}
+    Methods = {:dot => [[[RLWC::AD_IN, RLWC::AT_OBJECT], [RLWC::AD_OUT, RLWC::AT_REAL]],
+                        "Compute dot product between 2 points."]}
+    
+    Description = "Point class with dot product operation."
     
     def initialize()
       super()

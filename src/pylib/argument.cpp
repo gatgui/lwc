@@ -238,18 +238,18 @@ static int lwcarg_init(PyObject *pself, PyObject *args, PyObject *kwargs) {
     self->arg.setDir(dir);
     if (self->arg.isArray()) {
       PyObject *val = 0;
-      val = PyDict_GetItemString(kwargs, "arraySizeArg");
+      val = PyDict_GetItemString(kwargs, "lenidx");
       if (!val) {
-        PyErr_SetString(PyExc_RuntimeError, "lwcpy.Argument.__init__: expected \"arraySizeArg\" keyword arguments for array type argument");
+        PyErr_SetString(PyExc_RuntimeError, "lwcpy.Argument.__init__: expected \"lenidx\" keyword arguments for array type argument");
         return -1;
       }
       if (!PyInt_Check(val)) {
-        PyErr_SetString(PyExc_RuntimeError, "lwcpy.Argument.__init__: expected integer value for \"arraySizeArg\" keyword");
+        PyErr_SetString(PyExc_RuntimeError, "lwcpy.Argument.__init__: expected integer value for \"lenidx\" keyword");
         return -1;
       }
       self->arg.setArraySizeArg(PyInt_AsLong(val));
     }
-    PyObject *pDefVal = PyDict_GetItemString(kwargs, "default");
+    PyObject *pDefVal = PyDict_GetItemString(kwargs, "def");
     if (pDefVal) {
       SetArgDefault(self->arg, pDefVal);
     }
