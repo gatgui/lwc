@@ -168,23 +168,14 @@ static PyObject* lwcobj_getattr(PyObject *pself, char *name) {
       return NULL;
     }
     
-    //if (!strcmp(self->obj->getLoaderName(), "pyloader")) {
-    //  
-    //  PObject *pobj = (PObject*) self->obj;
-    //  o = PyObject_GenericGetAttr(pobj->self(), os);
-    //
-    //} else {
+    std::map<std::string, PyObject*>::iterator it = self->methods.find(name);
     
-      std::map<std::string, PyObject*>::iterator it = self->methods.find(name);
-    
-      if (it == self->methods.end()) {
-        PyErr_Format(PyExc_AttributeError, "lwcpy.Object: no method named \"%s\"", name);
-        return NULL;
-      }
-      o = it->second;
-      Py_INCREF(o);
-      
-    //}
+    if (it == self->methods.end()) {
+      PyErr_Format(PyExc_AttributeError, "lwcpy.Object: no method named \"%s\"", name);
+      return NULL;
+    }
+    o = it->second;
+    Py_INCREF(o);
   }
   Py_DECREF(os);
   return o;

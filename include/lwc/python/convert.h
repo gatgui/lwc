@@ -63,12 +63,22 @@ namespace py {
         val = 0;
       } else {
         char *str = PyString_AsString(obj);
+#ifdef _DEBUG
+        std::cout << "PythonType<char*>::ToC: allocate memory" << std::endl;
+#endif
+#ifdef LWC_MEMTRACK
+        val = (char*) lwc::memory::Alloc(strlen(str)+1, sizeof(char), 0, "PythonType<char*>::ToC");
+#else
         val = (char*) lwc::memory::Alloc(strlen(str)+1, sizeof(char));
+#endif
         strcpy(val, str);
       }
     }
     static void Dispose(char* &val) {
       if (val) {
+#ifdef _DEBUG
+        std::cout << "PythonType<char*>::Dispose: free memory" << std::endl;
+#endif
         lwc::memory::Free((void*)val);
       }
     }
@@ -149,7 +159,6 @@ namespace py {
         PyErr_SetString(PyExc_RuntimeError, "Expected list argument");
       }
       length = PyList_Size(obj);
-      //ary = (Array) lwc::memory::Alloc(length, sizeof(Type));
       if (ary != 0 && length != 0) {
         // should dispose the values ? [not always though]
         // realloc should copy back the values though...
@@ -157,7 +166,14 @@ namespace py {
           PythonType<Type>::Dispose(ary[i]);
         }
       }
+#ifdef _DEBUG
+      std::cout << "Python2C::ToArray: allocate memory" << std::endl;
+#endif
+#ifdef LWC_MEMTRACK
+      ary = (Array) lwc::memory::Alloc(length, sizeof(Type), (void*)ary, "Python2C::ToArray");
+#else
       ary = (Array) lwc::memory::Alloc(length, sizeof(Type), (void*)ary);
+#endif
       for (size_t i=0; i<length; ++i) {
         PyObject *item = PyList_GetItem(obj, i);
         if (!PythonType<Type>::Check(item)) {
@@ -171,6 +187,9 @@ namespace py {
       for (size_t i=0; i<length; ++i) {
         PythonType<Type>::Dispose(ary[i]);
       }
+#ifdef _DEBUG
+      std::cout << "Python2C::DisposeArray: free memory" << std::endl;
+#endif
       lwc::memory::Free((void*)ary);
     }
   };
@@ -211,42 +230,130 @@ namespace py {
   template <lwc::Type T> struct ParamConverter {
     typedef typename lwc::Enum2Type<T>::Type Type;
     typedef typename lwc::Enum2Type<T>::Type* Array;
-    static bool PreCall(const lwc::Argument &desc, size_t, PyObject *args, size_t &iarg, std::map<size_t,size_t> &arraySizes, Type &val) {
+    template <typename TT>
+    static bool GetDefaultValue(const lwc::Argument &desc, TT &val) {
+#ifdef _DEBUG
+      std::cout << "Get default value for " << desc.toString() << std::endl;
+#endif
+      if (!desc.hasDefaultValue()) {
+        return false;
+      }
+      
+      const lwc::ArgumentValue &dv = desc.getRawDefaultValue();
+      
+      lwc::Type dt = desc.getType();
+      
+      if (desc.isArray()) {
+        // if TT is a pointer, gcore::TypeTraits<TT>::Value will be the pointer type
+        // that must match the argument type
+        if (lwc::Type2Enum<typename gcore::TypeTraits<TT>::Value>::Enum != (int)dt) {
+          std::cout << "Array type mismatch" << std::endl;
+          return false;
+        }
+      } else {
+        if (lwc::Type2Enum<TT>::Enum != (int)dt) {
+          std::cout << "Type mismatch" << std::endl;
+          return false;
+        }
+      }
+      
+      if (!desc.isArray()) {
+        if (dt == lwc::AT_BOOL) {
+          if (lwc::Convertion<bool, TT>::Possible()) {
+            lwc::Convertion<bool, TT>::Do(dv.boolean, val);
+            return true;
+          }
+        } else if (dt == lwc::AT_INT) {
+          if (lwc::Convertion<lwc::Integer, TT>::Possible()) {
+            lwc::Convertion<lwc::Integer, TT>::Do(dv.integer, val);
+            return true;
+          }
+        } else if (dt == lwc::AT_REAL) {
+          if (lwc::Convertion<lwc::Real, TT>::Possible()) {
+            lwc::Convertion<lwc::Real, TT>::Do(dv.real, val);
+            return true;
+          }
+        }
+      } else {
+        if (lwc::Convertion<void*, TT>::Possible()) {
+          lwc::Convertion<void*, TT>::Do(dv.ptr, val);
+          return true;
+        }
+      }
+      
+      return false;
+    }
+    static bool PreCall(const lwc::Argument &desc, size_t, PyObject *args, PyObject *kwargs, size_t &iarg, std::map<size_t,size_t> &arraySizes, Type &val) {
       if (desc.getDir() == lwc::AD_IN || desc.getDir() == lwc::AD_INOUT) {
         if (desc.arrayArg() >= 0) {
-          // this should only be executed for integer types
-          //val = (Type) arraySizes[size_t(desc.arrayArg())];
           unsigned long idx = (unsigned long) arraySizes[size_t(desc.arrayArg())];
           lwc::Convertion<unsigned long, Type>::Do(idx, val);
+          
         } else {
           if (iarg >= size_t(PyTuple_Size(args))) {
-            std::cout << "PreCall: not enough argument, expected " << desc.toString() << std::endl;
-            PyErr_SetString(PyExc_RuntimeError, "Not enough argument");
-            return false;
+            bool failed = true;
+            if (desc.isNamed()) {
+              PyObject *dv = (kwargs ? PyDict_GetItemString(kwargs, desc.getName().c_str()) : 0);
+              if (dv != 0) {
+                Python2C<T>::ToValue(dv, val);
+                failed = false;
+                
+              } else if (desc.hasDefaultValue()) {
+                failed = !GetDefaultValue(desc, val);
+              }
+            }
+            if (failed) {
+              std::cout << "PreCall: not enough argument, expected " << desc.toString() << std::endl;
+              PyErr_SetString(PyExc_RuntimeError, "Not enough argument");
+              return false;
+            }
+            
+          } else {
+            PyObject *pa = PyTuple_GetItem(args, iarg);
+            Python2C<T>::ToValue(pa, val);
+            ++iarg;
           }
-          PyObject *pa = PyTuple_GetItem(args, iarg);
-          Python2C<T>::ToValue(pa, val);
-          ++iarg;
         }
       }
       return true;
     }
-    static void PostCall(const lwc::Argument &desc, size_t, PyObject *, size_t &iarg, std::map<size_t,size_t> &arraySizes, Type &val, PyObject *&rv) {
+    static void PostCall(const lwc::Argument &desc, size_t, PyObject *args, PyObject *kwargs, size_t &iarg, std::map<size_t,size_t> &arraySizes, Type &val, PyObject *&rv) {
+      
+      bool dontDispose = false;
+      if (iarg >= size_t(PyTuple_Size(args)) && desc.isNamed() &&
+          (kwargs == 0 ||
+           PyDict_GetItemString(kwargs, desc.getName().c_str()) == 0) &&
+          desc.hasDefaultValue()) {
+        dontDispose = true;
+#ifdef _DEBUG
+        std::cout << "Don't dispose default argument value: " << desc.toString() << std::endl;
+#endif
+      }
+       
       if (desc.getDir() == lwc::AD_IN) {
-        Python2C<T>::DisposeValue(val);
-        ++iarg;
+        if (!dontDispose) {
+          Python2C<T>::DisposeValue(val);
+        }
+        
       } else {
         if (desc.arrayArg() >= 0) {
           arraySizes[size_t(desc.arrayArg())] = size_t(val);
-          Python2C<T>::DisposeValue(val);
+          if (!dontDispose) {
+            Python2C<T>::DisposeValue(val);
+          }
           
         } else {
           if (rv == 0) {
-            Python2C<T>::DisposeValue(val);
+            if (!dontDispose) {
+              Python2C<T>::DisposeValue(val);
+            }
+            
           } else {
             PyObject *obj = 0;
             C2Python<T>::ToValue(val, obj);
-            Python2C<T>::DisposeValue(val);
+            if (!dontDispose) {
+              Python2C<T>::DisposeValue(val);
+            }
             Py_ssize_t ti = PyTuple_Size(rv);
             _PyTuple_Resize(&rv, ti+1);
             PyTuple_SetItem(rv, ti, obj);
@@ -254,24 +361,63 @@ namespace py {
         }
       }
     }
-    static bool PreCallArray(const lwc::Argument &desc, size_t idesc, PyObject *args, size_t &iarg, std::map<size_t,size_t> &arraySizes, Array &ary) {
+    static bool PreCallArray(const lwc::Argument &desc, size_t idesc, const lwc::Argument &sdesc, PyObject *args, PyObject *kwargs, size_t &iarg, std::map<size_t,size_t> &arraySizes, Array &ary) {
       if (desc.getDir() == lwc::AD_IN || desc.getDir() == lwc::AD_INOUT) {
         size_t length;
         if (iarg >= size_t(PyTuple_Size(args))) {
-          std::cout << "PreCallArray: not enough argument, expected " << desc.toString() << std::endl;
-          PyErr_SetString(PyExc_RuntimeError, "Not enough argument");
-          return false;
+          bool failed = true;
+          if (desc.isNamed()) {
+            PyObject *dv = (kwargs ? PyDict_GetItemString(kwargs, desc.getName().c_str()) : 0);
+            if (dv != 0) {
+              Python2C<T>::ToArray(dv, ary, length);
+              arraySizes[idesc] = length;
+              failed = false;
+              
+            } else if (desc.hasDefaultValue()) {
+              failed = !GetDefaultValue(desc, ary);
+              if (!failed) {
+                lwc::Integer tmp;
+                failed = !GetDefaultValue(sdesc, tmp);
+                if (!failed) {
+                  length = (size_t) tmp;
+                }
+              }
+            }
+          }
+          if (failed) {
+            std::cout << "PreCall: not enough argument, expected " << desc.toString() << std::endl;
+            PyErr_SetString(PyExc_RuntimeError, "Not enough argument");
+            return false;
+          }
+          
+        } else {
+          PyObject *pa = PyTuple_GetItem(args, iarg);
+          Python2C<T>::ToArray(pa, ary, length);
+          arraySizes[idesc] = length;
+          ++iarg;
         }
-        PyObject *pa = PyTuple_GetItem(args, iarg);
-        Python2C<T>::ToArray(pa, ary, length);
-        arraySizes[idesc] = length;
-        ++iarg;
       }
       return true;
     }
-    static void PostCallArray(const lwc::Argument &desc, size_t idesc, PyObject *args, size_t &iarg, std::map<size_t,size_t> &arraySizes, Array &ary, PyObject *&rv) {
+    static void PostCallArray(const lwc::Argument &desc, size_t idesc, const lwc::Argument &, PyObject *args, PyObject *kwargs, size_t &iarg, std::map<size_t,size_t> &arraySizes, Array &ary, PyObject *&rv) {
+      
+      bool dontDispose = false;
+      if (iarg >= size_t(PyTuple_Size(args)) && desc.isNamed() &&
+          (kwargs == 0 ||
+           PyDict_GetItemString(kwargs, desc.getName().c_str()) == 0) &&
+          desc.hasDefaultValue()) {
+        // only for ptr types
+        dontDispose = true;
+#ifdef _DEBUG
+        std::cout << "Don't dispose default array argument value: " << desc.toString() << std::endl;
+#endif
+      }
+      
       if (desc.getDir() == lwc::AD_IN) {
-        Python2C<T>::DisposeArray(ary, arraySizes[idesc]);
+        if (!dontDispose) {
+          Python2C<T>::DisposeArray(ary, arraySizes[idesc]);
+        }
+        
       } else {
         PyObject *obj = 0;
         if (desc.getDir() == lwc::AD_INOUT) {
@@ -279,16 +425,18 @@ namespace py {
         }
         C2Python<T>::ToArray(ary, arraySizes[idesc], obj);
         if (desc.getDir() != lwc::AD_INOUT) {
-          //if (desc.isAllocated()) {
-          Python2C<T>::DisposeArray(ary, arraySizes[idesc]);
-          //}
+          if (!dontDispose) {
+            Python2C<T>::DisposeArray(ary, arraySizes[idesc]);
+          }
           if (rv != 0) {
             Py_ssize_t ti = PyTuple_Size(rv);
             _PyTuple_Resize(&rv, ti+1);
             PyTuple_SetItem(rv, ti, obj);
           }
         } else {
-          Python2C<T>::DisposeArray(ary, arraySizes[idesc]);
+          if (!dontDispose) {
+            Python2C<T>::DisposeArray(ary, arraySizes[idesc]);
+          }
         }
       }
     }

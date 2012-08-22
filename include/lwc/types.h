@@ -347,7 +347,11 @@ namespace lwc {
     static bool Possible() {return true;}
     static void Do(const Real &from, float &to) {to = (float)from;}
   };
-  
+  // void* to typed pointer
+  template <typename T> struct Convertion<void*, T*> {
+    static bool Possible() {return true;}
+    static void Do(void* const &from, T* &to) {to = (T*) from;}
+  };
 }
 
 #endif

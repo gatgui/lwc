@@ -88,14 +88,14 @@ static PyObject* lwcreg_create(PyObject *, PyObject *args) {
     return Py_None;
   } else {
     PyObject *rv = 0;
-    if (!strcmp(o->getLoaderName(), "pyloader")) {
-      rv = ((Object*)o)->self();
-      Py_INCREF(rv);
-      
-    } else {
+    //if (!strcmp(o->getLoaderName(), "pyloader")) {
+    //  rv = ((Object*)o)->self();
+    //  Py_INCREF(rv);
+    //  
+    //} else {
       rv = PyObject_CallObject((PyObject*)&PyLWCObjectType, NULL);
       SetObjectPointer((PyLWCObject*)rv, o);
-    }
+    //}
     return rv;
   }
 }
@@ -116,14 +116,14 @@ static PyObject* lwcreg_get(PyObject *, PyObject *args) {
     return Py_None;
   } else {
     PyObject *rv = 0;
-    if (!strcmp(o->getLoaderName(), "pyloader")) {
-      rv = ((Object*)o)->self();
-      Py_INCREF(rv);
-      
-    } else {
+    //if (!strcmp(o->getLoaderName(), "pyloader")) {
+    //  rv = ((Object*)o)->self();
+    //  Py_INCREF(rv);
+    //  
+    //} else {
       rv = PyObject_CallObject((PyObject*)&PyLWCObjectType, NULL);
       SetObjectPointer((PyLWCObject*)rv, o);
-    }
+    //}
     return rv;
   }
 }

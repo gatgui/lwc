@@ -33,6 +33,9 @@ Loader::~Loader() {
 }
 
 bool Loader::registerType(const char *name, Factory *f, Registry *reg) {
+  if (!name || !f || !reg) {
+    return false;
+  }
   if (reg->registerType(name, this, f->isSingleton(name))) {
     mFactories[name] = f;
     return true;
@@ -53,6 +56,9 @@ const char* Loader::getTypeName(size_t idx) const throw(std::runtime_error) {
 }
 
 const MethodsTable* Loader::getMethods(const char *name) {
+  if (!name) {
+    return 0;
+  }
   std::map<std::string, Factory*>::iterator it = mFactories.find(name);
   if (it != mFactories.end()) {
     return it->second->getMethods(name);
@@ -62,6 +68,9 @@ const MethodsTable* Loader::getMethods(const char *name) {
 }
 
 const char* Loader::getDescription(const char *name) {
+  if (!name) {
+    return 0;
+  }
   std::map<std::string, Factory*>::iterator it = mFactories.find(name);
   if (it != mFactories.end()) {
     return it->second->getDescription(name);
@@ -71,6 +80,9 @@ const char* Loader::getDescription(const char *name) {
 }
 
 std::string Loader::docString(const char *name, const std::string &indent) {
+  if (!name) {
+    return 0;
+  }
   std::map<std::string, Factory*>::iterator it = mFactories.find(name);
   if (it != mFactories.end()) {
     return it->second->docString(name, indent);
@@ -80,6 +92,9 @@ std::string Loader::docString(const char *name, const std::string &indent) {
 }
 
 Object* Loader::create(const char *name) {
+  if (!name) {
+    return 0;
+  }
   std::map<std::string, Factory*>::iterator it = mFactories.find(name);
   if (it != mFactories.end()) {
     Object *obj = it->second->create(name);

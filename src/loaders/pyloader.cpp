@@ -247,7 +247,7 @@ class PFactory : public lwc::Factory {
         }
         
         if (!add) {
-          std::cout << "pyloader: Skipped method \"" << mname << "\" for type \"" << name << "\"" << std::endl;
+          std::cout << "pyloader: Skipped method (1) \"" << mname << "\" for type \"" << name << "\"" << std::endl;
           continue;
         
         } else {
@@ -279,7 +279,7 @@ class PFactory : public lwc::Factory {
           try {
             typeMethods->addMethod(mname, meth);
           } catch (std::runtime_error &) {
-            std::cout << "pyloader: Skipped method \"" << mname << "\" for type \"" << name << "\"" << std::endl;
+            std::cout << "pyloader: Skipped method (2) \"" << mname << "\" for type \"" << name << "\"" << std::endl;
             continue;
           }
         }

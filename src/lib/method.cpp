@@ -146,7 +146,9 @@ void Method::validateArgs() throw(std::runtime_error) {
         oss << "duplicate named argument " << i << ": \"" << name << "\" already declared";
         throw std::runtime_error(oss.str());
       }
-    } else if (mArgs[i].getDir() != AD_OUT && mustHaveName) {
+    //} else if (mArgs[i].getDir() != AD_OUT && mustHaveName) {
+    } else if (mustHaveName) {
+      // reject any positional arguments after keyword ones
       std::ostringstream oss;
       oss << "positional argument " << i << " must precede any named argument";
       throw std::runtime_error(oss.str());
@@ -159,7 +161,9 @@ void Method::validateArgs() throw(std::runtime_error) {
         oss << "argument " << i << " cannot have a default value (only input arguments can)";
         throw std::runtime_error(oss.str());
       }
-    } else if (mArgs[i].getDir() == AD_IN && mustHaveDefault) {
+    //} else if (mArgs[i].getDir() == AD_IN && mustHaveDefault) {
+    } else if (mustHaveDefault) {
+      // all remaining arguments must have defaults
       std::ostringstream oss;
       oss << "argument " << i << " must have a default value";
       throw std::runtime_error(oss.str());
@@ -172,7 +176,8 @@ void Method::validateArgs() throw(std::runtime_error) {
         throw std::runtime_error(oss.str());
       }
       size_t idx = (size_t) mArgs[i].arraySizeArg();
-      if (idx >= mArgs.size()) {
+      if (idx >= mArgs.size() || idx <= i) {
+        // array size arg must come after the array
         std::ostringstream oss;
         oss << "argument " << i << " has an invalid array size argument";
         throw std::runtime_error(oss.str());
@@ -255,6 +260,7 @@ void MethodsTable::addMethod(const char *name, const Method &m, bool override) t
   try {
     mTable[name].validateArgs();
   } catch (std::runtime_error &e) {
+    mTable.erase(mTable.find(name));
     std::ostringstream oss;
     oss << "Object::addMethod: Invalid arguments spec for method \"" << name << "\"" << std::endl;
     oss << e.what();

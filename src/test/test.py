@@ -45,18 +45,20 @@ if reg.hasType("pytest.ObjectList2"):
   print(lst)
   print("### Create a test.Box")
   box = reg.create("test.Box")
-  print(box)
-  print("### Add box to list")
-  lst.push(box)
-  print(lst.size())
+  if box:
+    print(box)
+    print("### Add box to list")
+    lst.push(box)
+    print(lst.size())
   print("### Clear list")
   lst.clear()
   print(lst.size())
   print("### Keyword arg test")
   lst.printInt(10, indent="=> ")
-  print("### Destroy box & list")
-  reg.destroy(box)
+  print("### Destroy objects")
   reg.destroy(lst)
+  if box:
+    reg.destroy(box)
 else:
   print("false")
 
@@ -74,48 +76,51 @@ else:
 print("### Create object test.DoubleBox")
 obj = reg.create("test.DoubleBox")
 print(obj)
+if obj:
+   print("### list attr")
+   print(dir(obj))
 
-print("### list attr")
-print(dir(obj))
+   print("### Check available methods")
+   for n in obj.availableMethods():
+      print(n)
 
-print("### Check available methods")
-for n in obj.availableMethods():
-  print(n)
+   print("### getWidth attrib")
+   print(obj.getWidth)
 
-print("### getWidth attrib")
-print(obj.getWidth)
+   print("### call getters")
+   print(obj.getX())
+   print(obj.getY())
+   print(obj.getWidth())
+   print(obj.getHeight())
 
-print("### call getters")
-print(obj.getX())
-print(obj.getY())
-print(obj.getWidth())
-print(obj.getHeight())
+   print("### call setters")
+   obj.setX(10)
+   obj.setY(2)
+   obj.setWidth(300)
+   obj.setHeight(150)
 
-print("### call setters")
-obj.setX(10)
-obj.setY(2)
-obj.setWidth(300)
-obj.setHeight(150)
+   print("### clone")
+   obj2 = obj.toBox()
 
-print("### clone")
-obj2 = obj.toBox()
+   if obj2:
+      print("### call getters on Box")
+      print(obj2.getX())
+      print(obj2.getY())
+      print(obj2.getWidth())
+      print(obj2.getHeight())
 
-print("### call getters on Box")
-print(obj2.getX())
-print(obj2.getY())
-print(obj2.getWidth())
-print(obj2.getHeight())
+      print("### call Box.set")
+      try:
+         obj2.set([2, 2])
+         print("%s, %s" % (obj2.getX(), obj2.getY()))
+         obj2.set([4, 4], scale=5, normalize=False)
+         print("%s, %s" % (obj2.getX(), obj2.getY()))
+      except Exception, e:
+         print("*** FAILED: %s" % e)
+      
+      reg.destroy(obj2)
 
-print("### call Box.set")
-try:
-  obj2.set([2, 2], scale=3, normalize=True)
-  print("%s, %s" % (obj2.getX(), obj2.getY()))
-except Exception, e:
-  print("*** FAILED: %s" % e)
-
-print("### Destroy objects")
-reg.destroy(obj)
-reg.destroy(obj2)
+   reg.destroy(obj)
 
 """
 print("### test lua object")

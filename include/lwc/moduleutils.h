@@ -86,11 +86,21 @@ namespace lwc {
 
 #define LWC_MODULE_TYPE(Index, Name, Type, MethodsDecl, Singleton, Description) \
     gsTypeNames[Index] = Name;\
-    gsFactories[Index] = new lwc::SimpleFactory<Type>(MethodsDecl, LWC_NUMMETHODS(MethodsDecl), Singleton, Description, 0);
+    try {\
+      gsFactories[Index] = new lwc::SimpleFactory<Type>(MethodsDecl, LWC_NUMMETHODS(MethodsDecl), Singleton, Description, 0);\
+    } catch (std::exception &e) {\
+      gsFactories[Index] = 0;\
+      std::cout << "cloader: Failed to register type \"" << Name << "\": " << e.what() << std::endl;\
+    }
 
 #define LWC_MODULE_DERIVED_TYPE(Index, Name, Type, MethodsDecl, Singleton, Description, ParentIndex) \
     gsTypeNames[Index] = Name;\
-    gsFactories[Index] = new lwc::SimpleFactory<Type>(MethodsDecl, LWC_NUMMETHODS(MethodsDecl), Singleton, Description, gsFactories[ParentIndex]);
+    try {\
+      gsFactories[Index] = new lwc::SimpleFactory<Type>(MethodsDecl, LWC_NUMMETHODS(MethodsDecl), Singleton, Description, gsFactories[ParentIndex]);\
+    } catch (std::exception &e) {\
+      gsFactories[Index] = 0;\
+      std::cout << "cloader: Failed to register type \"" << Name << "\": " << e.what() << std::endl;\
+    }
 
 #define LWC_END_MODULE() \
   }\
@@ -105,7 +115,9 @@ namespace lwc {
   }\
   LWC_MODULE_EXPORT void LWC_ModuleExit() {\
     for (size_t i=0; i<gsNumTypes; ++i) {\
-      delete gsFactories[gsNumTypes-1-i];\
+      if (gsFactories[gsNumTypes-1-i] != 0) {\
+        delete gsFactories[gsNumTypes-1-i];\
+      }\
     }\
   }
 
