@@ -66,6 +66,8 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
   const lwc::Method &meth = params.getMethod();
 
   size_t ninputs = 0;
+  size_t nargs = 0;
+  size_t nkargs = 0;
   
   for (size_t i=0; i<meth.numArgs(); ++i) {
     const lwc::Argument &arg = meth[i];
@@ -73,11 +75,23 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       throw std::runtime_error("Ruby does not support non-array inout arguments");
     }
     if ((arg.getDir() == lwc::AD_IN || arg.getDir() == lwc::AD_INOUT) && arg.arrayArg() < 0) {
+      if (arg.isNamed()) {
+        ++nkargs;
+      } else {
+        ++nargs;
+      }
       ++ninputs;
     }
   }
   
-  VALUE *args = (VALUE*) malloc(ninputs*sizeof(VALUE));
+  VALUE kwargs = (nkargs > 0 ? rb_hash_new() : Qnil);
+  if (nkargs > 0) {
+    ++nargs;
+  }
+  VALUE *args = (VALUE*) malloc(nargs*sizeof(VALUE));
+  if (nkargs > 0) {
+    args[nargs-1] = kwargs;
+  }
   
   std::map<size_t, size_t> inoutArgs;
   std::map<size_t, size_t> inoutInSizes;
@@ -112,11 +126,11 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
         case lwc::AT_INT: {
           if (!out) {
             lwc::Integer sz;
-            params.get(size_t(arg.arraySizeArg()), sz);
+            params.get(size_t(arg.arraySizeArg()), sz, false);
             len = size_t(sz);
           } else {
             lwc::Integer *sz;
-            params.get(size_t(arg.arraySizeArg()), sz);
+            params.get(size_t(arg.arraySizeArg()), sz, false);
             len = size_t(*sz);
           }
           break;
@@ -133,11 +147,11 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
         case lwc::AT_BOOL: {
           if (!out) {
             bool *ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Ruby<lwc::AT_BOOL>::ToArray(ary, len, rarg);
           } else {
             bool **ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Ruby<lwc::AT_BOOL>::ToArray(*ary, len, rarg);
           }
           break;
@@ -145,11 +159,11 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
         case lwc::AT_INT: {
           if (!out) {
             lwc::Integer *ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Ruby<lwc::AT_INT>::ToArray(ary, len, rarg);
           } else {
             lwc::Integer **ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Ruby<lwc::AT_INT>::ToArray(*ary, len, rarg);
           }
           break;
@@ -157,11 +171,11 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
         case lwc::AT_REAL: {
           if (!out) {
             lwc::Real *ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Ruby<lwc::AT_REAL>::ToArray(ary, len, rarg);
           } else {
             lwc::Real **ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Ruby<lwc::AT_REAL>::ToArray(*ary, len, rarg);
           }
           break;
@@ -169,11 +183,11 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
         case lwc::AT_STRING: {
           if (!out) {
             char **ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Ruby<lwc::AT_STRING>::ToArray(ary, len, rarg);
           } else {
             char ***ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Ruby<lwc::AT_STRING>::ToArray(*ary, len, rarg);
           }
           break;
@@ -181,11 +195,11 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
         case lwc::AT_OBJECT: {
           if (!out) {
             lwc::Object **ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Ruby<lwc::AT_OBJECT>::ToArray(ary, len, rarg);
           } else {
             lwc::Object ***ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Ruby<lwc::AT_OBJECT>::ToArray(*ary, len, rarg);
           }
           break;
@@ -202,31 +216,31 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       switch(arg.getType()) {
         case lwc::AT_BOOL: {
           bool val;
-          params.get(i, val);
+          params.get(i, val, false);
           C2Ruby<lwc::AT_BOOL>::ToValue(val, rarg);
           break;
         }
         case lwc::AT_INT: {
           lwc::Integer val;
-          params.get(i, val);
+          params.get(i, val, false);
           C2Ruby<lwc::AT_INT>::ToValue(val, rarg);
           break;
         }
         case lwc::AT_REAL: {
           lwc::Real val;
-          params.get(i, val);
+          params.get(i, val, false);
           C2Ruby<lwc::AT_REAL>::ToValue(val, rarg);
           break;
         }
         case lwc::AT_STRING: {
           char *val;
-          params.get(i, val);
+          params.get(i, val, false);
           C2Ruby<lwc::AT_STRING>::ToValue(val, rarg);
           break;
         }
         case lwc::AT_OBJECT: {
           lwc::Object *val;
-          params.get(i, val);
+          params.get(i, val, false);
           C2Ruby<lwc::AT_OBJECT>::ToValue(val, rarg);
           break;
         }
@@ -235,15 +249,20 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       }
     }
     
-    args[cur] = rarg;
-    ++cur;
+    if (arg.isNamed()) {
+      std::string sym = ":" + arg.getName();
+      rb_hash_aset(kwargs, rb_eval_string(sym.c_str()), rarg);
+    } else {
+      args[cur] = rarg;
+      ++cur;
+    }
   }
   
   //VALUE rv = rb_funcall2(mSelf, rb_intern(name), ninputs, args);
   CallArgs callargs;
   callargs.self = mSelf;
   callargs.name = name;
-  callargs.argc = ninputs;
+  callargs.argc = nargs; //ninputs;
   callargs.argv = args;
   
   int err = 0;
@@ -330,25 +349,25 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       switch(arg.getType()) {
         case lwc::AT_BOOL: {
           bool **ary;
-          params.get(i, ary);
+          params.get(i, ary, false);
           Ruby2C<lwc::AT_BOOL>::ToArray(crv, *ary, len);
           break;
         }
         case lwc::AT_INT: {
           lwc::Integer **ary;
-          params.get(i, ary);
+          params.get(i, ary, false);
           Ruby2C<lwc::AT_INT>::ToArray(crv, *ary, len);
           break;
         }
         case lwc::AT_REAL: {
           lwc::Real **ary;
-          params.get(i, ary);
+          params.get(i, ary, false);
           Ruby2C<lwc::AT_REAL>::ToArray(crv, *ary, len);
           break;
         }
         case lwc::AT_STRING: {
           char ***ary;
-          params.get(i, ary);
+          params.get(i, ary, false);
           // if inout ... might need to free stuffs
           // as ToArray will re-alloc but not necessarily free elements
           // len is in/out -> could use it to free the required number
@@ -357,7 +376,7 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
         }
         case lwc::AT_OBJECT: {
           lwc::Object ***ary;
-          params.get(i, ary);
+          params.get(i, ary, false);
           Ruby2C<lwc::AT_OBJECT>::ToArray(crv, *ary, len);
           break;
         }
@@ -371,7 +390,7 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       switch(lenarg.getType()) {
         case lwc::AT_INT: {
           lwc::Integer *sz;
-          params.get(size_t(arg.arraySizeArg()), sz);
+          params.get(size_t(arg.arraySizeArg()), sz, false);
           *sz = (lwc::Integer) len;
           break;
         }
@@ -381,7 +400,7 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       
     } else {
       
-      VALUE crv; // get from PyTuple or rv
+      VALUE crv;
       
       if (array) {
         if (rv == Qnil) {
@@ -399,32 +418,32 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       switch(arg.getType()) {
         case lwc::AT_BOOL: {
           bool *val;
-          params.get(i, val);
+          params.get(i, val, false);
           Ruby2C<lwc::AT_BOOL>::ToValue(crv, *val);
           break;
         }
         case lwc::AT_INT: {
           lwc::Integer *val;
-          params.get(i, val);
+          params.get(i, val, false);
           Ruby2C<lwc::AT_INT>::ToValue(crv, *val);
           break;
         }
         case lwc::AT_REAL: {
           lwc::Real *val;
-          params.get(i, val);
+          params.get(i, val, false);
           Ruby2C<lwc::AT_REAL>::ToValue(crv, *val);
           break;
         }
         case lwc::AT_STRING: {
           char **val;
-          params.get(i, val);
+          params.get(i, val, false);
           // Ruby2C for string allocates ... does the arg specify this properly?
           Ruby2C<lwc::AT_STRING>::ToValue(crv, *val);
           break;
         }
         case lwc::AT_OBJECT: {
           lwc::Object **val;
-          params.get(i, val);
+          params.get(i, val, false);
           Ruby2C<lwc::AT_OBJECT>::ToValue(crv, *val);
           break;
         }
