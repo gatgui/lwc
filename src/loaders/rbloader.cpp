@@ -157,6 +157,12 @@ class RbFactory : public lwc::Factory {
         return false;
       }
       
+      const char *desc = NULL;
+      VALUE rdesc = rb_check_string_type(rb_const_get(klass, rb_intern("Description")));
+      if (!NIL_P(rdesc)) {
+        desc = RSTRING(rdesc)->ptr;
+      }
+      
       lwc::MethodsTable *typeMethods = 0;
       
       VALUE keys = rb_hash_keys(methods);
@@ -174,8 +180,34 @@ class RbFactory : public lwc::Factory {
           continue;
         }
         
+        // 1 or 2 items
+        
         const char *mname = rb_id2name(SYM2ID(key));
+        const char *mdesc = 0;
+        
         long n = RARRAY(val)->len;
+        if (n < 1 || n > 2) {
+          std::cout << "rbloader: \"Methods\" dict value array must have 1 or 2 elements" << std::endl;
+          continue;
+        }
+        
+        if (n == 2) {
+          // second element must be a string
+          VALUE rmdesc = rb_check_string_type(RARRAY(val)->ptr[1]);
+          if (NIL_P(rmdesc)) {
+            std::cout << "rbloader: \"Methods\" dict value array 2nd element must be a string" << std::endl;
+            continue;
+          }
+          mdesc = RSTRING(rmdesc)->ptr;
+        }
+        
+        val = rb_check_array_type(RARRAY(val)->ptr[0]);
+        if (NIL_P(val)) {
+          std::cout << "rbloader: \"Methods\" dict value array 1st element must be an array" << std::endl;
+          continue;
+        }
+        n = RARRAY(val)->len;
+        
         bool add = true;
         lwc::Method meth;
         
@@ -184,8 +216,8 @@ class RbFactory : public lwc::Factory {
           
           VALUE arg = RARRAY(val)->ptr[j];
           
-          if (TYPE(arg) != T_ARRAY || RARRAY(arg)->len < 2 || RARRAY(arg)->len > 3) {
-            std::cout << "rbloader: Arguments must be arrays with 2 to 3 elements" << std::endl;
+          if (TYPE(arg) != T_ARRAY || RARRAY(arg)->len < 2 || RARRAY(arg)->len > 6) {
+            std::cout << "rbloader: Arguments must be arrays with 2 to 6 elements" << std::endl;
             add = false;
             break;
           }
@@ -194,14 +226,45 @@ class RbFactory : public lwc::Factory {
           
           a.setDir(lwc::Direction(NUM2LONG(RARRAY(arg)->ptr[0])));
           a.setType(lwc::Type(NUM2LONG(RARRAY(arg)->ptr[1])));
+          
           if (RARRAY(arg)->len >= 3) {
             a.setArraySizeArg(NUM2ULONG(RARRAY(arg)->ptr[2]));
           }
-          meth.addArg(a);
+          
+          if (RARRAY(arg)->len >= 4) {
+            bool hasDef = RARRAY(arg)->ptr[3];
+            if (hasDef == Qtrue) {
+              if (n < 5) {
+                std::cout << "rbloader: missing default value" << std::endl;
+                add = false;
+                break;
+              }
+              VALUE rdv = RARRAY(arg)->ptr[4];
+              rb::SetArgDefault(a, rdv);
+            }
+          }
+          
+          if (RARRAY(arg)->len >= 6) {
+            VALUE sname = rb_check_string_type(RARRAY(arg)->ptr[5]);
+            if (NIL_P(sname)) {
+              std::cout << "rbloader: " << std::endl;
+              add = false;
+              break;
+            }
+            a.setName(RSTRING(sname)->ptr);
+          }
+          
+          try {
+            meth.addArg(a);
+          } catch (std::exception &e) {
+            std::cout << "rbloader: " << e.what() << std::endl;
+            add = false;
+            break;
+          }
         }
         
         if (!add) {
-          std::cout << "rbloader: Skipped method \"" << mname << "\" for type \"" << name << "\"" << std::endl;
+          std::cout << "rbloader: Skipped method (1) \"" << mname << "\" for type \"" << name << "\"" << std::endl;
           continue;
         
         } else {
@@ -227,7 +290,7 @@ class RbFactory : public lwc::Factory {
           try {
             typeMethods->addMethod(mname, meth);
           } catch (std::runtime_error &) {
-            std::cout << "rbloader: Skipped method \"" << mname << "\" for type \"" << name << "\"" << std::endl;
+            std::cout << "rbloader: Skipped method (2) \"" << mname << "\" for type \"" << name << "\"" << std::endl;
             continue;
           }
         }
@@ -243,6 +306,7 @@ class RbFactory : public lwc::Factory {
           te.klass = klass;
           te.singleton = singleton;
           te.methods = typeMethods;
+          te.desc = desc;
           mTypes[name] = te;
           rb::Tracker::Add(typeMethods, te.klass);
           return true;
