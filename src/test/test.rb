@@ -34,24 +34,29 @@ reg.addModulePath("./components/modules")
 end
 
 obj = reg.create("test.DoubleBox")
-puts "Width = #{obj.getWidth()}"
-obj.setWidth(2)
-puts "=> #{obj.getWidth()}"
-
-reg.destroy(obj)
+if not obj.nil? then
+  puts "Width = #{obj.getWidth()}"
+  obj.setWidth(2)
+  puts "=> #{obj.getWidth()}"
+  obj.set([2, 2], :scale => 3, :normalize => false)
+  puts "=> (#{obj.getX()}, #{obj.getY()}"
+  reg.destroy(obj)
+end
 
 puts "Create lua object"
 obj = reg.create("luatest.Dict")
-puts "size = #{obj.size()}"
-obj.set("Jelly", "Fish")
-obj.set("Poo", "San")
-puts "Check keys"
-keys = obj.keys()
-puts keys.join(", ")
-puts "Check values"
-vals = obj.values()
-puts vals.join(", ")
-reg.destroy(obj)
+if not obj.nil? then
+  puts "size = #{obj.size()}"
+  obj.set("Jelly", "Fish")
+  obj.set("Poo", "San")
+  puts "Check keys"
+  keys = obj.keys()
+  puts keys.join(", ")
+  puts "Check values"
+  vals = obj.values()
+  puts vals.join(", ")
+  reg.destroy(obj)
+end
 
 RLWC.DeInitialize()
 
