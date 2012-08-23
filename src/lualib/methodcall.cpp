@@ -218,7 +218,7 @@ int CallMethod(lwc::Object *o, const char *n,
         if (ad.isArray()) {
           char **ary=0;
           const lwc::Argument &sad = m[ad.arraySizeArg()];
-          if (!ParamConverter<lwc::AT_STRING>::PreCallArray(ad, cArg, sad, L, firstArg, nargs, kwargs, luaArg, arraySizes, ary, err)) {
+          if (ParamConverter<lwc::AT_STRING>::PreCallArray(ad, cArg, sad, L, firstArg, nargs, kwargs, luaArg, arraySizes, ary, err)) {
             try {
               if (ad.getDir() == lwc::AD_IN) {
                 params.set(cArg, ary);
