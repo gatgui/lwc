@@ -127,6 +127,9 @@ namespace lua {
   LWCLUA_API bool InitRegistry(lua_State *L, int module);
   LWCLUA_API int CreateModule(lua_State *L);
 
+  LWCLUA_API void CleanupModule();
+  
+  LWCLUA_API bool SetArgDefault(lwc::Argument &a, lua_State *L, int idx);
 }
 
 #endif
