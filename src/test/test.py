@@ -122,20 +122,19 @@ if obj:
 
    reg.destroy(obj)
 
-"""
 print("### test lua object")
 obj = reg.create("luatest.Dict")
-print("  size = %d" % obj.size())
-print("  add keys")
-obj.set("poo", "hello")
-obj.set("grrr", "goodbye")
-print("  check keys")
-print(obj.get("poo"))
-print(obj.get("grrr"))
-print(obj.keys())
-print(obj.values())
-reg.destroy(obj)
-"""
+if obj:
+  print("  size = %d" % obj.size())
+  print("  add keys")
+  obj.set("poo", "hello")
+  obj.set("grrr", "goodbye")
+  print("  check keys")
+  print(obj.get("poo"))
+  print(obj.get("grrr"))
+  print(obj.keys())
+  print(obj.values())
+  reg.destroy(obj)
 
 print("### DeInitialize")
 lwcpy.DeInitialize()
