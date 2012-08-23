@@ -54,7 +54,7 @@ struct DefaultValueEntry
 static std::deque<DefaultValueEntry> gsDefaultValues;
 
 void AddDefaultValue(void *ptr, lwc::Type t, bool array, size_t len=0) {
-#ifdef _DEBUG
+#ifdef LWC_MEMTRACK
   std::cout << "Add lwc python module default value " << std::hex << ptr << std::dec << ", " << t << ", " << array << ", " << len << std::endl;
 #endif
   //DefaultValueEntry &dve = {t, array, len, ptr};
@@ -154,7 +154,7 @@ void FreeDefaultValue(DefaultValueEntry &dve) {
   if (dve.ptr == 0) {
     return;
   }
-#ifdef _DEBUG
+#ifdef LWC_MEMTRACK
   std::cout << "Free lwc python module default value " << std::hex << dve.ptr << std::dec << ", " << dve.type << ", " << dve.array << ", " << dve.len << std::endl;
 #endif
   switch (dve.type) {

@@ -252,9 +252,6 @@ namespace lua {
     
     template <typename TT>
     static bool GetDefaultValue(const lwc::Argument &desc, TT &val) {
-#ifdef _DEBUG
-      std::cout << "Get default value for " << desc.toString() << std::endl;
-#endif
       if (!desc.hasDefaultValue()) {
         return false;
       }

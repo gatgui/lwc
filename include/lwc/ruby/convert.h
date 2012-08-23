@@ -220,9 +220,6 @@ namespace rb {
     
     template <typename TT>
     static bool GetDefaultValue(const lwc::Argument &desc, TT &val) {
-#ifdef _DEBUG
-      std::cout << "Get default value for " << desc.toString() << std::endl;
-#endif
       if (!desc.hasDefaultValue()) {
         return false;
       }
@@ -313,9 +310,6 @@ namespace rb {
           (NIL_P(kwargs) || !HashHas(kwargs, desc.getName())) &&
           desc.hasDefaultValue()) {
         dontDispose = true;
-#ifdef _DEBUG
-        std::cout << "Don't dispose default argument value: " << desc.toString() << std::endl;
-#endif
       }
       
       if (desc.getDir() == lwc::AD_IN) {
@@ -384,9 +378,6 @@ namespace rb {
           (NIL_P(kwargs) || !HashHas(kwargs, desc.getName())) &&
           desc.hasDefaultValue()) {
         dontDispose = true;
-#ifdef _DEBUG
-        std::cout << "Don't dispose default array argument value: " << desc.toString() << std::endl;
-#endif
       }
       
       if (desc.getDir() == lwc::AD_IN) {

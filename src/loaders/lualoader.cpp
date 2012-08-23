@@ -163,9 +163,6 @@ class LuaFactory : public lwc::Factory {
       if (!lua_isnil(mState, -1)) {
         if (lua_isboolean(mState, -1)) {
           singleton = (lua_toboolean(mState, -1) == 1);
-#ifdef _DEBUG
-          std::cout << "  Singleton: " << singleton << std::endl;
-#endif
         }
       }
       
@@ -174,9 +171,6 @@ class LuaFactory : public lwc::Factory {
       if (!lua_isnil(mState, -1)) {
         if (lua_isstring(mState, -1)) {
           desc = lua_tostring(mState, -1);
-#ifdef _DEBUG
-          std::cout << "  Description: " << desc.c_str() << std::endl;
-#endif
         }
       }
       
@@ -202,9 +196,6 @@ class LuaFactory : public lwc::Factory {
         }
         
         const char *mn = lua_tostring(mState, -2);
-#ifdef _DEBUG
-        std::cout << "  Add method: " << mn << std::endl;
-#endif
         
         if (!lua_istable(mState, -1)) {
           std::cout << "lualoader: Expected table values. Skip method \"" << mn << "\" for type \"" << name << "\"" << std::endl;
@@ -227,16 +218,10 @@ class LuaFactory : public lwc::Factory {
         }
         
         if (nargs == 2) {
-#ifdef _DEBUG
-          std::cout << "    Get description..." << std::endl;
-#endif
           lua_pushinteger(mState, 2);
           lua_gettable(mState, -2);
           if (lua_isstring(mState, -1)) {
             meth.setDescription(lua_tostring(mState, -1));
-#ifdef _DEBUG
-            std::cout << "    Description: " << meth.getDescription() << std::endl;
-#endif
           } else {
             add = false;
           }
@@ -248,9 +233,6 @@ class LuaFactory : public lwc::Factory {
           }
         }
         
-#ifdef _DEBUG
-        std::cout << "    Process arguments..." << std::endl;
-#endif
         lua_pushinteger(mState, 1);
         lua_gettable(mState, -2);
         if (!lua_istable(mState, -1)) {
@@ -521,10 +503,6 @@ class LuaLoader : public lwc::Loader {
     
     virtual void load(const gcore::Path &path, lwc::Registry *reg) {
       
-#ifdef _DEBUG
-      std::cout << "lualoader: Load " << path << std::endl;
-#endif
-      
       int oldtop = lua_gettop(mState);
       
       std::string modulename = path.basename();
@@ -613,9 +591,6 @@ class LuaLoader : public lwc::Loader {
         }
         
         //std::cout << "  \"" << tn << "\"" << std::endl;
-#ifdef _DEBUG
-        std::cout << "lualoader: add type " << tn << std::endl;
-#endif
         
         if (!reg->hasType(tn)) {
           //if (mFactory->addType(modulename.c_str(), tn, lua_gettop(mState))) {

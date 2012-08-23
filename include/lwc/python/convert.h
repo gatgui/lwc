@@ -63,9 +63,6 @@ namespace py {
         val = 0;
       } else {
         char *str = PyString_AsString(obj);
-#ifdef _DEBUG
-        std::cout << "PythonType<char*>::ToC: allocate memory" << std::endl;
-#endif
 #ifdef LWC_MEMTRACK
         val = (char*) lwc::memory::Alloc(strlen(str)+1, sizeof(char), 0, "PythonType<char*>::ToC");
 #else
@@ -76,9 +73,6 @@ namespace py {
     }
     static void Dispose(char* &val) {
       if (val) {
-#ifdef _DEBUG
-        std::cout << "PythonType<char*>::Dispose: free memory" << std::endl;
-#endif
         lwc::memory::Free((void*)val);
       }
     }
@@ -166,9 +160,6 @@ namespace py {
           PythonType<Type>::Dispose(ary[i]);
         }
       }
-#ifdef _DEBUG
-      std::cout << "Python2C::ToArray: allocate memory" << std::endl;
-#endif
 #ifdef LWC_MEMTRACK
       ary = (Array) lwc::memory::Alloc(length, sizeof(Type), (void*)ary, "Python2C::ToArray");
 #else
@@ -187,9 +178,6 @@ namespace py {
       for (size_t i=0; i<length; ++i) {
         PythonType<Type>::Dispose(ary[i]);
       }
-#ifdef _DEBUG
-      std::cout << "Python2C::DisposeArray: free memory" << std::endl;
-#endif
       lwc::memory::Free((void*)ary);
     }
   };
@@ -232,9 +220,6 @@ namespace py {
     typedef typename lwc::Enum2Type<T>::Type* Array;
     template <typename TT>
     static bool GetDefaultValue(const lwc::Argument &desc, TT &val) {
-#ifdef _DEBUG
-      std::cout << "Get default value for " << desc.toString() << std::endl;
-#endif
       if (!desc.hasDefaultValue()) {
         return false;
       }
@@ -325,9 +310,6 @@ namespace py {
            PyDict_GetItemString(kwargs, desc.getName().c_str()) == 0) &&
           desc.hasDefaultValue()) {
         dontDispose = true;
-#ifdef _DEBUG
-        std::cout << "Don't dispose default argument value: " << desc.toString() << std::endl;
-#endif
       }
        
       if (desc.getDir() == lwc::AD_IN) {
@@ -408,9 +390,6 @@ namespace py {
           desc.hasDefaultValue()) {
         // only for ptr types
         dontDispose = true;
-#ifdef _DEBUG
-        std::cout << "Don't dispose default array argument value: " << desc.toString() << std::endl;
-#endif
       }
       
       if (desc.getDir() == lwc::AD_IN) {
