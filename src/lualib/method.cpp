@@ -103,12 +103,74 @@ static int luameth_tos(lua_State *L) {
   return 1;
 }
 
+static int luameth_docString(lua_State *L) {
+  int nargs = lua_gettop(L);
+  if (nargs < 1 || nargs > 2) {
+    lua_pushstring(L, "1 or 2 arguments expected (including self)");
+    lua_error(L);
+    // lua_error doesn't return (long jump) just as rb_raise
+    return 0;
+  }
+  lwc::Method &m = LuaMethod::UnWrap(L, 1);
+  std::string indent = "";
+  if (nargs == 2) {
+    if (!lua_isstring(L, 2)) {
+      return luaL_typerror(L, 2, "string");
+    }
+    indent = lua_tostring(L, 2);
+  }
+  lua_pop(L, nargs);
+  std::string s = m.docString(indent);
+  lua_pushstring(L, s.c_str());
+  return 1;
+}
+
 static int luameth_numArgs(lua_State *L) {
   CheckArgCount(L, 1);
   lwc::Method &m = LuaMethod::UnWrap(L, 1);
   lua_pop(L, 1);
   lua_pushinteger(L, m.numArgs());
   return 1;
+}
+
+static int luameth_numPositionalArgs(lua_State *L) {
+  CheckArgCount(L, 1);
+  lwc::Method &m = LuaMethod::UnWrap(L, 1);
+  lua_pop(L, 1);
+  lua_pushinteger(L, m.numPositionalArgs());
+  return 1;
+}
+
+static int luameth_namedArgIndex(lua_State *L) {
+  CheckArgCount(L, 2);
+  lwc::Method &m = LuaMethod::UnWrap(L, 1);
+  std::string name = luaL_checkstring(L, 2);
+  lua_pop(L, 2);
+  try {
+    lua_pushinteger(L, m.namedArgIndex(name.c_str()));
+  } catch (std::exception &e) {
+    lua_pushstring(L, e.what());
+    lua_error(L);
+  }
+  return 1;
+}
+
+static int luameth_getDesc(lua_State *L) {
+  CheckArgCount(L, 1);
+  lwc::Method &m = LuaMethod::UnWrap(L, 1);
+  lua_pop(L, 1);
+  const char *desc = m.getDescription();
+  lua_pushstring(L, (desc ? desc : ""));
+  return 1;
+}
+
+static int luameth_setDesc(lua_State *L) {
+  CheckArgCount(L, 2);
+  lwc::Method &m = LuaMethod::UnWrap(L, 1);
+  std::string desc = luaL_checkstring(L, 2);
+  lua_pop(L, 2);
+  m.setDescription(desc.c_str());
+  return 0;
 }
 
 static int luameth_addArg(lua_State *L) {
@@ -170,6 +232,16 @@ bool InitMethod(lua_State *L, int module) {
   lua_setfield(L, klass, "setArg");
   lua_pushcfunction(L, luameth_getArg);
   lua_setfield(L, klass, "getArg");
+  lua_pushcfunction(L, luameth_setDesc);
+  lua_setfield(L, klass, "setDescription");
+  lua_pushcfunction(L, luameth_getDesc);
+  lua_setfield(L, klass, "getDescription");
+  lua_pushcfunction(L, luameth_namedArgIndex);
+  lua_setfield(L, klass, "namedArgIndex");
+  lua_pushcfunction(L, luameth_numPositionalArgs);
+  lua_setfield(L, klass, "numPositionalArgs");
+  lua_pushcfunction(L, luameth_docString);
+  lua_setfield(L, klass, "docString");
   
   lua_pushvalue(L, klass);
   lua_setfield(L, LUA_REGISTRYINDEX, LuaMethod::RegistryKey());
