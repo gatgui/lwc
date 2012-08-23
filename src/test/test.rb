@@ -38,8 +38,9 @@ if not obj.nil? then
   puts "Width = #{obj.getWidth()}"
   obj.setWidth(2)
   puts "=> #{obj.getWidth()}"
-  obj.set([2, 2], :scale => 3, :normalize => false)
-  puts "=> (#{obj.getX()}, #{obj.getY()}"
+  obj.set([2, 2], :scale => 3, :normalize => true)
+  obj.set([4, 3], :scale => 2)
+  puts "=> (#{obj.getX()}, #{obj.getY()})"
   reg.destroy(obj)
 end
 

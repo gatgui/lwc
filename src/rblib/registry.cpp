@@ -180,13 +180,13 @@ static VALUE rbreg_create(VALUE, VALUE rname) {
     return Qnil;
   } else {
     VALUE rv = Qnil;
-    if (!strcmp(obj->getLoaderName(), "rbloader")) {
-      rv = ((Object*)obj)->self();
-      
-    } else {
+    //if (!strcmp(obj->getLoaderName(), "rbloader")) {
+    //  rv = ((Object*)obj)->self();
+    //  
+    //} else {
       rv = rb_funcall2(cLWCObject, rb_intern("new"), 0, NULL);
       SetObjectPointer(rv, obj);
-    }
+    //}
     return rv;
   }
 }
@@ -206,13 +206,13 @@ static VALUE rbreg_get(VALUE, VALUE rname) {
     return Qnil;
   } else {
     VALUE rv = Qnil;
-    if (!strcmp(obj->getLoaderName(), "rbloader")) {
-      rv = ((Object*)obj)->self();
-      
-    } else {
+    //if (!strcmp(obj->getLoaderName(), "rbloader")) {
+    //  rv = ((Object*)obj)->self();
+    //  
+    //} else {
       rv = rb_funcall2(cLWCObject, rb_intern("new"), 0, NULL);
       SetObjectPointer(rv, obj);
-    }
+    //}
     return rv;
   }
 }

@@ -31,8 +31,6 @@ VALUE cLWCArgument = Qnil;
 
 // ---
 
-// ---
-
 void FreeDefaultValue(struct DefaultValueEntry &dve);
 
 struct DefaultValueEntry

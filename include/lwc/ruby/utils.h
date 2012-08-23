@@ -256,6 +256,27 @@ namespace rb {
     // Object#to_s -> "#{id}" ... this could be problematic
   }
   
+  LWCRB_API VALUE GetSymbol(const std::string &key);
+  
+  inline VALUE HashGet(VALUE hash, const std::string &key) {
+    VALUE rkey = GetSymbol(key);
+    return (NIL_P(rkey) ? Qnil : rb_hash_aref(hash, rkey));
+  }
+  
+  inline bool HashSet(VALUE hash, const std::string &key, VALUE val) {
+    VALUE rkey = GetSymbol(key);
+    if (NIL_P(rkey)) {
+      return false;
+    } else {
+      rb_hash_aset(hash, rkey, val);
+      return true;
+    }
+  }
+  
+  inline bool HashHas(VALUE hash, const std::string &key) {
+    VALUE rkey = GetSymbol(key);
+    return (NIL_P(rkey) ? false : (rb_funcall(hash, rb_intern("has_key?"), 1, rkey) == Qtrue));
+  }
   
   namespace Exc {
     

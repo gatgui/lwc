@@ -218,7 +218,61 @@ namespace rb {
     typedef typename lwc::Enum2Type<T>::Type Type;
     typedef typename lwc::Enum2Type<T>::Type* Array;
     
-    static void PreCall(const lwc::Argument &desc, size_t, VALUE *args, size_t nargs, size_t &iarg, std::map<size_t,size_t> &arraySizes, Type &val) {
+    template <typename TT>
+    static bool GetDefaultValue(const lwc::Argument &desc, TT &val) {
+#ifdef _DEBUG
+      std::cout << "Get default value for " << desc.toString() << std::endl;
+#endif
+      if (!desc.hasDefaultValue()) {
+        return false;
+      }
+      
+      const lwc::ArgumentValue &dv = desc.getRawDefaultValue();
+      
+      lwc::Type dt = desc.getType();
+      
+      if (desc.isArray()) {
+        // if TT is a pointer, gcore::TypeTraits<TT>::Value will be the pointer type
+        // that must match the argument type
+        if (lwc::Type2Enum<typename gcore::TypeTraits<TT>::Value>::Enum != (int)dt) {
+          std::cout << "Array type mismatch" << std::endl;
+          return false;
+        }
+      } else {
+        if (lwc::Type2Enum<TT>::Enum != (int)dt) {
+          std::cout << "Type mismatch" << std::endl;
+          return false;
+        }
+      }
+      
+      if (!desc.isArray()) {
+        if (dt == lwc::AT_BOOL) {
+          if (lwc::Convertion<bool, TT>::Possible()) {
+            lwc::Convertion<bool, TT>::Do(dv.boolean, val);
+            return true;
+          }
+        } else if (dt == lwc::AT_INT) {
+          if (lwc::Convertion<lwc::Integer, TT>::Possible()) {
+            lwc::Convertion<lwc::Integer, TT>::Do(dv.integer, val);
+            return true;
+          }
+        } else if (dt == lwc::AT_REAL) {
+          if (lwc::Convertion<lwc::Real, TT>::Possible()) {
+            lwc::Convertion<lwc::Real, TT>::Do(dv.real, val);
+            return true;
+          }
+        }
+      } else {
+        if (lwc::Convertion<void*, TT>::Possible()) {
+          lwc::Convertion<void*, TT>::Do(dv.ptr, val);
+          return true;
+        }
+      }
+      
+      return false;
+    }
+    
+    static bool PreCall(const lwc::Argument &desc, size_t, VALUE *args, VALUE kwargs, size_t nargs, size_t &iarg, std::map<size_t,size_t> &arraySizes, Type &val, std::string &err) {
       if (desc.getDir() == lwc::AD_IN || desc.getDir() == lwc::AD_INOUT) {
         if (desc.arrayArg() >= 0) {
           // this should only be executed for integer types
@@ -227,62 +281,139 @@ namespace rb {
           lwc::Convertion<unsigned long, Type>::Do(idx, val);
         } else {
           if (iarg >= nargs) {
-            rb_raise(rb_eRuntimeError, "Not enough argument");
-            return;
+            bool failed = true;
+            if (desc.isNamed()) {
+              VALUE dv = (NIL_P(kwargs) ? Qnil : HashGet(kwargs, desc.getName()));
+              if (dv != Qnil) {
+                Ruby2C<T>::ToValue(dv, val);
+                failed = false;
+                
+              } else if (desc.hasDefaultValue()) {
+                failed = !GetDefaultValue(desc, val);
+              }
+            }
+            if (failed) {
+              std::cout << "PreCall: not enough argument, expected " << desc.toString() << std::endl;
+              err = "Not enough arguments";
+              return false;
+            }
+            
+          } else {
+            Ruby2C<T>::ToValue(args[iarg], val);
+            ++iarg;
           }
-          Ruby2C<T>::ToValue(args[iarg], val);
-          ++iarg;
         }     
       }
+      return true;
     }
     
-    static void PostCall(const lwc::Argument &desc, size_t, VALUE *, size_t, size_t &iarg, std::map<size_t,size_t> &arraySizes, Type &val, VALUE &rv) {
+    static void PostCall(const lwc::Argument &desc, size_t, VALUE *, VALUE kwargs, size_t nargs, size_t &iarg, std::map<size_t,size_t> &arraySizes, Type &val, VALUE &rv) {
+      bool dontDispose = false;
+      if (iarg >= nargs && desc.isNamed() &&
+          (NIL_P(kwargs) || !HashHas(kwargs, desc.getName())) &&
+          desc.hasDefaultValue()) {
+        dontDispose = true;
+#ifdef _DEBUG
+        std::cout << "Don't dispose default argument value: " << desc.toString() << std::endl;
+#endif
+      }
+      
       if (desc.getDir() == lwc::AD_IN) {
-        Ruby2C<T>::DisposeValue(val);
-        ++iarg;
+        if (!dontDispose) {
+          Ruby2C<T>::DisposeValue(val);
+        }
+        
       } else {
         if (desc.arrayArg() >= 0) {
           arraySizes[size_t(desc.arrayArg())] = size_t(val);
-          Ruby2C<T>::DisposeValue(val);
+          if (!dontDispose) {
+            Ruby2C<T>::DisposeValue(val);
+          }
           
         } else {
           VALUE obj = Qnil;
           C2Ruby<T>::ToValue(val, obj);
-          Ruby2C<T>::DisposeValue(val);
+          if (!dontDispose) {
+            Ruby2C<T>::DisposeValue(val);
+          }
           rb_ary_push(rv, obj);
         }
       }
     }
     
-    static void PreCallArray(const lwc::Argument &desc, size_t idesc, VALUE *args, size_t nargs, size_t &iarg, std::map<size_t,size_t> &arraySizes, Array &ary) {
+    static bool PreCallArray(const lwc::Argument &desc, size_t idesc, const lwc::Argument &sdesc, VALUE *args, VALUE kwargs, size_t nargs, size_t &iarg, std::map<size_t,size_t> &arraySizes, Array &ary, std::string &err) {
       if (desc.getDir() == lwc::AD_IN || desc.getDir() == lwc::AD_INOUT) {
         size_t length;
         if (iarg >= nargs) {
-          rb_raise(rb_eRuntimeError, "Not enough argument");
-          return;
+          bool failed = true;
+          if (desc.isNamed()) {
+            VALUE dv = (NIL_P(kwargs) ? Qnil : HashGet(kwargs, desc.getName()));
+            if (dv != Qnil) {
+              Ruby2C<T>::ToArray(dv, ary, length);
+              arraySizes[idesc] = length;
+              failed = false;
+              
+            } else if (desc.hasDefaultValue()) {
+              failed = !GetDefaultValue(desc, ary);
+              if (!failed) {
+                lwc::Integer tmp;
+                failed = !GetDefaultValue(sdesc, tmp);
+                if (!failed) {
+                  length = (size_t) tmp;
+                }
+              }
+            }
+          }
+          if (failed) {
+            std::cout << "PreCallArray: not enough argument, expected " << desc.toString() << std::endl;
+            err = "Not enough argument";
+            return false;
+          }
+        } else {
+          Ruby2C<T>::ToArray(args[iarg], ary, length);
+          arraySizes[idesc] = length;
+          ++iarg;
         }
-        Ruby2C<T>::ToArray(args[iarg], ary, length);
-        arraySizes[idesc] = length;
-        ++iarg;
       }
+      return true;
     }
     
-    static void PostCallArray(const lwc::Argument &desc, size_t idesc, VALUE *args, size_t, size_t &iarg, std::map<size_t,size_t> &arraySizes, Array &ary, VALUE &rv) {
+    static void PostCallArray(const lwc::Argument &desc, size_t idesc, const lwc::Argument &, VALUE *args, VALUE kwargs, size_t nargs, size_t &iarg, std::map<size_t,size_t> &arraySizes, Array &ary, VALUE &rv) {
+      bool dontDispose = false;
+      if (iarg >= nargs && desc.isNamed() &&
+          (NIL_P(kwargs) || !HashHas(kwargs, desc.getName())) &&
+          desc.hasDefaultValue()) {
+        dontDispose = true;
+#ifdef _DEBUG
+        std::cout << "Don't dispose default array argument value: " << desc.toString() << std::endl;
+#endif
+      }
+      
       if (desc.getDir() == lwc::AD_IN) {
-        Ruby2C<T>::DisposeArray(ary, arraySizes[idesc]);
+        if (!dontDispose) {
+          Ruby2C<T>::DisposeArray(ary, arraySizes[idesc]);
+        }
+        
       } else {
         VALUE obj = Qnil;
         if (desc.getDir() == lwc::AD_INOUT) {
-          obj = args[iarg];
+          if (desc.isNamed()) {
+            obj = (NIL_P(kwargs) ? Qnil : HashGet(kwargs, desc.getName()));
+          } else {
+            obj = args[iarg];
+          }
         }
         C2Ruby<T>::ToArray(ary, arraySizes[idesc], obj);
         if (desc.getDir() != lwc::AD_INOUT) {
-          //if (desc.isAllocated()) {
-          Ruby2C<T>::DisposeArray(ary, arraySizes[idesc]);
-          //}
+          if (!dontDispose) {
+            Ruby2C<T>::DisposeArray(ary, arraySizes[idesc]);
+          }
           rb_ary_push(rv, obj);
+          
         } else {
-          Ruby2C<T>::DisposeArray(ary, arraySizes[idesc]);
+          if (!dontDispose) {
+            Ruby2C<T>::DisposeArray(ary, arraySizes[idesc]);
+          }
         }
       }
     }

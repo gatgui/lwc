@@ -26,6 +26,23 @@ USA.
 
 namespace rb {
 
+// ---
+
+VALUE GetSymbol(const std::string &key) {
+  // Should we cache that?
+  if (key.length() == 0) {
+    return Qnil;
+  }
+  if (key[0] == ':') {
+    return rb_eval_string(key.c_str());
+  } else {
+    std::string sym = ":" + key;
+    return rb_eval_string(sym.c_str());
+  }
+}
+
+// ---
+   
 VALUE mLWC = Qnil;
 
 static VALUE rbil_init(VALUE) {

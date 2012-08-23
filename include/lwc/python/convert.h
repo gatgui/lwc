@@ -385,7 +385,7 @@ namespace py {
             }
           }
           if (failed) {
-            std::cout << "PreCall: not enough argument, expected " << desc.toString() << std::endl;
+            std::cout << "PreCallArray: not enough argument, expected " << desc.toString() << std::endl;
             PyErr_SetString(PyExc_RuntimeError, "Not enough argument");
             return false;
           }

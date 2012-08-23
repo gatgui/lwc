@@ -121,26 +121,46 @@ static VALUE rbobj_getTypeName(VALUE self) {
 }
 
 static VALUE rbobj_mmissing(int argc, VALUE *argv, VALUE self) {
+  // first argument is the method name
+  // last argument can be a Hash
+  
   lwc::Object *obj = 0;
   rb::Exc::GetPointer(self, obj);
   const char *methodName = rb_id2name(SYM2ID(argv[0]));
+  
+  VALUE kwargs = Qnil;
+  
+  if (argc > 1) { // at least 1 argument on top of method name
+    kwargs = rb_check_convert_type(argv[argc-1], T_HASH, "Hash", "to_hash");
+  }
+  
+  size_t nargs = (size_t) (argc - (NIL_P(kwargs) ? 1 : 2));
+  
   //if (!strcmp(obj->getLoaderName(), "rbloader")) {
   //  std::cout << "  Is a ruby object" << std::endl;
   //  return rb_funcall2(((RbObject*)obj)->self(), rb_intern(methodName), argc-1, argv+1);
   //  
   //} else {
     // DO THIS IN A TRY...CATCH -> Method might be missing
+    /*
+LWCRB_API VALUE CallMethod(lwc::Object *o, const char *n,
+                             lwc::MethodParams &params, int cArg,
+                             VALUE *args, VALUE kwargs, size_t nargs, size_t rbArg,
+                             std::map<size_t,size_t> &arraySizes) throw(std::runtime_error)
+     */
+    
     try {
       const lwc::Method &m = obj->getMethod(methodName);
       std::map<size_t, size_t> arraySizes;
       lwc::MethodParams params(m);
-      if (argc-1 == 0) {
-        return CallMethod(obj, methodName, params, 0, NULL, 0, 0, arraySizes);
+      if (nargs == 0) {
+        return CallMethod(obj, methodName, params, 0, NULL, kwargs, 0, 0, arraySizes);
       } else {
-        return CallMethod(obj, methodName, params, 0, argv+1, argc-1, 0, arraySizes);
+        return CallMethod(obj, methodName, params, 0, argv+1, kwargs, nargs, 0, arraySizes);
       }
     } catch (std::runtime_error &e) {
       rb_raise(rb_eRuntimeError, e.what());
+      return Qnil;
     }
   //}
 }

@@ -148,3 +148,5 @@ if memtrack == 1:
   env.Append(CPPDEFINES=["LWC_MEMTRACK"])
 
 excons.DeclareTargets(env, prjs)
+
+Default(["rbmod", "pymod", "cloader", "pyloader", "rbloader"])

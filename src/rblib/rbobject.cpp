@@ -65,7 +65,6 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
   
   const lwc::Method &meth = params.getMethod();
 
-  size_t ninputs = 0;
   size_t nargs = 0;
   size_t nkargs = 0;
   
@@ -80,7 +79,6 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       } else {
         ++nargs;
       }
-      ++ninputs;
     }
   }
   
@@ -115,7 +113,9 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       bool out = (arg.getDir() == lwc::AD_INOUT);
       
       if (out) {
-        inoutArgs[i] = cur;
+        if (!arg.isNamed()) {
+          inoutArgs[i] = cur;
+        }
       }
       
       size_t len = 0;
@@ -250,19 +250,17 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
     }
     
     if (arg.isNamed()) {
-      std::string sym = ":" + arg.getName();
-      rb_hash_aset(kwargs, rb_eval_string(sym.c_str()), rarg);
+      HashSet(kwargs, arg.getName(), rarg);
     } else {
       args[cur] = rarg;
       ++cur;
     }
   }
   
-  //VALUE rv = rb_funcall2(mSelf, rb_intern(name), ninputs, args);
   CallArgs callargs;
   callargs.self = mSelf;
   callargs.name = name;
-  callargs.argc = nargs; //ninputs;
+  callargs.argc = nargs;
   callargs.argv = args;
   
   int err = 0;
@@ -324,7 +322,11 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       
       if (arg.getDir() == lwc::AD_INOUT) {
         
-        crv = args[inoutArgs[i]];
+        if (arg.isNamed()) {
+          crv = HashGet(kwargs, arg.getName());
+        } else {
+          crv = args[inoutArgs[i]];
+        }
         
         len = inoutInSizes[i];
         
