@@ -139,11 +139,11 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
         case lwc::AT_INT: {
           if (!out) {
             lwc::Integer sz;
-            params.get(size_t(arg.arraySizeArg()), sz);
+            params.get(size_t(arg.arraySizeArg()), sz, false);
             len = size_t(sz);
           } else {
             lwc::Integer *sz;
-            params.get(size_t(arg.arraySizeArg()), sz);
+            params.get(size_t(arg.arraySizeArg()), sz, false);
             len = size_t(*sz);
           }
           break;
@@ -160,12 +160,12 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
         case lwc::AT_BOOL: {
           if (!out) {
             bool *ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Lua<lwc::AT_BOOL>::ToArray(ary, len, mState);
             
           } else {
             bool **ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Lua<lwc::AT_BOOL>::ToArray(*ary, len, mState);
           }
           break;
@@ -173,11 +173,11 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
         case lwc::AT_INT: {
           if (!out) {
             lwc::Integer *ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Lua<lwc::AT_INT>::ToArray(ary, len, mState);
           } else {
             lwc::Integer **ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Lua<lwc::AT_INT>::ToArray(*ary, len, mState);
           }
           break;
@@ -185,11 +185,11 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
         case lwc::AT_REAL: {
           if (!out) {
             lwc::Real *ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Lua<lwc::AT_REAL>::ToArray(ary, len, mState);
           } else {
             lwc::Real **ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Lua<lwc::AT_REAL>::ToArray(*ary, len, mState);
           }
           break;
@@ -197,11 +197,11 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
         case lwc::AT_STRING: {
           if (!out) {
             char **ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Lua<lwc::AT_STRING>::ToArray(ary, len, mState);
           } else {
             char ***ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Lua<lwc::AT_STRING>::ToArray(*ary, len, mState);
           }
           break;
@@ -209,11 +209,11 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
         case lwc::AT_OBJECT: {
           if (!out) {
             lwc::Object **ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Lua<lwc::AT_OBJECT>::ToArray(ary, len, mState);
           } else {
             lwc::Object ***ary;
-            params.get(i, ary);
+            params.get(i, ary, false);
             C2Lua<lwc::AT_OBJECT>::ToArray(*ary, len, mState);
           }
           break;
@@ -236,31 +236,31 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       switch(arg.getType()) {
         case lwc::AT_BOOL: {
           bool val;
-          params.get(i, val);
+          params.get(i, val, false);
           C2Lua<lwc::AT_BOOL>::ToValue(val, mState);
           break;
         }
         case lwc::AT_INT: {
           lwc::Integer val;
-          params.get(i, val);
+          params.get(i, val, false);
           C2Lua<lwc::AT_INT>::ToValue(val, mState);
           break;
         }
         case lwc::AT_REAL: {
           lwc::Real val;
-          params.get(i, val);
+          params.get(i, val, false);
           C2Lua<lwc::AT_REAL>::ToValue(val, mState);
           break;
         }
         case lwc::AT_STRING: {
           char *val;
-          params.get(i, val);
+          params.get(i, val, false);
           C2Lua<lwc::AT_STRING>::ToValue(val, mState);
           break;
         }
         case lwc::AT_OBJECT: {
           lwc::Object *val;
-          params.get(i, val);
+          params.get(i, val, false);
           C2Lua<lwc::AT_OBJECT>::ToValue(val, mState);
           break;
         }
@@ -350,32 +350,32 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       switch(arg.getType()) {
         case lwc::AT_BOOL: {
           bool **ary;
-          params.get(i, ary);
+          params.get(i, ary, false);
           Lua2C<lwc::AT_BOOL>::ToArray(mState, crv, *ary, len);
           break;
         }
         
         case lwc::AT_INT: {
           lwc::Integer **ary;
-          params.get(i, ary);
+          params.get(i, ary, false);
           Lua2C<lwc::AT_INT>::ToArray(mState, crv, *ary, len);
           break;
         }
         case lwc::AT_REAL: {
           lwc::Real **ary;
-          params.get(i, ary);
+          params.get(i, ary, false);
           Lua2C<lwc::AT_REAL>::ToArray(mState, crv, *ary, len);
           break;
         }
         case lwc::AT_STRING: {
           char ***ary;
-          params.get(i, ary);
+          params.get(i, ary, false);
           Lua2C<lwc::AT_STRING>::ToArray(mState, crv, *ary, len);
           break;
         }
         case lwc::AT_OBJECT: {
           lwc::Object ***ary;
-          params.get(i, ary);
+          params.get(i, ary, false);
           Lua2C<lwc::AT_OBJECT>::ToArray(mState, crv, *ary, len);
           break;
         }
@@ -389,7 +389,7 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       switch(lenarg.getType()) {
         case lwc::AT_INT: {
           lwc::Integer *sz;
-          params.get(size_t(arg.arraySizeArg()), sz);
+          params.get(size_t(arg.arraySizeArg()), sz, false);
           *sz = (lwc::Integer) len;
           break;
         }
@@ -408,31 +408,31 @@ void Object::call(const char *name, lwc::MethodParams &params) throw(std::runtim
       switch(arg.getType()) {
         case lwc::AT_BOOL: {
           bool *val;
-          params.get(i, val);
+          params.get(i, val, false);
           Lua2C<lwc::AT_BOOL>::ToValue(mState, crv, *val);
           break;
         }
         case lwc::AT_INT: {
           lwc::Integer *val;
-          params.get(i, val);
+          params.get(i, val, false);
           Lua2C<lwc::AT_INT>::ToValue(mState, crv, *val);
           break;
         }
         case lwc::AT_REAL: {
           lwc::Real *val;
-          params.get(i, val);
+          params.get(i, val, false);
           Lua2C<lwc::AT_REAL>::ToValue(mState, crv, *val);
           break;
         }
         case lwc::AT_STRING: {
           char **val;
-          params.get(i, val);
+          params.get(i, val, false);
           Lua2C<lwc::AT_STRING>::ToValue(mState, crv, *val);
           break;
         }
         case lwc::AT_OBJECT: {
           lwc::Object **val;
-          params.get(i, val);
+          params.get(i, val, false);
           Lua2C<lwc::AT_OBJECT>::ToValue(mState, crv, *val);
           break;
         }

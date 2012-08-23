@@ -226,8 +226,15 @@ static int luaobj_call(lua_State *L) {
     lwc::Object *o = LuaObject::UnWrap(L, 1);
     lwc::MethodParams params(o->getMethod(mn));
     size_t nargs = lua_gettop(L) - 1;
+    
+    int kwargs = -1;
+    if (nargs > 0 && lua_istable(L, -1)) {
+      // last arg is a table -> keyword args
+      nargs -= 1;
+      kwargs = lua_gettop(L);
+    }
   
-    int rv = CallMethod(o, mn, params, 0, L, 2, nargs, 0, arraySizes);
+    int rv = CallMethod(o, mn, params, 0, L, 2, nargs, kwargs, 0, arraySizes);
     
     if (rv == NO_RETVAL) {
       return 0;

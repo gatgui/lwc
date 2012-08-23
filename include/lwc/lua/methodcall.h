@@ -33,7 +33,7 @@ namespace lua {
 
   LWCLUA_API int CallMethod(lwc::Object *o, const char *n,
                             lwc::MethodParams &params, int cArg,
-                            lua_State *L, int firstArg, size_t nargs, size_t luaArg, // firstArg, index of first arg on stack, luaArg relative to first arg
+                            lua_State *L, int firstArg, size_t nargs, int kwargs, size_t luaArg, // firstArg, index of first arg on stack, luaArg relative to first arg
                             std::map<size_t,size_t> &arraySizes) throw(std::runtime_error);
 
 }

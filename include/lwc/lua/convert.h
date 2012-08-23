@@ -250,9 +250,75 @@ namespace lua {
     // after the PostCall, the stack should be unchanged
     // rv is the stack index of the return value(s) array
     
-    static void PreCall(const lwc::Argument &desc, size_t /*idesc*/,
-                        lua_State *L, int firstArg, size_t nargs, size_t &iarg,
-                        std::map<size_t,size_t> &arraySizes, Type &val) {
+    template <typename TT>
+    static bool GetDefaultValue(const lwc::Argument &desc, TT &val) {
+#ifdef _DEBUG
+      std::cout << "Get default value for " << desc.toString() << std::endl;
+#endif
+      if (!desc.hasDefaultValue()) {
+        return false;
+      }
+      
+      const lwc::ArgumentValue &dv = desc.getRawDefaultValue();
+      
+      lwc::Type dt = desc.getType();
+      
+      if (desc.isArray()) {
+        // if TT is a pointer, gcore::TypeTraits<TT>::Value will be the pointer type
+        // that must match the argument type
+        if (lwc::Type2Enum<typename gcore::TypeTraits<TT>::Value>::Enum != (int)dt) {
+          std::cout << "Array type mismatch" << std::endl;
+          return false;
+        }
+      } else {
+        if (lwc::Type2Enum<TT>::Enum != (int)dt) {
+          std::cout << "Type mismatch" << std::endl;
+          return false;
+        }
+      }
+      
+      if (!desc.isArray()) {
+        if (dt == lwc::AT_BOOL) {
+          if (lwc::Convertion<bool, TT>::Possible()) {
+            lwc::Convertion<bool, TT>::Do(dv.boolean, val);
+            return true;
+          }
+        } else if (dt == lwc::AT_INT) {
+          if (lwc::Convertion<lwc::Integer, TT>::Possible()) {
+            lwc::Convertion<lwc::Integer, TT>::Do(dv.integer, val);
+            return true;
+          }
+        } else if (dt == lwc::AT_REAL) {
+          if (lwc::Convertion<lwc::Real, TT>::Possible()) {
+            lwc::Convertion<lwc::Real, TT>::Do(dv.real, val);
+            return true;
+          }
+        }
+      } else {
+        if (lwc::Convertion<void*, TT>::Possible()) {
+          lwc::Convertion<void*, TT>::Do(dv.ptr, val);
+          return true;
+        }
+      }
+      
+      return false;
+    }
+    
+    static bool HasKey(lua_State *L, int arg, const std::string &name) {
+      if (!lua_istable(L, arg)) {
+        return false;
+      }
+      lua_pushstring(L, name.c_str());
+      lua_gettable(L, arg);
+      bool rv = !lua_isnil(L, -1);
+      lua_pop(L, 1);
+      return rv;
+    }
+    
+    static bool PreCall(const lwc::Argument &desc, size_t /*idesc*/,
+                        lua_State *L, int firstArg, size_t nargs, int kwargs, size_t &iarg,
+                        std::map<size_t,size_t> &arraySizes, Type &val,
+                        std::string &err) {
       
       if (desc.getDir() == lwc::AD_IN || desc.getDir() == lwc::AD_INOUT) {
         if (desc.arrayArg() >= 0) {
@@ -262,59 +328,121 @@ namespace lua {
           lwc::Convertion<unsigned long, Type>::Do(idx, val);
         } else {
           if (iarg >= nargs) {
-            lua_pushstring(L, "Not enough arguments");
-            lua_error(L);
-            return;
+            bool failed = true;
+            if (desc.isNamed() && kwargs >= 0) {
+              lua_pushstring(L, desc.getName().c_str());
+              lua_gettable(L, firstArg+kwargs);
+              if (!lua_isnil(L, -1)) {
+                Lua2C<T>::ToValue(L, lua_gettop(L), val);
+                failed = false;
+              } else {
+                failed = !GetDefaultValue(desc, val);
+              }
+              lua_pop(L, 1);
+            }
+            if (failed) {
+              err = "Not enough arguments";
+              return false;
+            }
+          } else {
+            Lua2C<T>::ToValue(L, firstArg+iarg, val);
+            ++iarg;
           }
-          Lua2C<T>::ToValue(L, firstArg+iarg, val);
-          ++iarg;
-        }     
+        }
       }
+      return true;
     }
     
     static void PostCall(const lwc::Argument &desc, size_t /*idesc*/,
-                         lua_State *L, int /*firstArg*/, size_t /*nargs*/, size_t &iarg,
+                         lua_State *L, int firstArg, size_t nargs, int kwargs, size_t &iarg,
                          std::map<size_t,size_t> &arraySizes, Type &val, int rv) {
       
+      bool dontDispose = false;
+      if (iarg >= nargs && desc.isNamed() && 
+          (kwargs < 0 || HasKey(L, firstArg+kwargs, desc.getName())) &&
+          desc.hasDefaultValue()) {
+        dontDispose = true;
+      }
+      
       if (desc.getDir() == lwc::AD_IN) {
-        Lua2C<T>::DisposeValue(val);
-        ++iarg;
+        if (!dontDispose) {
+          Lua2C<T>::DisposeValue(val);
+        }
         
       } else {
         if (desc.arrayArg() >= 0) {
           arraySizes[size_t(desc.arrayArg())] = size_t(val);
-          Lua2C<T>::DisposeValue(val);
+          if (!dontDispose) {
+            Lua2C<T>::DisposeValue(val);
+          }
           
         } else {
           lua_pushinteger(L, lua_objlen(L, rv)+1);
           C2Lua<T>::ToValue(val, L);
-          Lua2C<T>::DisposeValue(val);
+          if (!dontDispose) {
+            Lua2C<T>::DisposeValue(val);
+          }
           lua_settable(L, rv);
         }
       }
     }
     
-    static void PreCallArray(const lwc::Argument &desc, size_t idesc,
-                             lua_State *L, int firstArg, size_t nargs, size_t &iarg,
-                             std::map<size_t,size_t> &arraySizes, Array &ary) {
+    static bool PreCallArray(const lwc::Argument &desc, size_t idesc, const lwc::Argument &sdesc,
+                             lua_State *L, int firstArg, size_t nargs, int kwargs, size_t &iarg,
+                             std::map<size_t,size_t> &arraySizes, Array &ary,
+                             std::string &err) {
       if (desc.getDir() == lwc::AD_IN || desc.getDir() == lwc::AD_INOUT) {
         size_t length = 0;
         if (iarg >= nargs) {
-          lua_pushstring(L, "Not enough arguments");
-          lua_error(L);
-          return;
+          bool failed = true;
+          if (desc.isNamed() && kwargs >= 0) {
+            lua_pushstring(L, desc.getName().c_str());
+            lua_gettable(L, firstArg+kwargs);
+            if (!lua_isnil(L, -1)) {
+              Lua2C<T>::ToArray(L, lua_gettop(L), ary, length);
+              arraySizes[idesc] = length;
+              failed = false;
+              
+            } else {
+              failed = !GetDefaultValue(desc, ary);
+              if (!failed) {
+                lwc::Integer tmp;
+                failed = !GetDefaultValue(sdesc, tmp);
+                if (!failed) {
+                  length = (size_t) tmp;
+                }
+              }
+            }
+            lua_pop(L, 1);
+          }
+          if (failed) {
+            err = "Not enough arguments";
+            return false;
+          }
+        } else {
+          Lua2C<T>::ToArray(L, firstArg+iarg, ary, length);
+          arraySizes[idesc] = length;
+          ++iarg;
         }
-        Lua2C<T>::ToArray(L, firstArg+iarg, ary, length);
-        arraySizes[idesc] = length;
-        ++iarg;
       }
+      return true;
     }
     
-    static void PostCallArray(const lwc::Argument &desc, size_t idesc,
-                              lua_State *L, int firstArg, size_t /*nargs*/, size_t &iarg,
+    static void PostCallArray(const lwc::Argument &desc, size_t idesc, const lwc::Argument &,
+                              lua_State *L, int firstArg, size_t nargs, int kwargs, size_t &iarg,
                               std::map<size_t,size_t> &arraySizes, Array &ary, int rv) {
+      
+      bool dontDispose = false;
+      if (iarg >= nargs && desc.isNamed() && 
+          (kwargs < 0 || HasKey(L, firstArg+kwargs, desc.getName())) &&
+          desc.hasDefaultValue()) {
+        dontDispose = true;
+      }
+      
       if (desc.getDir() == lwc::AD_IN) {
-        Lua2C<T>::DisposeArray(ary, arraySizes[idesc]);
+        if (!dontDispose) {
+          Lua2C<T>::DisposeArray(ary, arraySizes[idesc]);
+        }
         
       } else {
         bool onTop = false;
@@ -328,7 +456,9 @@ namespace lua {
           lua_pop(L, 1);
         }
         if (desc.getDir() != lwc::AD_INOUT) {
-          Lua2C<T>::DisposeArray(ary, arraySizes[idesc]);
+          if (!dontDispose) {
+            Lua2C<T>::DisposeArray(ary, arraySizes[idesc]);
+          }
           // add to output
           lua_pushinteger(L, lua_objlen(L, rv)+1);
           lua_pushvalue(L, -2); // the returned array was pushed on top
@@ -336,7 +466,9 @@ namespace lua {
           // also pop return value?
           
         } else {
-          Lua2C<T>::DisposeArray(ary, arraySizes[idesc]);
+          if (!dontDispose) {
+            Lua2C<T>::DisposeArray(ary, arraySizes[idesc]);
+          }
         }
         
         // finally pop the return value of C2Lua<>::ToArray
