@@ -82,7 +82,7 @@ end
 
 local Dict2         = {}
 Dict2.Methods       = {}
-Dict2.Methods.clear = {}
+Dict2.Methods.clear = {{}, "Clear dictionary"}
 setmetatable(Dict2, {__index = Dict})
 
 Dict2.new = function ()
