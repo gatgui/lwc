@@ -111,7 +111,7 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
 }
 #else
 #ifdef __GNUC__
-__attribute__((destructor)) void _pylwcexit() {
+__attribute__((destructor)) void _rblwcexit() {
 #else
 void fini() {
 #endif

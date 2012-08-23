@@ -123,7 +123,7 @@ class RbFactory : public lwc::Factory {
     virtual const char* getDescription(const char *typeName) {
       std::map<std::string, TypeEntry>::iterator it = mTypes.find(typeName);
       if (it != mTypes.end()) {
-        return it->second.desc;
+        return it->second.desc.c_str();
       } else {
         return 0;
       }
@@ -157,7 +157,7 @@ class RbFactory : public lwc::Factory {
         return false;
       }
       
-      const char *desc = NULL;
+      std::string desc;
       VALUE rdesc = rb_check_string_type(rb_const_get(klass, rb_intern("Description")));
       if (!NIL_P(rdesc)) {
         desc = RSTRING(rdesc)->ptr;
@@ -210,6 +210,10 @@ class RbFactory : public lwc::Factory {
         
         bool add = true;
         lwc::Method meth;
+        
+        if (mdesc) {
+          meth.setDescription(mdesc);
+        }
         
         //std::cout << "Add method: " << name << std::endl;
         for (long j=0; j<n; ++j) {
@@ -322,7 +326,7 @@ class RbFactory : public lwc::Factory {
     struct TypeEntry {
       VALUE klass;
       bool singleton;
-      const char *desc;
+      std::string desc;
       lwc::MethodsTable *methods;
     };
     

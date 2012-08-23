@@ -127,6 +127,29 @@ class LuaFactory : public lwc::Factory {
       }
     }
     
+    virtual const char* getDescription(const char *typeName) {
+      std::map<std::string, TypeEntry>::iterator it = mTypes.find(typeName);
+      if (it != mTypes.end()) {
+        return it->second.desc.c_str();
+      } else {
+        return 0;
+      }
+    }
+    
+    virtual std::string docString(const char *typeName, const std::string &indent="") {
+      std::map<std::string, TypeEntry>::iterator it = mTypes.find(typeName);
+      if (it != mTypes.end()) {
+        std::ostringstream oss;
+        oss << indent << typeName << ":" << std::endl;
+        oss << indent << "  " << getDescription(typeName) << std::endl;
+        oss << std::endl;
+        oss << it->second.methods->docString(indent+"  ") << std::endl;
+        return oss.str();
+      } else {
+        return "";
+      }
+    }
+    
     //bool addType(const char *modulename, const char *name, int klass) {
     bool addType(const char *name, int klass) {
       
@@ -140,6 +163,14 @@ class LuaFactory : public lwc::Factory {
       if (!lua_isnil(mState, -1)) {
         if (lua_isboolean(mState, -1)) {
           singleton = (lua_toboolean(mState, -1) == 1);
+        }
+      }
+      
+      std::string desc;
+      lua_getfield(mState, klass, "Description");
+      if (!lua_isnil(mState, -1)) {
+        if (lua_isstring(mState, -1)) {
+          desc = lua_tostring(mState, -1);
         }
       }
       
@@ -170,6 +201,7 @@ class LuaFactory : public lwc::Factory {
         
         if (!lua_istable(mState, -1)) {
           std::cout << "lualoader: Expected table values. Skip method \"" << mn << "\" for type \"" << name << "\"" << std::endl;
+          // NOTE: must keep key on stack
           lua_pop(mState, 1);
           continue;
         }
@@ -180,28 +212,59 @@ class LuaFactory : public lwc::Factory {
         bool add = true;
         lwc::Method meth;
         size_t nargs = lua_objlen(mState, -1);
-        //std::cout << "  " << nargs << " arguments" << std::endl;
         
-        // at this point we have stack +2
+        if (nargs < 1 || nargs > 2) {
+          std::cout << "lualoader: \"Methods\" table value array must have 1 or 2 elements" << std::endl;
+          lua_pop(mState, 1);
+          continue;
+        }
+        
+        if (nargs == 2) {
+          lua_pushinteger(mState, 2);
+          lua_gettable(mState, -1);
+          if (lua_isstring(mState, -1)) {
+            meth.setDescription(lua_tostring(mState, -1));
+          } else {
+            add = false;
+          }
+          lua_pop(mState, 1);
+          if (!add) {
+            std::cout << "lualoader: \"Methods\" table value array 2nd element must be a string" << std::endl;
+            lua_pop(mState, 1);
+            continue;
+          }
+        }
+        
+        lua_pushinteger(mState, 1);
+        lua_gettable(mState, -1);
+        if (!lua_istable(mState, -1)) {
+          std::cout << "lualoader: \"Methods\" table value array 1st element must be a table" << std::endl;
+          lua_pop(mState, 2);
+          continue;
+        }
+        // now argument array is on top
+        nargs = lua_objlen(mState, -1);
+        
+        // at this point we have stack +3 [key, table1, table2]
         
         for (size_t i=0; i<nargs; ++i) {
           // process args
           //std::cout << "  process " << i << std::endl;
           
           lua_pushinteger(mState, i+1);
-          lua_gettable(mState, -2); // stack +3
+          lua_gettable(mState, -2); // stack +4
           
           if (!lua_istable(mState, -1)) {
             std::cout << "lualoader: Arguments must be arrays" << std::endl;
-            lua_pop(mState, 1); // stack +2
+            lua_pop(mState, 1); // stack +3
             add = false;
             break;
           }
           
           size_t alen = lua_objlen(mState, -1);
-          if (alen < 2 || alen > 3) {
-            std::cout << "lualoader: Arguments must be arrays with 2 to 3 elements" << std::endl;
-            lua_pop(mState, 1); // stack +2
+          if (alen < 2 || alen > 6) {
+            std::cout << "lualoader: Arguments must be arrays with 2 to 6 elements" << std::endl;
+            lua_pop(mState, 1); // stack +3
             add = false;
             break;
           }
@@ -209,48 +272,93 @@ class LuaFactory : public lwc::Factory {
           lwc::Argument a;
           
           lua_pushinteger(mState, 1);
-          lua_gettable(mState, -2); // stack +4
+          lua_gettable(mState, -2); // stack +5
           if (!lua_isnumber(mState, -1)) {
             std::cout << "lualoader: Argument array first element must be an integer" << std::endl;
-            lua_pop(mState, 2); //stack +2
+            lua_pop(mState, 2); //stack +3
             add = false;
             break;
           }
           a.setDir(lwc::Direction(lua_tointeger(mState, -1)));
-          lua_pop(mState, 1); // stack +3
+          lua_pop(mState, 1); // stack +4
           
           lua_pushinteger(mState, 2);
-          lua_gettable(mState, -2); // stack +4
+          lua_gettable(mState, -2); // stack +5
           if (!lua_isnumber(mState, -1)) {
             std::cout << "lualoader: Argument array second element must be an integer" << std::endl;
-            lua_pop(mState, 2); // stack +2
+            lua_pop(mState, 2); // stack +3
             add = false;
             break;
           }
           a.setType(lwc::Type(lua_tointeger(mState, -1)));
-          lua_pop(mState, 1); // stack +3
+          lua_pop(mState, 1); // stack +4
           
           //std::cout << "  for now arg = " << a.toString() << std::endl;
           
           if (alen >= 3) {
             lua_pushinteger(mState, 3);
-            lua_gettable(mState, -2); // stack +4
+            lua_gettable(mState, -2); // stack +5
             if (!lua_isnumber(mState, -1)) {
               std::cout << "lualoader: Argument array 3th element must be an integer" << std::endl;
-              lua_pop(mState, 2); // stack +2
+              lua_pop(mState, 2); // stack +3
               add = false;
               break;
             }
             a.setArraySizeArg(lua_tointeger(mState, -1));
-            lua_pop(mState, 1); // stack +3
+            lua_pop(mState, 1); // stack +4
           }
           
-          lua_pop(mState, 1); // stack +2
+          if (alen >= 4) {
+            lua_pushinteger(mState, 4);
+            lua_gettable(mState, -2);
+            if (!lua_isboolean(mState, -1)) {
+              std::cout << "lualoader: Argument array 4th element must be a boolean" << std::endl;
+              lua_pop(mState, 2);
+              add = false;
+              break;
+            }
+            if (lua_toboolean(mState, -2)) {
+              if (alen < 5) {
+                std::cout << "lualoader: Missing default value" << std::endl;
+                lua_pop(mState, 2);
+                add = false;
+                break;
+              }
+              lua_pushinteger(mState, 5);
+              lua_gettable(mState, -1);
+              lua::SetArgDefault(a, mState, lua_gettop(mState));
+              lua_pop(mState, 1);
+            }
+            lua_pop(mState, 1);
+          }
+          
+          if (alen >= 6) {
+            // desc string
+            lua_pushinteger(mState, 6);
+            lua_gettable(mState, -2);
+            if (!lua_isstring(mState, -1)) {
+              std::cout << "lualoader: Argument array 6th element must be a string" << std::endl;
+              lua_pop(mState, 2);
+              add = false;
+              break;
+            }
+            a.setName(lua_tostring(mState, -1));
+            lua_pop(mState, 1);
+          }
+          
+          // pop argument table
+          lua_pop(mState, 1); // stack +3
           
           //std::cout << "  final arg = " << a.toString() << std::endl;
           //std::cout << "  [top = " << lua_gettop(mState) << "]" << std::endl;
           
-          meth.addArg(a);
+          try {
+            meth.addArg(a);
+          } catch (std::exception &e) {
+            std::cout << "lualoader: " << e.what() << std::endl;
+            add = false;
+            break;
+          }
         }
         
         //std::cout << "  method = " << mn << meth.toString() << std::endl;
@@ -294,9 +402,9 @@ class LuaFactory : public lwc::Factory {
           }
         }
         
-        // pop the value only [suppose we still have stack +2 at this point]
+        // pop 2 tables [suppose we still have stack +3 at this point]
         
-        lua_pop(mState, 1);
+        lua_pop(mState, 2); // +1
       }
       
       if (typeMethods) {
@@ -312,6 +420,7 @@ class LuaFactory : public lwc::Factory {
           //te.module = modulename;
           te.methods = typeMethods;
           te.singleton = singleton;
+          te.desc = desc;
           mTypes[name] = te;
           lua_pushvalue(mState, klass);
           
@@ -340,6 +449,7 @@ class LuaFactory : public lwc::Factory {
       //std::string metatable;
       lwc::MethodsTable *methods;
       bool singleton;
+      std::string desc;
     };
     
     lua_State *mState;

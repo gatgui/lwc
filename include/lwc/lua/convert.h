@@ -329,9 +329,9 @@ namespace lua {
         } else {
           if (iarg >= nargs) {
             bool failed = true;
-            if (desc.isNamed() && kwargs >= 0) {
+            if (desc.isNamed() && kwargs != 0) {
               lua_pushstring(L, desc.getName().c_str());
-              lua_gettable(L, firstArg+kwargs);
+              lua_gettable(L, kwargs);
               if (!lua_isnil(L, -1)) {
                 Lua2C<T>::ToValue(L, lua_gettop(L), val);
                 failed = false;
@@ -354,12 +354,12 @@ namespace lua {
     }
     
     static void PostCall(const lwc::Argument &desc, size_t /*idesc*/,
-                         lua_State *L, int firstArg, size_t nargs, int kwargs, size_t &iarg,
+                         lua_State *L, int /*firstArg*/, size_t nargs, int kwargs, size_t &iarg,
                          std::map<size_t,size_t> &arraySizes, Type &val, int rv) {
       
       bool dontDispose = false;
       if (iarg >= nargs && desc.isNamed() && 
-          (kwargs < 0 || HasKey(L, firstArg+kwargs, desc.getName())) &&
+          (kwargs == 0 || HasKey(L, kwargs, desc.getName())) &&
           desc.hasDefaultValue()) {
         dontDispose = true;
       }
@@ -395,9 +395,9 @@ namespace lua {
         size_t length = 0;
         if (iarg >= nargs) {
           bool failed = true;
-          if (desc.isNamed() && kwargs >= 0) {
+          if (desc.isNamed() && kwargs != 0) {
             lua_pushstring(L, desc.getName().c_str());
-            lua_gettable(L, firstArg+kwargs);
+            lua_gettable(L, kwargs);
             if (!lua_isnil(L, -1)) {
               Lua2C<T>::ToArray(L, lua_gettop(L), ary, length);
               arraySizes[idesc] = length;
@@ -434,7 +434,7 @@ namespace lua {
       
       bool dontDispose = false;
       if (iarg >= nargs && desc.isNamed() && 
-          (kwargs < 0 || HasKey(L, firstArg+kwargs, desc.getName())) &&
+          (kwargs == 0 || HasKey(L, kwargs, desc.getName())) &&
           desc.hasDefaultValue()) {
         dontDispose = true;
       }

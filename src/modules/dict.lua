@@ -26,11 +26,12 @@ module(..., package.seeall)
 
 local Dict          = {}
 Dict.Methods        = {}
-Dict.Methods.keys   = {{llwc.AD_OUT, llwc.AT_STRING_ARRAY, 1}, {llwc.AD_OUT, llwc.AT_INT}}
-Dict.Methods.values = {{llwc.AD_OUT, llwc.AT_STRING_ARRAY, 1}, {llwc.AD_OUT, llwc.AT_INT}}
-Dict.Methods.size   = {{llwc.AD_OUT, llwc.AT_INT}}
-Dict.Methods.get    = {{llwc.AD_IN, llwc.AT_STRING}, {llwc.AD_OUT, llwc.AT_STRING}}
-Dict.Methods.set    = {{llwc.AD_IN, llwc.AT_STRING}, {llwc.AD_IN, llwc.AT_STRING}}
+Dict.Methods.keys   = {{{llwc.AD_OUT, llwc.AT_STRING_ARRAY, 1}, {llwc.AD_OUT, llwc.AT_INT}}, "Get dictionary keys list"}
+Dict.Methods.values = {{{llwc.AD_OUT, llwc.AT_STRING_ARRAY, 1}, {llwc.AD_OUT, llwc.AT_INT}}, "Get dictionary values list"}
+Dict.Methods.size   = {{{llwc.AD_OUT, llwc.AT_INT}}, "Get dictionary size"}
+Dict.Methods.get    = {{{llwc.AD_IN, llwc.AT_STRING}, {llwc.AD_OUT, llwc.AT_STRING}}, "Get dictionary value"}
+Dict.Methods.set    = {{{llwc.AD_IN, llwc.AT_STRING}, {llwc.AD_IN, llwc.AT_STRING}}, "Set dictionary value"}
+Dict.Description    = "Object dictionary."
 
 Dict.new = function ()
   self = {}

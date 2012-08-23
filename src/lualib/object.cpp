@@ -227,7 +227,7 @@ static int luaobj_call(lua_State *L) {
     lwc::MethodParams params(o->getMethod(mn));
     size_t nargs = lua_gettop(L) - 1;
     
-    int kwargs = -1;
+    int kwargs = 0;
     if (nargs > 0 && lua_istable(L, -1)) {
       // last arg is a table -> keyword args
       nargs -= 1;

@@ -140,3 +140,24 @@ int CreateModule(lua_State *L) {
   
 }
 
+
+
+#ifdef _WIN32
+BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID) {
+  switch (fdwReason) {
+  case DLL_PROCESS_DETACH:
+    lua::CleanupModule();
+  default:
+    break;
+  }
+  return TRUE;
+}
+#else
+#ifdef __GNUC__
+__attribute__((destructor)) void _lualwcexit() {
+#else
+void fini() {
+#endif
+  lua::CleanupModule();
+}
+#endif

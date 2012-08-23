@@ -40,9 +40,6 @@ class PFactory : public lwc::Factory {
       while (it != mTypes.end()) {
         Py_DECREF(it->second.klass);
         delete it->second.methods;
-        if (it->second.desc) {
-          delete[] it->second.desc;
-        }
         ++it;
       }
     }
@@ -72,7 +69,7 @@ class PFactory : public lwc::Factory {
     virtual const char* getDescription(const char *typeName) {
       std::map<std::string, TypeEntry>::iterator it = mTypes.find(typeName);
       if (it != mTypes.end()) {
-        return it->second.desc;
+        return it->second.desc.c_str();
       } else {
         return 0;
       }
@@ -110,7 +107,7 @@ class PFactory : public lwc::Factory {
     bool addType(const char *name, PyObject *klass) {
       
       bool singleton = false;
-      char *desc = NULL;
+      std::string desc;
       
       PyObject *sg = PyObject_GetAttrString(klass, "Singleton");
       if (!sg) {
@@ -127,9 +124,7 @@ class PFactory : public lwc::Factory {
         PyErr_Clear();
       } else {
         if (PyString_Check(de)) {
-          char *tmp = PyString_AsString(de);
-          desc = new char[strlen(tmp)+1];
-          strcpy(desc, tmp);
+          desc = PyString_AsString(de);
         }
         Py_DECREF(de);
       }
@@ -314,7 +309,7 @@ class PFactory : public lwc::Factory {
     struct TypeEntry {
       PyObject *klass;
       bool singleton;
-      const char *desc;
+      std::string desc;
       lwc::MethodsTable *methods;
     };
     
