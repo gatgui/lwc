@@ -115,16 +115,16 @@ static int luareg_create(lua_State *L) {
     return 1;
     
   } else {
-    if (!strcmp(o->getLoaderName(), "lualoader")) {
-      // lua object has already been created and put in registry so
-      // it doesn't get garbage collected if it goes out of scope in lua
-      lua_pushlightuserdata(L, (void*)o);
-      lua_gettable(L, LUA_REGISTRYINDEX);
-      return 1;
-      
-    } else {
+    //if (!strcmp(o->getLoaderName(), "lualoader")) {
+    //  // lua object has already been created and put in registry so
+    //  // it doesn't get garbage collected if it goes out of scope in lua
+    //  lua_pushlightuserdata(L, (void*)o);
+    //  lua_gettable(L, LUA_REGISTRYINDEX);
+    //  return 1;
+    //  
+    //} else {
       return LuaObject::Wrap(L, o);
-    }
+    //}
   }
 }
 
@@ -149,16 +149,16 @@ static int luareg_get(lua_State *L) {
     return 1;
     
   } else {
-    if (!strcmp(o->getLoaderName(), "lualoader")) {
-      // lua object has already been created and put in registry so
-      // it doesn't get garbage collected if it goes out of scope in lua
-      lua_pushlightuserdata(L, (void*)o);
-      lua_gettable(L, LUA_REGISTRYINDEX);
-      return 1;
-      
-    } else {
+    //if (!strcmp(o->getLoaderName(), "lualoader")) {
+    //  // lua object has already been created and put in registry so
+    //  // it doesn't get garbage collected if it goes out of scope in lua
+    //  lua_pushlightuserdata(L, (void*)o);
+    //  lua_gettable(L, LUA_REGISTRYINDEX);
+    //  return 1;
+    //  
+    //} else {
       return LuaObject::Wrap(L, o);
-    }
+    //}
   }
 }
 
@@ -256,6 +256,54 @@ static int luareg_hasType(lua_State *L) {
   return 1;
 }
 
+static int luareg_getDesc(lua_State *L) {
+  CheckArgCount(L, 2);
+  lwc::Registry *reg = LuaRegistry::UnWrap(L, 1);
+  if (!reg) {
+    reg = lwc::Registry::Instance();
+    if (!reg) {
+      lua_pushstring(L, "llwc.Registry has not been initialized");
+      return lua_error(L);
+    }
+  }
+  if (!lua_isstring(L, 2)) {
+    return luaL_typerror(L, 2, "string");
+  }
+  const char *t = lua_tostring(L, 2);
+  const char *d = reg->getDescription(t);
+  lua_pop(L, 2);
+  lua_pushstring(L, (d ? d : ""));
+  return 1;
+}
+
+static int luareg_docString(lua_State *L) {
+  int nargs = lua_gettop(L);
+  if (nargs < 2 || nargs > 3) {
+    lua_pushstring(L, "2 or 3 arguments expected (including self)");
+    return lua_error(L);
+  }
+  lwc::Registry *reg = LuaRegistry::UnWrap(L, 1);
+  if (!reg) {
+    reg = lwc::Registry::Instance();
+    if (!reg) {
+      lua_pushstring(L, "llwc.Registry has not been initialized");
+      return lua_error(L);
+    }
+  }
+  std::string type = luaL_checkstring(L, 2);
+  std::string indent = "";
+  if (nargs == 3) {
+    if (!lua_isstring(L, 3)) {
+      return luaL_typerror(L, 3, "string");
+    }
+    indent = lua_tostring(L, 3);
+  }
+  lua_pop(L, nargs);
+  std::string ds = reg->docString(type.c_str(), indent);
+  lua_pushstring(L, ds.c_str());
+  return 1;
+}
+
 static int luareg_numTypes(lua_State *L) {
   CheckArgCount(L, 1);
   lwc::Registry *reg = LuaRegistry::UnWrap(L, 1);
@@ -333,6 +381,10 @@ bool InitRegistry(lua_State *L, int module) {
   lua_setfield(L, klass, "getMethods");
   lua_pushcfunction(L, luareg_getTypeName);
   lua_setfield(L, klass, "getTypeName");
+  lua_pushcfunction(L, luareg_getDesc);
+  lua_setfield(L, klass, "getDescription");
+  lua_pushcfunction(L, luareg_docString);
+  lua_setfield(L, klass, "docString");
   lua_pushcfunction(L, luareg_numTypes);
   lua_setfield(L, klass, "numTypes");
   lua_pushcfunction(L, luareg_create);
