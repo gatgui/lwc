@@ -158,6 +158,32 @@ static int luamtbl_tos(lua_State *L) {
   return 1;
 }
 
+static int luamtbl_docString(lua_State *L) {
+  int nargs = lua_gettop(L);
+  if (nargs < 1 || nargs > 2) {
+    lua_pushstring(L, "1 or 2 arguments expected (including self)");
+    lua_error(L);
+    // lua_error doesn't return (long jump) just as rb_raise
+    return 0;
+  }
+  const lwc::MethodsTable *tbl = LuaMethodsTable::UnWrap(L, 1);
+  if (!tbl) {
+    lua_pushstring(L, "Underlying lwc::MethodsTable object does not exist");
+    return lua_error(L);
+  }
+  std::string indent = "";
+  if (nargs == 2) {
+    if (!lua_isstring(L, 2)) {
+      return luaL_typerror(L, 2, "string");
+    }
+    indent = lua_tostring(L, 2);
+  }
+  lua_pop(L, nargs);
+  std::string s = tbl->docString(indent);
+  lua_pushstring(L, s.c_str());
+  return 1;
+}
+
 // ---
 
 bool InitMethodsTable(lua_State *L, int module) {
@@ -175,6 +201,8 @@ bool InitMethodsTable(lua_State *L, int module) {
   lua_setfield(L, klass, "__gc");
   lua_pushcfunction(L, luamtbl_tos);
   lua_setfield(L, klass, "__tostring");
+  lua_pushcfunction(L, luamtbl_docString);
+  lua_setfield(L, klass, "docString");
   lua_pushcfunction(L, luamtbl_numMethods);
   lua_setfield(L, klass, "numMethods");
   lua_pushcfunction(L, luamtbl_findMethod);
