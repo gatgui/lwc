@@ -155,12 +155,12 @@ static PyMethodDef lwcobj_methods[] = {
 
 static PyObject* lwcobj_getattr(PyObject *pself, char *name) {
   // This one replace the "call" method
-  
   PyObject *os = PyString_FromString(name);
   PyObject *o = PyObject_GenericGetAttr(pself, os);
   
   if (!o) {
     
+    PyErr_Clear();
     PyLWCObject *self = (PyLWCObject*) pself;
     
     if (!self->obj) {
