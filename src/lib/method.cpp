@@ -162,7 +162,7 @@ void Method::validateArgs() throw(std::runtime_error) {
         throw std::runtime_error(oss.str());
       }
     //} else if (mArgs[i].getDir() == AD_IN && mustHaveDefault) {
-    } else if (mustHaveDefault) {
+    } else if (mustHaveDefault && mArgs[i].getDir() != AD_OUT) {
       // all remaining arguments must have defaults
       std::ostringstream oss;
       oss << "argument " << i << " must have a default value";

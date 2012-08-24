@@ -293,8 +293,9 @@ class RbFactory : public lwc::Factory {
           }
           try {
             typeMethods->addMethod(mname, meth);
-          } catch (std::runtime_error &) {
+          } catch (std::runtime_error &e) {
             std::cout << "rbloader: Skipped method (2) \"" << mname << "\" for type \"" << name << "\"" << std::endl;
+            std::cout << e.what() << std::endl;
             continue;
           }
         }

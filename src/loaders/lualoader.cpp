@@ -362,7 +362,7 @@ class LuaFactory : public lwc::Factory {
         //std::cout << "  method = " << mn << meth.toString() << std::endl;
         
         if (!add) {
-          std::cout << "lualoader: Skipped method \"" << mn << "\" for type \"" << name << "\"" << std::endl;
+          std::cout << "lualoader: Skipped method (1) \"" << mn << "\" for type \"" << name << "\"" << std::endl;
         
         } else {
           if (!typeMethods) {
@@ -395,7 +395,7 @@ class LuaFactory : public lwc::Factory {
             typeMethods->addMethod(mn, meth);
             
           } catch (std::runtime_error &e) {
-            std::cout << "lualoader: Skipped method \"" << mn << "\" for type \"" << name << "\"" << std::endl;
+            std::cout << "lualoader: Skipped method (2) \"" << mn << "\" for type \"" << name << "\"" << std::endl;
             std::cout << "  " << e.what() << std::endl;
           }
         }
