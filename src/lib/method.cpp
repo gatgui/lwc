@@ -147,7 +147,7 @@ void Method::validateArgs() throw(std::runtime_error) {
         throw std::runtime_error(oss.str());
       }
     //} else if (mArgs[i].getDir() != AD_OUT && mustHaveName) {
-    } else if (mustHaveName) {
+    } else if (mustHaveName && mArgs[i].getDir() != AD_OUT) {
       // reject any positional arguments after keyword ones
       std::ostringstream oss;
       oss << "positional argument " << i << " must precede any named argument";
