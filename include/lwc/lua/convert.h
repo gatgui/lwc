@@ -326,13 +326,16 @@ namespace lua {
         } else {
           if (iarg >= nargs) {
             bool failed = true;
-            if (desc.isNamed() && kwargs != 0) {
-              lua_pushstring(L, desc.getName().c_str());
-              lua_gettable(L, kwargs);
-              if (!lua_isnil(L, -1)) {
-                Lua2C<T>::ToValue(L, lua_gettop(L), val);
-                failed = false;
-              } else {
+            if (desc.isNamed()) {
+              if (kwargs != 0) {
+                lua_pushstring(L, desc.getName().c_str());
+                lua_gettable(L, kwargs);
+                if (!lua_isnil(L, -1)) {
+                  Lua2C<T>::ToValue(L, lua_gettop(L), val);
+                  failed = false;
+                }
+              }
+              if (failed) {
                 failed = !GetDefaultValue(desc, val);
               }
               lua_pop(L, 1);
@@ -392,15 +395,17 @@ namespace lua {
         size_t length = 0;
         if (iarg >= nargs) {
           bool failed = true;
-          if (desc.isNamed() && kwargs != 0) {
-            lua_pushstring(L, desc.getName().c_str());
-            lua_gettable(L, kwargs);
-            if (!lua_isnil(L, -1)) {
-              Lua2C<T>::ToArray(L, lua_gettop(L), ary, length);
-              arraySizes[idesc] = length;
-              failed = false;
-              
-            } else {
+          if (desc.isNamed()) {
+            if (kwargs != 0) {
+              lua_pushstring(L, desc.getName().c_str());
+              lua_gettable(L, kwargs);
+              if (!lua_isnil(L, -1)) {
+                Lua2C<T>::ToArray(L, lua_gettop(L), ary, length);
+                arraySizes[idesc] = length;
+                failed = false;
+              }
+            }
+            if (failed) {
               failed = !GetDefaultValue(desc, ary);
               if (!failed) {
                 lwc::Integer tmp;
