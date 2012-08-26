@@ -54,7 +54,6 @@ int CallMethod(lwc::Object *o, const char *n,
     }
     
   } else {
-    
     int rv;
     
     const lwc::Argument &ad = m[cArg];
@@ -125,9 +124,9 @@ int CallMethod(lwc::Object *o, const char *n,
           if (ParamConverter<lwc::AT_INT>::PreCallArray(ad, cArg, sad, L, firstArg, nargs, kwargs, luaArg, arraySizes, ary, err)) {
             try {
               if (ad.getDir() == lwc::AD_IN) {
-                params.set(cArg, ary);
+                params.set(cArg, ary, false);
               } else {
-                params.set(cArg, &ary);
+                params.set(cArg, &ary, false);
               }
             } catch (std::exception &e) {
               err = e.what();
@@ -147,9 +146,9 @@ int CallMethod(lwc::Object *o, const char *n,
           if (ParamConverter<lwc::AT_INT>::PreCall(ad, cArg, L, firstArg, nargs, kwargs, luaArg, arraySizes, val, err)) {
             try {
               if (ad.getDir() == lwc::AD_IN) {
-                params.set(cArg, val);
+                params.set(cArg, val, false);
               } else {
-                params.set(cArg, &val);
+                params.set(cArg, &val, false);
               }
             } catch (std::exception &e) {
               err = e.what();
@@ -173,9 +172,9 @@ int CallMethod(lwc::Object *o, const char *n,
           if (ParamConverter<lwc::AT_REAL>::PreCallArray(ad, cArg, sad, L, firstArg, nargs, kwargs, luaArg, arraySizes, ary, err)) {
             try {
               if (ad.getDir() == lwc::AD_IN) {
-                params.set(cArg, ary);
+                params.set(cArg, ary, false);
               } else {
-                params.set(cArg, &ary);
+                params.set(cArg, &ary, false);
               }
             } catch (std::exception &e) {
               err = e.what();
@@ -195,9 +194,9 @@ int CallMethod(lwc::Object *o, const char *n,
           if (ParamConverter<lwc::AT_REAL>::PreCall(ad, cArg, L, firstArg, nargs, kwargs, luaArg, arraySizes, val, err)) {
             try {
               if (ad.getDir() == lwc::AD_IN) {
-                params.set(cArg, val);
+                params.set(cArg, val, false);
               } else {
-                params.set(cArg, &val);
+                params.set(cArg, &val, false);
               }
             } catch (std::exception &e) {
               err = e.what();
@@ -221,9 +220,9 @@ int CallMethod(lwc::Object *o, const char *n,
           if (ParamConverter<lwc::AT_STRING>::PreCallArray(ad, cArg, sad, L, firstArg, nargs, kwargs, luaArg, arraySizes, ary, err)) {
             try {
               if (ad.getDir() == lwc::AD_IN) {
-                params.set(cArg, ary);
+                params.set(cArg, ary, false);
               } else {
-                params.set(cArg, &ary);
+                params.set(cArg, &ary, false);
               }
             } catch (std::exception &e) {
               err = e.what();
@@ -243,9 +242,9 @@ int CallMethod(lwc::Object *o, const char *n,
           if (ParamConverter<lwc::AT_STRING>::PreCall(ad, cArg, L, firstArg, nargs, kwargs, luaArg, arraySizes, val, err)) {
             try {
               if (ad.getDir() == lwc::AD_IN) {
-                params.set(cArg, val);
+                params.set(cArg, val, false);
               } else {
-                params.set(cArg, &val);
+                params.set(cArg, &val, false);
               }
             } catch (std::exception &e) {
               err = e.what();
@@ -269,9 +268,9 @@ int CallMethod(lwc::Object *o, const char *n,
           if (ParamConverter<lwc::AT_OBJECT>::PreCallArray(ad, cArg, sad, L, firstArg, nargs, kwargs, luaArg, arraySizes, ary, err)) {
             try {
               if (ad.getDir() == lwc::AD_IN) {
-                params.set(cArg, ary);
+                params.set(cArg, ary, false);
               } else {
-                params.set(cArg, &ary);
+                params.set(cArg, &ary, false);
               }
             } catch (std::exception &e) {
               err = e.what();
@@ -291,9 +290,9 @@ int CallMethod(lwc::Object *o, const char *n,
           if (ParamConverter<lwc::AT_OBJECT>::PreCall(ad, cArg, L, firstArg, nargs, kwargs, luaArg, arraySizes, val, err)) {
             try {
               if (ad.getDir() == lwc::AD_IN) {
-                params.set(cArg, val);
+                params.set(cArg, val, false);
               } else {
-                params.set(cArg, &val);
+                params.set(cArg, &val, false);
               }
             } catch (std::exception &e) {
               err = e.what();
