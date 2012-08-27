@@ -304,11 +304,14 @@ namespace rb {
       return true;
     }
     
-    static void PostCall(const lwc::Argument &desc, size_t, VALUE *, VALUE kwargs, size_t nargs, size_t &iarg, std::map<size_t,size_t> &arraySizes, Type &val, VALUE &rv) {
+    static void PostCall(const lwc::Argument &desc, size_t, VALUE *, VALUE kwargs, size_t nargs, size_t &iarg, std::map<size_t,size_t> &arraySizes, Type &val, VALUE &rv, bool callFailed) {
       bool dontDispose = false;
       if (iarg >= nargs && desc.isNamed() &&
           (NIL_P(kwargs) || !HashHas(kwargs, desc.getName())) &&
           desc.hasDefaultValue()) {
+        dontDispose = true;
+      }
+      if (callFailed && desc.getDir() == lwc::AD_OUT) {
         dontDispose = true;
       }
       
@@ -326,11 +329,15 @@ namespace rb {
           
         } else {
           VALUE obj = Qnil;
-          C2Ruby<T>::ToValue(val, obj);
+          if (!callFailed) {
+            C2Ruby<T>::ToValue(val, obj);
+          }
           if (!dontDispose) {
             Ruby2C<T>::DisposeValue(val);
           }
-          rb_ary_push(rv, obj);
+          if (rv != Qnil) {
+            rb_ary_push(rv, obj);
+          }
         }
       }
     }
@@ -372,11 +379,14 @@ namespace rb {
       return true;
     }
     
-    static void PostCallArray(const lwc::Argument &desc, size_t idesc, const lwc::Argument &, VALUE *args, VALUE kwargs, size_t nargs, size_t &iarg, std::map<size_t,size_t> &arraySizes, Array &ary, VALUE &rv) {
+    static void PostCallArray(const lwc::Argument &desc, size_t idesc, const lwc::Argument &, VALUE *args, VALUE kwargs, size_t nargs, size_t &iarg, std::map<size_t,size_t> &arraySizes, Array &ary, VALUE &rv, bool callFailed) {
       bool dontDispose = false;
       if (iarg >= nargs && desc.isNamed() &&
           (NIL_P(kwargs) || !HashHas(kwargs, desc.getName())) &&
           desc.hasDefaultValue()) {
+        dontDispose = true;
+      }
+      if (callFailed && desc.getDir() == lwc::AD_OUT) {
         dontDispose = true;
       }
       
@@ -387,19 +397,23 @@ namespace rb {
         
       } else {
         VALUE obj = Qnil;
-        if (desc.getDir() == lwc::AD_INOUT) {
-          if (desc.isNamed()) {
-            obj = (NIL_P(kwargs) ? Qnil : HashGet(kwargs, desc.getName()));
-          } else {
-            obj = args[iarg];
+        if (!callFailed) {
+          if (desc.getDir() == lwc::AD_INOUT) {
+            if (desc.isNamed()) {
+              obj = (NIL_P(kwargs) ? Qnil : HashGet(kwargs, desc.getName()));
+            } else {
+              obj = args[iarg];
+            }
           }
+          C2Ruby<T>::ToArray(ary, arraySizes[idesc], obj);
         }
-        C2Ruby<T>::ToArray(ary, arraySizes[idesc], obj);
         if (desc.getDir() != lwc::AD_INOUT) {
           if (!dontDispose) {
             Ruby2C<T>::DisposeArray(ary, arraySizes[idesc]);
           }
-          rb_ary_push(rv, obj);
+          if (rv != Qnil) {
+            rb_ary_push(rv, obj);
+          }
           
         } else {
           if (!dontDispose) {

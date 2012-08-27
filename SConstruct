@@ -149,4 +149,4 @@ if memtrack == 1:
 
 excons.DeclareTargets(env, prjs)
 
-Default(["rbmod", "pymod", "cloader", "pyloader", "rbloader"])
+Default(["rbmod", "pymod", "luamod", "cloader", "pyloader", "rbloader", "lualoader"])

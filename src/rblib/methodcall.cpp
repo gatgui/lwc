@@ -37,8 +37,12 @@ VALUE CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, int c
   if (m.numArgs() == size_t(cArg)) {
     
     if (rbArg != nargs) {
-      rb_raise(rb_eRuntimeError, "Invalid arguments. None expected");
-      //return Qnil;
+      if (cArg == 0) {
+        rb_raise(rb_eRuntimeError, "Invalid arguments. None expected");
+        return Qnil;
+      } else {
+        throw std::runtime_error("Invalid arugments. None expected");
+      }
     }
     
     //std::cout << "  " << cArg << ": call C++ proxy" << std::endl;
@@ -57,8 +61,12 @@ VALUE CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, int c
     const lwc::Argument &ad = m[cArg];
     
     if (!ad.isArray() && ad.getDir() == lwc::AD_INOUT) {
-      rb_raise(rb_eRuntimeError, "inout non array arguments not supported in ruby");
-      //return Qnil;
+      if (cArg == 0) {
+        rb_raise(rb_eRuntimeError, "inout non array arguments not supported in ruby");
+        return Qnil;
+      } else {
+        throw std::runtime_error("inout non array arguments not supported in ruby");
+      }
     }
     
     // PreCallArray will increment rbArg if necessarys
@@ -83,9 +91,16 @@ VALUE CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, int c
               failed = true;
             }
             if (!failed) {
-              rv = CallMethod(o, n, params, cArg+1, args, kwargs, nargs, rbArg, arraySizes);
+              try {
+                rv = CallMethod(o, n, params, cArg+1, args, kwargs, nargs, rbArg, arraySizes);
+              } catch (std::exception &e) {
+                rv = Qnil;
+                err = e.what();
+                failed = true;
+              }
             }
-            ParamConverter<lwc::AT_BOOL>::PostCallArray(ad, cArg, sad, args, kwargs, nargs, oldRbArg, arraySizes, ary, rv);
+            ParamConverter<lwc::AT_BOOL>::PostCallArray(ad, cArg, sad, args, kwargs, nargs, oldRbArg, arraySizes, ary, rv, failed);
+            
           } else {
             failed = true;
           }
@@ -104,9 +119,16 @@ VALUE CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, int c
               failed = true;
             }
             if (!failed) {
-              rv = CallMethod(o, n, params, cArg+1, args, kwargs, nargs, rbArg, arraySizes);
+              try {
+                rv = CallMethod(o, n, params, cArg+1, args, kwargs, nargs, rbArg, arraySizes);
+              } catch (std::exception &e) {
+                rv = Qnil;
+                err = e.what();
+                failed = true;
+              }
             }
-            ParamConverter<lwc::AT_BOOL>::PostCall(ad, cArg, args, kwargs, nargs, oldRbArg, arraySizes, val, rv);
+            ParamConverter<lwc::AT_BOOL>::PostCall(ad, cArg, args, kwargs, nargs, oldRbArg, arraySizes, val, rv, failed);
+            
           } else {
             failed = true;
           }
@@ -129,9 +151,16 @@ VALUE CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, int c
               failed = true;
             }
             if (!failed) {
-              rv = CallMethod(o, n, params, cArg+1, args, kwargs, nargs, rbArg, arraySizes);
+              try {
+                rv = CallMethod(o, n, params, cArg+1, args, kwargs, nargs, rbArg, arraySizes);
+              } catch (std::exception &e) {
+                rv = Qnil;
+                err = e.what();
+                failed = true;
+              }
             }
-            ParamConverter<lwc::AT_INT>::PostCallArray(ad, cArg, sad, args, kwargs, nargs, oldRbArg, arraySizes, ary, rv);
+            ParamConverter<lwc::AT_INT>::PostCallArray(ad, cArg, sad, args, kwargs, nargs, oldRbArg, arraySizes, ary, rv, failed);
+            
           } else {
             failed = true;
           }
@@ -150,9 +179,16 @@ VALUE CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, int c
               failed = true;
             }
             if (!failed) {
-              rv = CallMethod(o, n, params, cArg+1, args, kwargs, nargs, rbArg, arraySizes);
+              try {
+                rv = CallMethod(o, n, params, cArg+1, args, kwargs, nargs, rbArg, arraySizes);
+              } catch (std::exception &e) {
+                rv = Qnil;
+                err = e.what();
+                failed = true;
+              }
             }
-            ParamConverter<lwc::AT_INT>::PostCall(ad, cArg, args, kwargs, nargs, oldRbArg, arraySizes, val, rv);
+            ParamConverter<lwc::AT_INT>::PostCall(ad, cArg, args, kwargs, nargs, oldRbArg, arraySizes, val, rv, failed);
+            
           } else {
             failed = true;
           }
@@ -175,9 +211,16 @@ VALUE CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, int c
               failed = true;
             }
             if (!failed) {
-              rv = CallMethod(o, n, params, cArg+1, args, kwargs, nargs, rbArg, arraySizes);
+              try {
+                rv = CallMethod(o, n, params, cArg+1, args, kwargs, nargs, rbArg, arraySizes);
+              } catch (std::exception &e) {
+                rv = Qnil;
+                err = e.what();
+                failed = true;
+              }
             }
-            ParamConverter<lwc::AT_REAL>::PostCallArray(ad, cArg, sad, args, kwargs, nargs, oldRbArg, arraySizes, ary, rv);
+            ParamConverter<lwc::AT_REAL>::PostCallArray(ad, cArg, sad, args, kwargs, nargs, oldRbArg, arraySizes, ary, rv, failed);
+            
           } else {
             failed = true;
           }
@@ -196,9 +239,16 @@ VALUE CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, int c
               failed = true;
             }
             if (!failed) {
-              rv = CallMethod(o, n, params, cArg+1, args, kwargs, nargs, rbArg, arraySizes);
+              try {
+                rv = CallMethod(o, n, params, cArg+1, args, kwargs, nargs, rbArg, arraySizes);
+              } catch (std::exception &e) {
+                rv = Qnil;
+                err = e.what();
+                failed = true;
+              }
             }
-            ParamConverter<lwc::AT_REAL>::PostCall(ad, cArg, args, kwargs, nargs, oldRbArg, arraySizes, val, rv);
+            ParamConverter<lwc::AT_REAL>::PostCall(ad, cArg, args, kwargs, nargs, oldRbArg, arraySizes, val, rv, failed);
+            
           } else {
             failed = true;
           }
@@ -221,9 +271,16 @@ VALUE CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, int c
               failed = true;
             }
             if (!failed) {
-              rv = CallMethod(o, n, params, cArg+1, args, kwargs, nargs, rbArg, arraySizes);
+              try {
+                rv = CallMethod(o, n, params, cArg+1, args, kwargs, nargs, rbArg, arraySizes);
+              } catch (std::exception &e) {
+                rv = Qnil;
+                err = e.what();
+                failed = true;
+              }
             }
-            ParamConverter<lwc::AT_STRING>::PostCallArray(ad, cArg, sad, args, kwargs, nargs, oldRbArg, arraySizes, ary, rv);
+            ParamConverter<lwc::AT_STRING>::PostCallArray(ad, cArg, sad, args, kwargs, nargs, oldRbArg, arraySizes, ary, rv, failed);
+            
           } else {
             failed = true;
           }
@@ -242,9 +299,16 @@ VALUE CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, int c
               failed = true;
             }
             if (!failed) {
-              rv = CallMethod(o, n, params, cArg+1, args, kwargs, nargs, rbArg, arraySizes);
+              try {
+                rv = CallMethod(o, n, params, cArg+1, args, kwargs, nargs, rbArg, arraySizes);
+              } catch (std::exception &e) {
+                rv = Qnil;
+                err = e.what();
+                failed = true;
+              }
             }
-            ParamConverter<lwc::AT_STRING>::PostCall(ad, cArg, args, kwargs, nargs, oldRbArg, arraySizes, val, rv);
+            ParamConverter<lwc::AT_STRING>::PostCall(ad, cArg, args, kwargs, nargs, oldRbArg, arraySizes, val, rv, failed);
+            
           } else {
             failed = true;
           }
@@ -267,9 +331,16 @@ VALUE CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, int c
               failed = true;
             }
             if (!failed) {
-              rv = CallMethod(o, n, params, cArg+1, args, kwargs, nargs, rbArg, arraySizes);
+              try {
+                rv = CallMethod(o, n, params, cArg+1, args, kwargs, nargs, rbArg, arraySizes);
+              } catch (std::exception &e) {
+                rv = Qnil;
+                err = e.what();
+                failed = true;
+              }
             }
-            ParamConverter<lwc::AT_OBJECT>::PostCallArray(ad, cArg, sad, args, kwargs, nargs, oldRbArg, arraySizes, ary, rv);
+            ParamConverter<lwc::AT_OBJECT>::PostCallArray(ad, cArg, sad, args, kwargs, nargs, oldRbArg, arraySizes, ary, rv, failed);
+            
           } else {
             failed = true;
           }
@@ -288,9 +359,16 @@ VALUE CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, int c
               failed = true;
             }
             if (!failed) {
-              rv = CallMethod(o, n, params, cArg+1, args, kwargs, nargs, rbArg, arraySizes);
+              try {
+                rv = CallMethod(o, n, params, cArg+1, args, kwargs, nargs, rbArg, arraySizes);
+              } catch (std::exception &e) {
+                rv = Qnil;
+                err = e.what();
+                failed = true;
+              }
             }
-            ParamConverter<lwc::AT_OBJECT>::PostCall(ad, cArg, args, kwargs, nargs, oldRbArg, arraySizes, val, rv);
+            ParamConverter<lwc::AT_OBJECT>::PostCall(ad, cArg, args, kwargs, nargs, oldRbArg, arraySizes, val, rv, failed);
+            
           } else {
             failed = true;
           }
@@ -298,34 +376,38 @@ VALUE CallMethod(lwc::Object *o, const char *n, lwc::MethodParams &params, int c
         break;
       }
       default:
-        rb_raise(rb_eRuntimeError, "Invalid argument type");
-        return Qnil;
+        err = "Invalid argument type";
+        failed = true;
     }
     
     if (failed) {
       std::cout << "Return Qnil because of param convertion failure" << std::endl;
-      rb_raise(rb_eRuntimeError, err.c_str());
-      return Qnil;
+      if (cArg == 0) {
+        rb_raise(rb_eRuntimeError, err.c_str());
+        return Qnil;
+      } else {
+        throw std::runtime_error(err.c_str());
+      }
     }
     
-    //if (rv != Qnil) {
-    if (rv != Qnil && cArg == 0)  {
-      size_t sz = RARRAY(rv)->len;
-      if (sz == 0) {
-        rv = Qnil;
+    if (cArg == 0)  {
+      if (rv != Qnil) {
+        size_t sz = RARRAY(rv)->len;
+        if (sz == 0) {
+          rv = Qnil;
         
-      } else if (sz == 1) {
-        rv = RARRAY(rv)->ptr[0];
-      
-      } else {
-        // reverse array
-        size_t hl = sz / 2;
-        for (size_t i=0; i<hl; ++i) {
-          VALUE tmp = RARRAY(rv)->ptr[i];
-          RARRAY(rv)->ptr[i] = RARRAY(rv)->ptr[sz-i-1];
-          RARRAY(rv)->ptr[sz-i-1] = tmp;
+        } else if (sz == 1) {
+          rv = RARRAY(rv)->ptr[0];
+        
+        } else {
+          // reverse array
+          size_t hl = sz / 2;
+          for (size_t i=0; i<hl; ++i) {
+            VALUE tmp = RARRAY(rv)->ptr[i];
+            RARRAY(rv)->ptr[i] = RARRAY(rv)->ptr[sz-i-1];
+            RARRAY(rv)->ptr[sz-i-1] = tmp;
+          }
         }
-        
       }
     }
     

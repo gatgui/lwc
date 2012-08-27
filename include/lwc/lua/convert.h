@@ -217,7 +217,7 @@ namespace lua {
         // we have an already existing array use it
         size_t sz = lua_objlen(L, -1);
         if (length > sz) {
-          // don't need to push nil values, array is resize automatically
+          // don't need to push nil values, array is resized automatically
           
         } else if (length < sz) {
           // set elements nil
@@ -225,7 +225,7 @@ namespace lua {
           for (size_t i=0; i<n; ++i) {
             lua_pushinteger(L, length+i+1);
             lua_pushnil(L);
-            lua_settable(L, -2);
+            lua_settable(L, -3);
           }
         }
         
@@ -355,12 +355,16 @@ namespace lua {
     
     static void PostCall(const lwc::Argument &desc, size_t /*idesc*/,
                          lua_State *L, int /*firstArg*/, size_t nargs, int kwargs, size_t &iarg,
-                         std::map<size_t,size_t> &arraySizes, Type &val, int rv) {
+                         std::map<size_t,size_t> &arraySizes, Type &val, int rv,
+                         bool callFailed) {
       
       bool dontDispose = false;
       if (iarg >= nargs && desc.isNamed() && 
           (kwargs == 0 || HasKey(L, kwargs, desc.getName())) &&
           desc.hasDefaultValue()) {
+        dontDispose = true;
+      }
+      if (callFailed && desc.getDir() == lwc::AD_OUT) {
         dontDispose = true;
       }
       
@@ -377,12 +381,23 @@ namespace lua {
           }
           
         } else {
-          lua_pushinteger(L, lua_objlen(L, rv)+1);
-          C2Lua<T>::ToValue(val, L);
-          if (!dontDispose) {
-            Lua2C<T>::DisposeValue(val);
+          if (rv <= 0) {
+            if (!dontDispose) {
+              Lua2C<T>::DisposeValue(val);
+            }
+            
+          } else {
+            if (!callFailed) {
+              lua_pushinteger(L, lua_objlen(L, rv)+1);
+              C2Lua<T>::ToValue(val, L);
+            } else {
+              lua_pushnil(L);
+            }
+            if (!dontDispose) {
+              Lua2C<T>::DisposeValue(val);
+            }
+            lua_settable(L, rv);
           }
-          lua_settable(L, rv);
         }
       }
     }
@@ -432,12 +447,16 @@ namespace lua {
     
     static void PostCallArray(const lwc::Argument &desc, size_t idesc, const lwc::Argument &,
                               lua_State *L, int firstArg, size_t nargs, int kwargs, size_t &iarg,
-                              std::map<size_t,size_t> &arraySizes, Array &ary, int rv) {
+                              std::map<size_t,size_t> &arraySizes, Array &ary, int rv,
+                              bool callFailed) {
       
       bool dontDispose = false;
       if (iarg >= nargs && desc.isNamed() && 
           (kwargs == 0 || HasKey(L, kwargs, desc.getName())) &&
           desc.hasDefaultValue()) {
+        dontDispose = true;
+      }
+      if (callFailed && desc.getDir() == lwc::AD_OUT) {
         dontDispose = true;
       }
       
@@ -447,25 +466,31 @@ namespace lua {
         }
         
       } else {
-        bool onTop = false;
-        if (desc.getDir() == lwc::AD_INOUT) {
-          // array both input and output -> need to set the onTop in C2Lua<>::ToArray
-          onTop = true;
-          lua_pushvalue(L, firstArg+iarg);
+        if (!callFailed) {
+          bool onTop = false;
+          if (desc.getDir() == lwc::AD_INOUT) {
+            // array both input and output -> need to set the onTop in C2Lua<>::ToArray
+            onTop = true;
+            lua_pushvalue(L, firstArg+iarg);
+          }
+          C2Lua<T>::ToArray(ary, arraySizes[idesc], L, onTop);
+          //if (onTop) {
+          //  lua_pop(L, 1);
+          //}
+        } else {
+          lua_pushnil(L);
         }
-        C2Lua<T>::ToArray(ary, arraySizes[idesc], L, onTop);
-        if (onTop) {
-          lua_pop(L, 1);
-        }
+        
         if (desc.getDir() != lwc::AD_INOUT) {
           if (!dontDispose) {
             Lua2C<T>::DisposeArray(ary, arraySizes[idesc]);
           }
           // add to output
-          lua_pushinteger(L, lua_objlen(L, rv)+1);
-          lua_pushvalue(L, -2); // the returned array was pushed on top
-          lua_settable(L, rv);
-          // also pop return value?
+          if (rv > 0) {
+            lua_pushinteger(L, lua_objlen(L, rv)+1);
+            lua_pushvalue(L, -2); // the returned array was pushed on top
+            lua_settable(L, rv);
+          }
           
         } else {
           if (!dontDispose) {

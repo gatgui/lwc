@@ -38,9 +38,14 @@ int CallMethod(lwc::Object *o, const char *n,
   if (m.numArgs() == size_t(cArg)) {
     
     if (luaArg != nargs) {
-      lua_pushstring(L, "Invalid arguments. None expected");
-      lua_error(L);
-      return BAD_METHOD_CALL;
+      if (cArg == 0) {
+        lua_pushstring(L, "Invalid arguments. None expected");
+        lua_error(L);
+        return BAD_METHOD_CALL;
+      
+      } else {
+        throw std::runtime_error("Invalid arguments. None expected");
+      }
     }
     
     o->call(n, params);
@@ -54,14 +59,19 @@ int CallMethod(lwc::Object *o, const char *n,
     }
     
   } else {
-    int rv;
+    int rv = 0;
     
     const lwc::Argument &ad = m[cArg];
     
     if (!ad.isArray() && ad.getDir() == lwc::AD_INOUT) {
-      lua_pushstring(L, "inout non array arguments not supported in ruby");
-      lua_error(L);
-      return BAD_METHOD_CALL;
+      if (cArg == 0) {
+        lua_pushstring(L, "inout non array arguments not supported in lua");
+        lua_error(L);
+        return BAD_METHOD_CALL;
+      
+      } else {
+        throw std::runtime_error("inout non array arguments not supported in lua");
+      } 
     }
     
     bool failed = false;
@@ -85,9 +95,15 @@ int CallMethod(lwc::Object *o, const char *n,
               failed = true;
             }
             if (!failed) {
-              rv = CallMethod(o, n, params, cArg+1, L, firstArg, nargs, kwargs, luaArg, arraySizes);
+              try {
+                rv = CallMethod(o, n, params, cArg+1, L, firstArg, nargs, kwargs, luaArg, arraySizes);
+              } catch (std::exception &e) {
+                rv = 0;
+                err = e.what();
+                failed = true;
+              }
             }
-            ParamConverter<lwc::AT_BOOL>::PostCallArray(ad, cArg, sad, L, firstArg, nargs, kwargs, oldLuaArg, arraySizes, ary, rv);
+            ParamConverter<lwc::AT_BOOL>::PostCallArray(ad, cArg, sad, L, firstArg, nargs, kwargs, oldLuaArg, arraySizes, ary, rv, failed);
             
           } else {
             failed = true;
@@ -107,9 +123,15 @@ int CallMethod(lwc::Object *o, const char *n,
               failed = true;
             }
             if (!failed) {
-              rv = CallMethod(o, n, params, cArg+1, L, firstArg, nargs, kwargs, luaArg, arraySizes);
+              try {
+                rv = CallMethod(o, n, params, cArg+1, L, firstArg, nargs, kwargs, luaArg, arraySizes);
+              } catch (std::exception &e) {
+                rv = 0;
+                err = e.what();
+                failed = true;
+              }
             }
-            ParamConverter<lwc::AT_BOOL>::PostCall(ad, cArg, L, firstArg, nargs, kwargs, oldLuaArg, arraySizes, val, rv);
+            ParamConverter<lwc::AT_BOOL>::PostCall(ad, cArg, L, firstArg, nargs, kwargs, oldLuaArg, arraySizes, val, rv, failed);
           
           } else {
             failed = true;
@@ -133,9 +155,15 @@ int CallMethod(lwc::Object *o, const char *n,
               failed = true;
             }
             if (!failed) {
-              rv = CallMethod(o, n, params, cArg+1, L, firstArg, nargs, kwargs, luaArg, arraySizes);
+              try {
+                rv = CallMethod(o, n, params, cArg+1, L, firstArg, nargs, kwargs, luaArg, arraySizes);
+              } catch (std::exception &e) {
+                rv = 0;
+                err = e.what();
+                failed = true;
+              }
             }
-            ParamConverter<lwc::AT_INT>::PostCallArray(ad, cArg, sad, L, firstArg, nargs, kwargs, oldLuaArg, arraySizes, ary, rv);
+            ParamConverter<lwc::AT_INT>::PostCallArray(ad, cArg, sad, L, firstArg, nargs, kwargs, oldLuaArg, arraySizes, ary, rv, failed);
             
           } else {
             failed = true;
@@ -155,9 +183,15 @@ int CallMethod(lwc::Object *o, const char *n,
               failed = true;
             }
             if (!failed) {
-              rv = CallMethod(o, n, params, cArg+1, L, firstArg, nargs, kwargs, luaArg, arraySizes);
+              try {
+                rv = CallMethod(o, n, params, cArg+1, L, firstArg, nargs, kwargs, luaArg, arraySizes);
+              } catch (std::exception &e) {
+                rv = 0;
+                err = e.what();
+                failed = true;
+              }
             }
-            ParamConverter<lwc::AT_INT>::PostCall(ad, cArg, L, firstArg, nargs, kwargs, oldLuaArg, arraySizes, val, rv);
+            ParamConverter<lwc::AT_INT>::PostCall(ad, cArg, L, firstArg, nargs, kwargs, oldLuaArg, arraySizes, val, rv, failed);
             
           } else {
             failed = true;
@@ -181,9 +215,15 @@ int CallMethod(lwc::Object *o, const char *n,
               failed = true;
             }
             if (!failed) {
-              rv = CallMethod(o, n, params, cArg+1, L, firstArg, nargs, kwargs, luaArg, arraySizes);
+              try {
+                rv = CallMethod(o, n, params, cArg+1, L, firstArg, nargs, kwargs, luaArg, arraySizes);
+              } catch (std::exception &e) {
+                rv = 0;
+                err = e.what();
+                failed = true;
+              }
             }
-            ParamConverter<lwc::AT_REAL>::PostCallArray(ad, cArg, sad, L, firstArg, nargs, kwargs, oldLuaArg, arraySizes, ary, rv);
+            ParamConverter<lwc::AT_REAL>::PostCallArray(ad, cArg, sad, L, firstArg, nargs, kwargs, oldLuaArg, arraySizes, ary, rv, failed);
             
           } else {
             failed = true;
@@ -203,9 +243,15 @@ int CallMethod(lwc::Object *o, const char *n,
               failed = true;
             }
             if (!failed) {
-              rv = CallMethod(o, n, params, cArg+1, L, firstArg, nargs, kwargs, luaArg, arraySizes);
+              try {
+                rv = CallMethod(o, n, params, cArg+1, L, firstArg, nargs, kwargs, luaArg, arraySizes);
+              } catch (std::exception &e) {
+                rv = 0;
+                err = e.what();
+                failed = true;
+              }
             }
-            ParamConverter<lwc::AT_REAL>::PostCall(ad, cArg, L, firstArg, nargs, kwargs, oldLuaArg, arraySizes, val, rv);
+            ParamConverter<lwc::AT_REAL>::PostCall(ad, cArg, L, firstArg, nargs, kwargs, oldLuaArg, arraySizes, val, rv, failed);
             
           } else {
             failed = true;
@@ -229,9 +275,15 @@ int CallMethod(lwc::Object *o, const char *n,
               failed = true;
             }
             if (!failed) {
-              rv = CallMethod(o, n, params, cArg+1, L, firstArg, nargs, kwargs, luaArg, arraySizes);
+              try {
+                rv = CallMethod(o, n, params, cArg+1, L, firstArg, nargs, kwargs, luaArg, arraySizes);
+              } catch (std::exception &e) {
+                rv = 0;
+                err = e.what();
+                failed = true;
+              }
             }
-            ParamConverter<lwc::AT_STRING>::PostCallArray(ad, cArg, sad, L, firstArg, nargs, kwargs, oldLuaArg, arraySizes, ary, rv);
+            ParamConverter<lwc::AT_STRING>::PostCallArray(ad, cArg, sad, L, firstArg, nargs, kwargs, oldLuaArg, arraySizes, ary, rv, failed);
             
           } else {
             failed = true;
@@ -251,9 +303,15 @@ int CallMethod(lwc::Object *o, const char *n,
               failed = true;
             }
             if (!failed) {
-              rv = CallMethod(o, n, params, cArg+1, L, firstArg, nargs, kwargs, luaArg, arraySizes);
+              try {
+                rv = CallMethod(o, n, params, cArg+1, L, firstArg, nargs, kwargs, luaArg, arraySizes);
+              } catch (std::exception &e) {
+                rv = 0;
+                err = e.what();
+                failed = true;
+              }
             }
-            ParamConverter<lwc::AT_STRING>::PostCall(ad, cArg, L, firstArg, nargs, kwargs, oldLuaArg, arraySizes, val, rv);
+            ParamConverter<lwc::AT_STRING>::PostCall(ad, cArg, L, firstArg, nargs, kwargs, oldLuaArg, arraySizes, val, rv, failed);
             
           } else {
             failed = true;
@@ -277,9 +335,15 @@ int CallMethod(lwc::Object *o, const char *n,
               failed = true;
             }
             if (!failed) {
-              rv = CallMethod(o, n, params, cArg+1, L, firstArg, nargs, kwargs, luaArg, arraySizes);
+              try {
+                rv = CallMethod(o, n, params, cArg+1, L, firstArg, nargs, kwargs, luaArg, arraySizes);
+              } catch (std::exception &e) {
+                rv = 0;
+                err = e.what();
+                failed = true;
+              }
             }
-            ParamConverter<lwc::AT_OBJECT>::PostCallArray(ad, cArg, sad, L, firstArg, nargs, kwargs, oldLuaArg, arraySizes, ary, rv);
+            ParamConverter<lwc::AT_OBJECT>::PostCallArray(ad, cArg, sad, L, firstArg, nargs, kwargs, oldLuaArg, arraySizes, ary, rv, failed);
             
           } else {
             failed = true;
@@ -299,9 +363,15 @@ int CallMethod(lwc::Object *o, const char *n,
               failed = true;
             }
             if (!failed) {
-              rv = CallMethod(o, n, params, cArg+1, L, firstArg, nargs, kwargs, luaArg, arraySizes);
+              try {
+                rv = CallMethod(o, n, params, cArg+1, L, firstArg, nargs, kwargs, luaArg, arraySizes);
+              } catch (std::exception &e) {
+                rv = 0;
+                err = e.what();
+                failed = true;
+              }
             }
-            ParamConverter<lwc::AT_OBJECT>::PostCall(ad, cArg, L, firstArg, nargs, kwargs, oldLuaArg, arraySizes, val, rv);
+            ParamConverter<lwc::AT_OBJECT>::PostCall(ad, cArg, L, firstArg, nargs, kwargs, oldLuaArg, arraySizes, val, rv, failed);
             
           } else {
             failed = true;
@@ -310,15 +380,25 @@ int CallMethod(lwc::Object *o, const char *n,
         break;
       }
       default:
-        lua_pushstring(L, "Invalid argument type");
-        lua_error(L);
-        return BAD_METHOD_CALL;
+        err = "Invalid argument type";
+        failed = true;
+        //lua_pushstring(L, );
+        //lua_error(L);
+        //return BAD_METHOD_CALL;
     }
     
     if (failed) {
-      lua_pushstring(L, err.c_str());
-      lua_error(L);
-      return BAD_METHOD_CALL;
+      // should I throw exception if not final call [cArg == 0]
+      // -> yes because we want all calls to CallMethod in recursion chain to have
+      //    a chance to free its convertion values
+      if (cArg == 0) {
+        lua_pushstring(L, err.c_str());
+        lua_error(L);
+        return BAD_METHOD_CALL;
+        
+      } else {
+        throw std::runtime_error(err.c_str());
+      }
     }
     
     if (cArg == 0) {

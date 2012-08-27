@@ -302,13 +302,16 @@ namespace py {
       }
       return true;
     }
-    static void PostCall(const lwc::Argument &desc, size_t, PyObject *args, PyObject *kwargs, size_t &iarg, std::map<size_t,size_t> &arraySizes, Type &val, PyObject *&rv) {
+    static void PostCall(const lwc::Argument &desc, size_t, PyObject *args, PyObject *kwargs, size_t &iarg, std::map<size_t,size_t> &arraySizes, Type &val, PyObject *&rv, bool callFailed) {
       
       bool dontDispose = false;
       if (iarg >= size_t(PyTuple_Size(args)) && desc.isNamed() &&
           (kwargs == 0 ||
            PyDict_GetItemString(kwargs, desc.getName().c_str()) == 0) &&
           desc.hasDefaultValue()) {
+        dontDispose = true;
+      }
+      if (callFailed && desc.getDir() == lwc::AD_OUT) {
         dontDispose = true;
       }
        
@@ -326,13 +329,19 @@ namespace py {
           
         } else {
           if (rv == 0) {
+            // rv == 0 when call failed
             if (!dontDispose) {
               Python2C<T>::DisposeValue(val);
             }
             
           } else {
             PyObject *obj = 0;
-            C2Python<T>::ToValue(val, obj);
+            if (!callFailed) {
+              C2Python<T>::ToValue(val, obj);
+            } else {
+              obj = Py_None;
+              Py_INCREF(obj);
+            }
             if (!dontDispose) {
               Python2C<T>::DisposeValue(val);
             }
@@ -381,7 +390,7 @@ namespace py {
       }
       return true;
     }
-    static void PostCallArray(const lwc::Argument &desc, size_t idesc, const lwc::Argument &, PyObject *args, PyObject *kwargs, size_t &iarg, std::map<size_t,size_t> &arraySizes, Array &ary, PyObject *&rv) {
+    static void PostCallArray(const lwc::Argument &desc, size_t idesc, const lwc::Argument &, PyObject *args, PyObject *kwargs, size_t &iarg, std::map<size_t,size_t> &arraySizes, Array &ary, PyObject *&rv, bool callFailed) {
       
       bool dontDispose = false;
       if (iarg >= size_t(PyTuple_Size(args)) && desc.isNamed() &&
@@ -389,6 +398,9 @@ namespace py {
            PyDict_GetItemString(kwargs, desc.getName().c_str()) == 0) &&
           desc.hasDefaultValue()) {
         // only for ptr types
+        dontDispose = true;
+      }
+      if (callFailed && desc.getDir() == lwc::AD_OUT) {
         dontDispose = true;
       }
       
@@ -399,10 +411,15 @@ namespace py {
         
       } else {
         PyObject *obj = 0;
-        if (desc.getDir() == lwc::AD_INOUT) {
-          obj = PyTuple_GetItem(args, iarg);
+        if (!callFailed) {
+          if (desc.getDir() == lwc::AD_INOUT) {
+            obj = PyTuple_GetItem(args, iarg);
+          }
+          C2Python<T>::ToArray(ary, arraySizes[idesc], obj);
+        } else {
+          obj = Py_None;
+          Py_INCREF(obj);
         }
-        C2Python<T>::ToArray(ary, arraySizes[idesc], obj);
         if (desc.getDir() != lwc::AD_INOUT) {
           if (!dontDispose) {
             Python2C<T>::DisposeArray(ary, arraySizes[idesc]);
